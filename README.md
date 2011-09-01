@@ -84,10 +84,7 @@ Let's crack on. Open up the **modules/basset/routes.php** file and you'll see an
             ->add('template', 'template.css');
     }
 
-It's that easy. But hang on, before we were using **Basset\Basset::add()** but now we're just using **Basset::add()**
-Good pickup. That's because at the start of our routes.php file we have `use Basset\Basset as Basset;` That's a whole lot
-of Basset. This just allows us to call the Basset class without namespacing it. You can do it in your application as well, but
-for more on that skip down to the **Shortening the Basset** section.
+It's that easy.
 
 You may have noticed that the URI has a **.css** extension. This allows a filter to catch the extension and set the appropriate content type
 for the returned text. You don't have to do it like this though, you can call one of our after filters like so:
@@ -100,11 +97,6 @@ for the returned text. You don't have to do it like this though, you can call on
 
 The above will do the exact same thing. Personally it's easier to just end the route with the appropriate extension. Of course for JavaScript
 files you'd just use **.js** instead.
-
-Route based loading will always combine files into a single file and return it. Depending on your configuration it will also compress. However you can manually
-compress certain assets by calling the **Basset::compress()** method during your method chain.
-
-    return Basset::add('template', 'template.css')->compress();
 
 Rendering the files is easy. In the head of your document just use Laravel's HTML class to load your asset:
 
@@ -148,7 +140,7 @@ Let's use our route based loading example from earlier, but this time load the *
             ->add('template, 'store::template.css');
     }
 
-That's all there is to it. Simple prefix the path name to the asset name and it'll load it for you.
+That's all there is to it. Simply prefix the path name to the asset name and it'll load it for you.
 
 Paths can also be added at runtime, although it's recommended you add them in your configuration file. That way you don't have to go
 through your routes and alter them if you change your directory structure. However, to add paths at runtime simply call the **Basset::path()** method.
@@ -161,20 +153,20 @@ through your routes and alter them if you change your directory structure. Howev
             ->add('template, 'store::template.css');
     }
 
-You also save yourself a few extra lines by defining them in your configuration file.
-
 ## Combining and Compressing Assets
-To use the combining and compressing functionality of Basset you must either use inline styling or route based loading. The prefered method is route
-based loading.
+To use the combining and compressing functionality of Basset you must either use inline styling or route based loading.
 
 By default when you use route based loading assets will automatically be combined into a single file. This occurs regardless of the setting in your
 configuration file. Assets will not be compressed unless you explicitly turn on compression or call the **Basset::compress()** method.
 
-It's possible to combine files during runtime as well by using the **Basset::combine()** method. Example:
+    echo Basset\Basset::add('reset', 'reset.css')->add('template', 'template.css')->compress()->inline();
+
+Compression will combine the files for you.
+It's possible to combine files during runtime without compression by using the **Basset::combine()** method.
 
     echo Basset\Basset::add('reset', 'reset.css')->add('template', 'template.css')->combine()->inline();
 
-In this example we're using the **Basset::inline()** method to achieve the combining of both files.
+In these examples we're using the **Basset::inline()** method to achieve the combining and compression of both files.
 
 **Just so you know...**
 Generally you *should not* compress your assets until you are deploying a live website. Compressing your files every page load isn't a good thing
@@ -191,11 +183,11 @@ To cache specific route based assets, simply use the **Basset::cache()** method.
     return Basset::add('template', 'template.css')->compress()->cache();
 
 On the first page load the asset will be compressed and cached. Further page loads will result in the cached copy being loaded instead of the
-compression being done again.
+asset being re-compressed every time.
 
 Like combining and compressing, caching can also be applied to inline assets.
 
-**Note:** Once assets are cached they will always be loaded regardless of disabling caching. Disabling caching means that assets will no longer be cached.
+**Note:** Once assets are cached the cached copy will *always* be loaded. Disabling caching simply prevents further assets from being cached.
 
 ### Clearing the Cache
 There may be times when you need to force a reset of the cache to add a new cached copy or to stop using a cached copy. The **Basset::reset()** method
