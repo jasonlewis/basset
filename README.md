@@ -4,7 +4,9 @@ you to maintain multiple assets yet combine and compress your code.
 
 Basset features route based loading, compression, combining, pathing, and caching of assets.
 
-**Basset does not support image assets.**
+**Author:** Jason Lewis
+**Website:** [http://jasonlewis.me/projects/basset](http://jasonlewis.me/projects/basset)
+**Version:** 1.0
 
 ## Installation
 
@@ -236,3 +238,8 @@ Basset was written by Jason Lewis for the Laravel framework.
 Basset is released under the MIT License. See the LICENSE file for details.
 
 Copyright 2011 Jason Lewis
+
+## Changelog
+**Version 1.0 - 2nd September 2011**
+
+- Initial release
