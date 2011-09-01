@@ -396,7 +396,7 @@ class Basset_Container {
 	protected function fetch($assets)
 	{
 		$call = array('\System\\File', 'get');
-		if(!$this->settings['routed'] || $this->settings['inline'])
+		if(!$this->settings['routed'] && !$this->settings['inline'])
 		{
 			$call = array('\System\\HTML', $this->type);
 		}

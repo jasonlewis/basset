@@ -194,7 +194,7 @@ class URIRewriter {
      * if you extend Minify_CSS_UriRewriter
      * @var string
      */
-    protected static $className = 'Minify_CSS_UriRewriter';
+    protected static $className = '\\Basset\\Libs\\URIRewriter';
 
     /**
      * Get realpath with any trailing slash removed. If realpath() fails,

@@ -18,7 +18,7 @@
  * @author Stephen Clay <steve@mrclay.org>
  * @author http://code.google.com/u/1stvamp/ (Issue 64 patch)
  */
-class CSSCompressor {
+class CSSCompress {
 
     /**
      * Minify a CSS string
@@ -31,7 +31,7 @@ class CSSCompressor {
      */
     public static function process($css, $options = array())
     {
-        $obj = new Minify_CSS_Compressor($options);
+        $obj = new CSSCompress($options);
         return $obj->_process($css);
     }
 
