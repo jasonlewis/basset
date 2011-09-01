@@ -1,6 +1,6 @@
 # Basset
 Basset is a Better Asset class for the Laravel framework. Basset is a module which means it accepts route based loading. This allows
-you to maintain multiple assets yet retain combined and compressed code.
+you to maintain multiple assets yet combine and compress your code.
 
 Basset features route based loading, compression, combining, pathing, and caching of assets.
 
@@ -9,9 +9,10 @@ Basset features route based loading, compression, combining, pathing, and cachin
 ## Installation
 
 1. Clone or download a tarball of Basset.
-2. Copy the **modules/basset/basset.php** config file into your **application/config** directory. Make any changes to this file you see fit.
-3. Open your **application/config/application.php** file and add 'basset' to your active modules array.
-4. Begin using Basset!
+2. Place the **basset** directory inside your **modules** directory.
+3. Copy the **modules/basset/basset.php** config file into your **application/config** directory. Make any changes to this file you see fit.
+4. Open your **application/config/application.php** file and add 'basset' to your active modules array.
+5. Begin using Basset!
 
 ## Basics
 Basset is designed to be as flexible as possible. It retains much of the standard Asset functionality and is partly based off this
