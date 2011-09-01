@@ -4,9 +4,9 @@ you to maintain multiple assets yet combine and compress your code.
 
 Basset features route based loading, compression, combining, pathing, and caching of assets.
 
-**Author:** Jason Lewis
-**Website:** [http://jasonlewis.me/projects/basset](http://jasonlewis.me/projects/basset)
-**Version:** 1.0
+- **Author:** Jason Lewis
+- **Website:** [http://jasonlewis.me/projects/basset](http://jasonlewis.me/projects/basset)
+- **Version:** 1.0
 
 ## Installation
 
