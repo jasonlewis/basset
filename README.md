@@ -31,8 +31,6 @@ It's possible to chain methods to add multiple assets in one go.
 
 	Basset\Basset::add('template', 'template.css')->add('things', 'things.css');
 
-*Note: Basset will load based on the order of the given assets.*
-
 Let's assume that we did that in our **modules/basset/composers.php** file. Now we want to actually render our assets in our template. Easy.
 
     echo Basset\Basset::styles();
@@ -45,6 +43,14 @@ That's all you need. And it doesn't matter in which order you specify them, eith
 
 So far all we've been talking about is styles, what about JavaScript? Basset has that covered too. Instead of using **Basset::styles()** just use **Basset::scripts()**
 Adding JavaScript assets is exactly the same, except you're using a .js file extension.
+
+### Dependencies
+An optional third parameter is available for dependency sorting. You can give the name of an asset that it will depend on or an array of names.
+
+    Basset\Basset::add('template', 'template.css', 'things')->add('things', 'things.css');
+
+Now the **template** asset depends on **things**, so it will be loaded after **things** has been loaded.
+If no dependency is given then assets are loaded based on the order they are listed.
 
 ### External Assets
 In some cases you may want to link to external assets, such as jQuery hosted by Google. Don't stress, simply write the full URL and Basset will
