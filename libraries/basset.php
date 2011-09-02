@@ -176,6 +176,7 @@ class Basset_Container {
 			if(!$this->is_path($namespace)) throw new \Exception('Invalid namespace for ' . $namespace . '::' . $file);
 		}
 
+		$dependencies = (array) $dependencies;
 		$this->assets[$type][$name] = compact('file', 'namespace', 'dependencies');
 		return $this;
 	}
@@ -405,7 +406,7 @@ class Basset_Container {
 		if(is_array($this->settings['compress'])) extract($this->settings['compress'], EXTR_PREFIX_ALL, 'compress_');
 
 		$return = '';
-		foreach($assets[$this->type] as $data)
+		foreach($this->arrange($assets[$this->type]) as $data)
 		{
 			$contents = $this->get_asset($call, $this->type, $data['file'], $data['namespace']);
 
@@ -482,6 +483,94 @@ class Basset_Container {
 	protected function inline_script($contents)
 	{
 		return '<script type="text/javascript">' . PHP_EOL . $contents . PHP_EOL . '</script>';
+	}
+
+	/**
+	 * arrange
+	 *
+	 * Arranges assets based on dependencies
+	 *
+	 * @author Taylor Otwell (from the Asset class)
+	 * @param array $assets Array of assets to arrange
+	 * @return array
+	 */
+	protected function arrange($assets)
+	{
+		list($original, $sorted) = array($assets, array());
+
+		while(count($assets) > 0)
+		{
+			foreach($assets as $name => $data)
+			{
+				$this->evaluate_asset($name, $data, $original, $sorted, $assets);
+			}
+		}
+
+		return $sorted;
+	}
+
+	/**
+	 * evaluate_asset
+	 *
+	 * Evaluate an asset and its dependencies.
+	 *
+	 * @author Taylor Otwell (from the Asset class)
+	 * @param string $name Name of asset to evaluate
+	 * @param array $data Array of asset information.
+	 * @param array $original Array of original assets.
+	 * @param array $sorted Array of sorted assets.
+	 * @param array $assets
+	 * @return void
+	 */
+	protected function evaluate_asset($name, $data, $original, &$sorted, &$assets)
+	{
+		if(count($assets[$name]['dependencies']) == 0)
+		{
+			$sorted[$name] = $data;
+			unset($assets[$name]);
+		}
+		else
+		{
+			foreach($assets[$name]['dependencies'] as $key => $dependency)
+			{
+				if(!$this->valid_dependency($name, $dependency, $original, $assets))
+				{
+					unset($assets[$name]['dependencies'][$key]);
+					continue;
+				}
+
+				if(!isset($sorted[$dependency])) continue;
+
+				unset($assets[$name]['dependencies'][$key]);
+			}
+		}
+	}
+
+	/**
+	 * valid_dependency
+	 * Check that a dependency is valid.
+	 *
+	 * @author Taylor Otwell (from the Asset class)
+	 * @param string $name Name of the asset
+	 * @param string $dependency Name of dependency
+	 * @param array $original
+	 * @param array $assets
+	 * @return bool
+	 */
+	protected function valid_dependency($name, $dependency, $original, $assets)
+	{
+		if ( ! isset($original[$dependency]))
+		{
+			return false;
+		}
+		elseif ($dependency === $name)
+		{
+			throw new \Exception("Asset [$name] is dependent on itself.");
+		}
+		elseif (isset($assets[$dependency]) and in_array($name, $assets[$dependency]['dependencies']))
+		{
+			throw new \Exception("Assets [$name] and [$dependency] have a circular dependency.");
+		}
 	}
 
 	/**
