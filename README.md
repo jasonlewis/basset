@@ -180,22 +180,23 @@ Basset uses Laravel's inbuilt caching class, so the settings you have defined th
 configuration file (as well as the **cache_for** setting which is the number of minutes to cache the assets) or runtime on specific assets. This
 can be useful when certain parts of a website go live prior to other parts and caching may be required for some items.
 
-To cache specific route based assets, simply use the **Basset::cache()** method.
+To cache assets, simply use the **Basset::remember()** method.
 
-    return Basset::add('template', 'template.css')->compress()->cache();
+    return Basset::add('template', 'template.css')->compress()->remember();
 
 On the first page load the asset will be compressed and cached. Further page loads will result in the cached copy being loaded instead of the
 asset being re-compressed every time.
 
 Like combining and compressing, caching can also be applied to inline assets.
 
-**Note:** Once assets are cached the cached copy will *always* be loaded. Disabling caching simply prevents further assets from being cached.
+**Note:** Once assets are cached the cached copy will *always* be loaded. Disabling caching simply prevents further assets from being cached. To
+stop using the cached copy you must clear it.
 
 ### Clearing the Cache
-There may be times when you need to force a reset of the cache to add a new cached copy or to stop using a cached copy. The **Basset::reset()** method
+There may be times when you need to force a reset of the cache to add a new cached copy or to stop using a cached copy. The **Basset::forget()** method
 does just that.
 
-    return Basset::add('template', 'template.css')->reset();
+    return Basset::add('template', 'template.css')->forget();
 
 The cache will now be cleared and the new copy returned. This will only clear the cache for the current Basset container.
 
