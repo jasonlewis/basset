@@ -418,7 +418,7 @@ class Basset_Container {
 				$contents = Libs\URIRewriter::rewrite($contents, dirname($file));
 			}
 
-			$return .= $contents;
+			$return .= $contents . PHP_EOL;
 		}
 
 		if($this->settings['compress'] === true)
