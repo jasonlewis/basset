@@ -135,7 +135,7 @@ class Basset_Container {
 			'caching'			=> \System\Config::get('basset.caching', false),
 			'cache_for'			=> \System\Config::get('basset.cache_for', 44640),
 			'preserve_lines'	=> \System\Config::get('basset.preserve_lines', false),
-			'reset'				=> false,
+			'forget'			=> false,
 			'inline'			=> false,
 			'routed'			=> false
 		), $settings);
@@ -308,28 +308,28 @@ class Basset_Container {
 	}
 
 	/**
-	 * cache
+	 * remember
 	 *
 	 * Sets Basset to cache the files.
 	 *
 	 * @return Basset_Container
 	 */
-	public function cache()
+	public function remember()
 	{
 		$this->settings['caching'] = true;
 		return $this;
 	}
 
 	/**
-	 * reset
+	 * forget
 	 *
 	 * Sets Basset to clear the cache when ready.
 	 *
 	 * @return Basset_Container
 	 */
-	public function reset()
+	public function forget()
 	{
-		$this->settings['reset'] = true;
+		$this->settings['forget'] = true;
 		return $this;
 	}
 
@@ -488,7 +488,7 @@ class Basset_Container {
 	 * get_cache
 	 *
 	 * Returns false if no cache found, otherwise returns the cached files.
-	 * Also checks if they asked to clear the cache (reset).
+	 * Also clears the cache of they specified to do so.
 	 *
 	 * @return bool|string
 	 */
@@ -498,7 +498,7 @@ class Basset_Container {
 		if(!$cache = \System\Cache::get('basset_' . $this->type . '_' . $name, false)) return false;
 
 		// Clearing the cache?
-		if($this->settings['reset'])
+		if($this->settings['forget'])
 		{
 			\System\Cache::forget('basset_' . $this->type . '_' . $name);
 			return false;
