@@ -5,12 +5,13 @@
  *
  * Basset is a Better Asset handler Basset is based off the Laravel Asset class
  * but includes many other features such as combining of files, route based loading,
- * compression, pathing, and caching.
+ * compression, pathing, caching, and LESS compatibility.
  *
- * @package Basset
- * @author Jason Lewis
+ * @package   Basset
+ * @author    Jason Lewis
  * @copyright 2011 Jason Lewis
- * @url http://jasonlewis.me/projects/basset
+ * @version   1.1
+ * @url       http://jasonlewis.me/projects/basset
  */
 
 class Basset {
@@ -29,8 +30,7 @@ class Basset {
 	 *
 	 * Creates a new Basset_Container
 	 *
-	 * @static
-	 * @param string $name
+	 * @param  string $name
 	 * @return Basset_Container
 	 */
 	public static function container($name = 'default')
@@ -49,7 +49,6 @@ class Basset {
 	 *
 	 * Sets all Basset containers to run in the routed mode.
 	 *
-	 * @static
 	 * @return void
 	 */
 	public static function routed()
@@ -63,9 +62,8 @@ class Basset {
 	 * Inspired by Laravel's Asset class, this method invokes unreachable static methods
 	 * via the default container.
 	 *
-	 * @static
-	 * @param $method
-	 * @param $args
+	 * @param  $method
+	 * @param  $args
 	 * @return Basset_Container
 	 */
 	public static function __callStatic($method, $args)
@@ -89,9 +87,9 @@ class Basset_Container {
 	protected $container;
 
 	/**
-	 * @var string The type of files that are to be displayed.
+	 * @var array Array of assets to render based on the type selected.
 	 */
-	protected $type;
+	protected $assets_to_render;
 
 	/**
 	 * @var array Array of paths relative to the public directory.
@@ -118,36 +116,48 @@ class Basset_Container {
 	 *
 	 * Loads the config and sets up some basic data.
 	 *
-	 * @param string $name Name of container.
-	 * @param array $settings Array of settings passed in.
+	 * @param  string $name    Name of container.
+	 * @param  array $settings Array of settings passed in.
 	 * @return Basset_Container
 	 */
 	public function __construct($name, $settings)
 	{
 		$this->container = $name;
+
 		$this->folders = array(
-			'style'		=> \System\Config::get('basset.folders.css', 'css'),
-			'script'	=> \System\Config::get('basset.folders.js', 'js'),
+			'script'	=> \System\Config::get('basset::basset.folders.js', 'js'),
+			'style'		=> \System\Config::get('basset::basset.folders.css', 'css'),
+			'less'		=> \System\Config::get('basset::basset.folders.less', 'less'),
 		);
+
 		$this->settings = array_merge(array(
-			'combine' 			=> \System\Config::get('basset.combine', false),
-			'compress'			=> \System\Config::get('basset.compress', false),
-			'caching'			=> \System\Config::get('basset.caching', false),
-			'cache_for'			=> \System\Config::get('basset.cache_for', 44640),
-			'preserve_lines'	=> \System\Config::get('basset.preserve_lines', false),
+			'combine' 			=> \System\Config::get('basset::basset.combine', false),
+			'compress'			=> \System\Config::get('basset::basset.compress', false),
+			'caching'			=> \System\Config::get('basset::basset.caching', false),
+			'cache_for'			=> \System\Config::get('basset::basset.cache_for', 44640),
+			'preserve_lines'	=> \System\Config::get('basset::basset.preserve_lines', false),
+			'less'				=> \System\Config::get('basset::basset.less'),
 			'forget'			=> false,
 			'inline'			=> false,
 			'routed'			=> false
 		), $settings);
 
-		foreach(\System\Config::get('basset.paths') as $name => $path)
+		if(is_bool($this->settings['compress']))
+		{
+			$this->settings['compress'] = array(
+				'style' 	=> $this->settings['compress'],
+				'script'	=> $this->settings['compress']
+			);
+		}
+
+		foreach(\System\Config::get('basset::basset.paths') as $name => $path)
 		{
 			$this->path($name, $path);
 		}
 
 		if(!isset($this->paths['default']))
 		{
-			throw new \System\Exception('You need to specify a default path for Basset');
+			throw new \System\Exception('You need to specify a default path for Basset.');
 		}
 
 		return $this;
@@ -158,26 +168,32 @@ class Basset_Container {
 	 *
 	 * Adds an asset.
 	 *
-	 * @param string $name Name of the new asset.
-	 * @param string $file The filename of the asset, relative to either js or css.
-	 * @param array $dependencies Array of asset names this asset depends on (order of loading).
+	 * @param  string $name         Name of the new asset.
+	 * @param  string $file         The filename of the asset, relative to either js or css.
+	 * @param  array  $dependencies Array of asset names this asset depends on (order of loading).
 	 * @return Basset_Container
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
-		$type = \System\File::extension($file) == 'css' ? 'style' : 'script';
+		$type = in_array($extension = \System\File::extension($file), array('css', 'less')) ? 'style' : 'script';
 
-		// Determine if the file is namespaced.
-		$namespace = 'default';
+		$path = 'default';
+		
 		if(strpos($file, '::') !== false)
 		{
-			list($namespace, $file) = explode('::', $file);
+			list($path, $file) = explode('::', $file);
 
-			if(!$this->is_path($namespace)) throw new \Exception('Invalid namespace for ' . $namespace . '::' . $file);
+			if(!$this->is_path($path))
+			{
+				throw new \Exception('Invalid path for ' . $path . '::' . $file);
+			}
 		}
 
 		$dependencies = (array) $dependencies;
-		$this->assets[$type][$name] = compact('file', 'namespace', 'dependencies');
+		$less = $extension == 'less';
+
+		$this->assets[$type][$name] = compact('file', 'path', 'dependencies', 'less', 'type');
+
 		return $this;
 	}
 
@@ -186,16 +202,23 @@ class Basset_Container {
 	 *
 	 * Adds a path if it does not already exist.
 	 *
-	 * @param string $name Name of path to add.
-	 * @param string $path Path relative to the public directory
+	 * @param  string $name Name of path to add.
+	 * @param  string $path Path relative to the public directory
 	 * @return Basset_Container
 	 */
 	public function path($name, $path)
 	{
 		if(!$this->is_path($name))
 		{
-			if(substr($path, 0, 1) === '/') $path = substr($path, 1);
-			if(substr($path, -1) !== '/') $path .= '/';
+			if(substr($path, 0, 1) === '/')
+			{
+				$path = substr($path, 1);
+			}
+
+			if(substr($path, -1) !== '/')
+			{
+				$path .= '/';
+			}
 			
 			$this->paths[$name] = $path;
 		}
@@ -205,26 +228,38 @@ class Basset_Container {
 	/**
 	 * styles
 	 *
-	 * Sets Basset to use styles.
+	 * Sets Basset to use styles only.
 	 *
 	 * @return Basset_Container
 	 */
 	public function styles()
 	{
-		$this->type = 'style';
+		if(!isset($this->assets['style']))
+		{
+			throw new \Exception('Could not switch Basset to use styles for output because no styles have been added.');
+		}
+
+		$this->assets_to_render = array('style', $this->assets['style']);
+
 		return $this;
 	}
 
 	/**
 	 * scripts
 	 *
-	 * Sets Basset to use scripts.
+	 * Sets Basset to use scripts only.
 	 *
 	 * @return Basset_Container
 	 */
 	public function scripts()
 	{
-		$this->type = 'script';
+		if(!isset($this->assets['script']))
+		{
+			throw new \Exception('Could not switch Basset to use scripts for output because no scripts have been added.');
+		}
+
+		$this->assets_to_render = array('script', $this->assets['script']);
+
 		return $this;
 	}
 
@@ -233,39 +268,89 @@ class Basset_Container {
 	 *
 	 * Fetches an asset file.
 	 *
-	 * @param array $call Class and method to call
-	 * @param string $type Type of file.
-	 * @param string $file The file path.
-	 * @param string $namespace The namespace to use for the file.
+	 * @param  array $asset Array of asset data.
 	 * @return string
 	 */
-	public function get_asset($call, $type, $file, $namespace = null)
+	public function get_asset($asset)
 	{
-		if(!parse_url($file, PHP_URL_SCHEME))
+		if(!parse_url($asset['file'], PHP_URL_SCHEME))
 		{
 			// If it's not a well-formed URL than it's part of the local directory.
-			$file = ($this->is_path($namespace) ? $this->get_path($namespace) : '') . $this->folders[$type] . '/' . $file;
+			$asset['file'] = $this->get_path($asset['path']) . $this->folders[$asset['less'] ? 'less' : $asset['type']] . '/' . $asset['file'];
 		}
-		return call_user_func_array($call, array($file));
+
+		$call = array('\System\\File', 'get');
+		$params = array($asset['file']);
+
+		if(!$this->settings['routed'] && !$this->settings['inline'])
+		{
+			$call = array('\System\\HTML', $asset['type']);
+
+			if($asset['less'])
+			{
+				$params[] = array('rel' => 'stylesheet/less');
+			}
+		}
+
+		return call_user_func_array($call, $params);
 	}
 
 	/**
 	 * determine
 	 *
-	 * Determines what container and filetype shall be used. Generally only called by
-	 * the __toString method if either of the settings is not yet set.
+	 * Determines the filetype to show if none is manually selected.
+	 * Defaults to style of both styles and scripts are present.
 	 *
 	 * @return Basset_Container
 	 */
 	public function determine()
 	{
-		if(is_null($this->type))
+		if(is_null($this->assets_to_render))
 		{
-			$styles = isset($this->assets['style']);
-			$scripts = isset($this->assets['script']);
+			if($this->settings['routed'] || $this->settings['inline'])
+			{
+				if(isset($this->assets['style']) && isset($this->assets['script']))
+				{
+					throw new \Exception('Basset is not able to render both styles and scripts via route based or inline loading.');
+				}
 
-			$this->type = $styles && $scripts ? 'style' : ($styles && !$scripts ? 'style' : 'script');
+				$this->assets_to_render = isset($this->assets['style']) ? array('style', $this->assets['style']) : array('script', $this->assets['script']);
+			}
+			else
+			{
+				$this->assets_to_render = array(isset($this->assets['script']) && isset($this->assets['style']) ? 'both' : (isset($this->assets['script']) ? 'script' : 'style'), array());
+				
+				foreach($this->assets as $type => $assets)
+				{
+					foreach($assets as $name => $data)
+					{
+						array_walk($data['dependencies'], function(&$dependency, $key) use ($type)
+						{
+							if(strpos($dependency, '::') === true)
+							{
+								list($user_set_type, $user_file_name) = explode('::', $dependency);
+
+								if(in_array($user_set_type, array('script', 'style')))
+								{
+									return false;
+								}
+							}
+
+							$dependency = $type . '::' . $dependency;
+						});
+
+						$this->assets_to_render[1][$type . '::' . $name] = $data;
+					}
+				}
+			}
 		}
+
+		// Makes it prettier.
+		$this->assets_to_render = array(
+			'type'		=> $this->assets_to_render[0],
+			'assets'	=> $this->assets_to_render[1]
+		);
+
 		return $this;
 	}
 
@@ -279,6 +364,7 @@ class Basset_Container {
 	public function combine()
 	{
 		$this->settings['combine'] = true;
+
 		return $this;
 	}
 
@@ -292,6 +378,7 @@ class Basset_Container {
 	public function compress()
 	{
 		$this->settings['compress'] = true;
+
 		return $this;
 	}
 
@@ -305,6 +392,7 @@ class Basset_Container {
 	public function inline()
 	{
 		$this->settings['inline'] = true;
+
 		return $this;
 	}
 
@@ -313,24 +401,32 @@ class Basset_Container {
 	 *
 	 * Sets Basset to cache the files.
 	 *
+	 * @param  int $for Time in hours to cache for. (optional)
 	 * @return Basset_Container
 	 */
-	public function remember()
+	public function remember($for = null)
 	{
 		$this->settings['caching'] = true;
+
+		if(!is_null($for))
+		{
+			$this->settings['cache_for'] = $for;
+		}
+
 		return $this;
 	}
 
 	/**
 	 * forget
 	 *
-	 * Sets Basset to clear the cache when ready.
+	 * Sets Basset to clear the cache.
 	 *
 	 * @return Basset_Container
 	 */
 	public function forget()
 	{
 		$this->settings['forget'] = true;
+
 		return $this;
 	}
 
@@ -339,12 +435,13 @@ class Basset_Container {
 	 *
 	 * Returns the path for a given path name.
 	 *
-	 * @param string $path Name of path to retrieve
+	 * @param  string $path Name of path to retrieve
 	 * @return string
 	 */
 	public function get_path($path)
 	{
 		if(!isset($this->paths[$path])) return '';
+
 		return $this->paths[$path];
 	}
 
@@ -353,7 +450,7 @@ class Basset_Container {
 	 *
 	 * Checks if a path is valid.
 	 *
-	 * @param string $path Name of path to check.
+	 * @param  string $path Name of path to check.
 	 * @return bool
 	 */
 	protected function is_path($path)
@@ -364,8 +461,7 @@ class Basset_Container {
 	/**
 	 * render
 	 *
-	 * Renders all the assets for the given types and container. Minifies when required.
-	 * Also loads cache if available.
+	 * Renders all the assets for the given type. First checks for a cached copy of the assets.
 	 *
 	 * @return string
 	 */
@@ -373,16 +469,23 @@ class Basset_Container {
 	{
 		if(!$assets = $this->get_cache())
 		{
-			if(!isset($this->assets[$this->type]) || count($this->assets[$this->type]) == 0) return '';
+			if(!isset($this->assets_to_render['assets']) || count($this->assets_to_render['assets']) == 0)
+			{
+				return '';
+			}
 
-			// Fetch the assets.
-			$assets = $this->fetch($this->assets);
+			$assets = $this->fetch();
 
-			// Run the caching mechanism.
 			$this->do_cache($assets);
 		}
 
-		if($this->settings['inline']) $assets = call_user_func_array(array($this, 'inline_' . $this->type), array($assets));
+		if($this->settings['inline'])
+		{
+			$assets = $this->inline_assets($assets);
+		}
+
+		$this->assets = $this->assets_to_render = array();
+
 		return $assets;
 	}
 
@@ -391,70 +494,89 @@ class Basset_Container {
 	 *
 	 * Fetches assets for the given type.
 	 *
-	 * @param array $assets Array of assets to fetch from.
 	 * @return string
 	 */
-	protected function fetch($assets)
+	protected function fetch()
 	{
-		$call = array('\System\\File', 'get');
-		if(!$this->settings['routed'] && !$this->settings['inline'])
+		$compress_style = $compress_script = null;
+		extract($this->settings['compress'], EXTR_PREFIX_ALL, 'compress_');
+
+		$finalized = array();
+		$compress = array();
+
+		foreach($this->arrange($this->assets_to_render['assets']) as $asset)
 		{
-			$call = array('\System\\HTML', $this->type);
-		}
+			$contents = $this->get_asset($asset);
 
-		$compress_css = $compress_js = null;
-		if(is_array($this->settings['compress'])) extract($this->settings['compress'], EXTR_PREFIX_ALL, 'compress_');
-
-		$return = '';
-		foreach($this->arrange($assets[$this->type]) as $data)
-		{
-			$contents = $this->get_asset($call, $this->type, $data['file'], $data['namespace']);
-
-			if($this->type == 'style' && ($this->settings['compress'] === true || $compress_css === true || $this->settings['routed'] === true || $this->settings['combine'] === true))
+			if($asset['type'] == 'style' && ($compress_style || $this->settings['routed'] || $this->settings['combine']))
 			{
-				// We need to rewrite URIs if combining or compressing CSS files.
-				// Compression results in all files being combined regardless of the combined setting.
-				$file = $this->get_filename($data, $this->type);
+				// We need to rewrite URIs if combining or compressing CSS files. Compression will automatically combine all files regardless of the setting.
+				$file = $this->get_filename($asset);
+				
 				$contents = Libs\URIRewriter::rewrite($contents, dirname($file));
 			}
 
-			$return .= $contents . PHP_EOL;
-		}
-
-		if($this->settings['compress'] === true)
-		{
-			switch($this->type)
+			if($asset['less'] && $this->settings['less']['php_compiler'] && ($this->settings['routed'] || $this->settings['inline']))
 			{
-				case 'style':
-					if(!isset($compress_css) || $compress_css === true)
-					{
-						$return = Libs\CSSCompress::process($return, array('preserve_lines' => $this->settings['preserve_lines']));
-					}
-				break;
-				case 'script':
-					if(!isset($compress_js) || $compress_js === true)
-					{
-						$return = Libs\JSMin::minify($return);
-					}
-				break;
+				// If using the LessPHP compiler and this file is LESS based, parse the contents.
+				// Only if we are using the route based loading or inline display of styles.
+				$less = new Libs\LessPHP;
+				
+				$contents = $less->parse($contents);
+			}
+
+			if(($asset['type'] == 'style' && $compress_style) || ($asset['type'] == 'script' && $compress_script) && ($this->settings['routed'] || $this->settings['inline']))
+			{
+				$compress[$asset['type']][] = $contents;
+			}
+			else
+			{
+				$finalized[] = $contents;
 			}
 		}
 
-		return $return;
+		if(isset($compress['style']))
+		{
+			$finalized[] = Libs\CSSCompress::process(implode(PHP_EOL, $compress['style']), array('preserve_lines' => $this->settings['preserve_lines']));
+		}
+
+		if(isset($compress['script']))
+		{
+			$finalized[] = Libs\JSMin::minify(implode(PHP_EOL, $compress['script']));
+		}
+
+		return implode(PHP_EOL, $finalized);
 	}
 
 	/**
 	 * get_filename
 	 *
-	 * Returns the full name of the file with prefixed namespace.
+	 * Returns the full name of the file with prefixed pathname.
 	 *
-	 * @param array $data Singular asset data array.
-	 * @param string $type Type of asset.
+	 * @param  array $data  Singular asset data array.
 	 * @return string
 	 */
-	protected function get_filename($data, $type)
+	protected function get_filename($data)
 	{
-		return ($this->is_path($data['namespace']) ? $this->get_path($data['namespace']) : '') . $this->folders[$type] . '/' . $data['file'];
+		return $this->get_path($data['path']) . $this->folders[$data['less'] ? 'less' : $data['type']] . '/' . $data['file'];
+	}
+
+	/**
+	 * inline_assets
+	 *
+	 * Calls the appropriate inline assets method or fails if trying to show both inline.
+	 *
+	 * @param  string $contents Contents to embed within tag.
+	 * @return mixed
+	 */
+	protected function inline_assets($contents)
+	{
+		if($this->assets_to_render['type'] === 'both')
+		{
+			throw new \Exception('Basset is not able to render both styles and scripts inline when called on the same instance.');
+		}
+
+		return call_user_func(array($this, 'inline_' . $this->assets_to_render['type']), $contents);
 	}
 
 	/**
@@ -463,7 +585,7 @@ class Basset_Container {
 	 * Converts the asset contents into the inline style tag. Not ideal using the HTML in here
 	 * but it saves calling a View.
 	 *
-	 * @param string $contents Contents to embed within the inline tag.
+	 * @param  string $contents Contents to embed within the inline tag.
 	 * @return string
 	 */
 	protected function inline_style($contents)
@@ -571,6 +693,8 @@ class Basset_Container {
 		{
 			throw new \Exception("Assets [$name] and [$dependency] have a circular dependency.");
 		}
+
+		return true;
 	}
 
 	/**
@@ -584,12 +708,16 @@ class Basset_Container {
 	protected function get_cache()
 	{
 		$name = $this->get_cache_name();
-		if(!$cache = \System\Cache::get('basset_' . $this->type . '_' . $name, false)) return false;
 
-		// Clearing the cache?
+		if(!$cache = \System\Cache::get('basset_' . $name, false))
+		{
+			return false;
+		}
+
 		if($this->settings['forget'])
 		{
-			\System\Cache::forget('basset_' . $this->type . '_' . $name);
+			\System\Cache::forget('basset_' . $name);
+
 			return false;
 		}
 
@@ -599,18 +727,21 @@ class Basset_Container {
 	/**
 	 * do_cache
 	 *
-	 * Stores the assets in the cache of the option is set.
+	 * Stores the assets in the cache if the option is set.
 	 *
-	 * @param string $assets
+	 * @param  string $assets
 	 * @return void
 	 */
 	protected function do_cache($assets)
 	{
 		$name = $this->get_cache_name();
-		if($this->settings['caching'] === false || \System\Cache::has('basset_' . $this->type . '_' . $name)) return false;
-		
-		// Cache the assets.
-		\System\Cache::put('basset_' . $this->type . '_' . $name, $assets, $this->settings['cache_for']);
+
+		if(!$this->settings['caching'] || \System\Cache::has('basset_' . $name))
+		{
+			return false;
+		}
+
+		\System\Cache::put('basset_' . $name, $assets, $this->settings['cache_for'] * 60);
 	}
 
 	/**
@@ -623,10 +754,17 @@ class Basset_Container {
 	protected function get_cache_name()
 	{
 		$name = array();
-		foreach($this->assets[$this->type] as $data)
+
+		if(!isset($this->assets_to_render['assets']))
 		{
-			$name[] = $this->get_filename($data, $this->type);
+			return '';
 		}
+
+		foreach($this->assets_to_render['assets'] as $data)
+		{
+			$name[] = $this->get_filename($data);
+		}
+
 		sort($name);
 		
 		return md5(implode('', $name));

@@ -1,4 +1,5 @@
-<?php use Basset\Basset as Basset;
+<?php
+
 return array(
 
 	/**
@@ -7,7 +8,7 @@ return array(
 	 */
 	'before' => function()
 	{
-		Basset::routed();
+		Basset\Basset::routed();
 	},
 
 	/**
@@ -18,16 +19,31 @@ return array(
 	{
 		$types = array(
 			'css' 	=> 'text/css',
+			'less'	=> 'text/css',
 			'js'	=> 'text/javascript'
 		);
 		
 		if(strrpos($uri, '.') !== false && ($ext = \File::extension($uri))) $response->header('Content-Type', $types[$ext]);
+
+		// If sessions are enabled, refresh flash data because a Basset request should not count.
+		if(Config::get('session.driver') != '')
+		{
+			Session::keep();
+		}
 	},
 
 	/**
 	 * Manual CSS after filter.
 	 */
 	'css' => function($response)
+	{
+		$response->header('Content-Type', 'text/css');
+	},
+
+	/**
+	 * Manual LESS after filter.
+	 */
+	'less' => function($response)
 	{
 		$response->header('Content-Type', 'text/css');
 	},
