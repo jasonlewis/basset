@@ -28,7 +28,13 @@ return array(
 		// If sessions are enabled, refresh flash data because a Basset request should not count.
 		if(Config::get('session.driver') != '')
 		{
-			Session::keep();
+			foreach(Session::$session['data'] as $key => $value)
+			{
+				if(strpos($key, ':old:') === 0)
+				{
+					Session::put(':new:' . substr($key, 5), $value);
+				}
+			}
 		}
 	},
 
