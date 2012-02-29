@@ -1,10 +1,10 @@
 <?php
 
 Autoloader::map(array(
-	'Basset\\Basset'			=> Bundle::location('basset') . 'basset.php',
-	'Basset\\Libs\\CSSCompress'	=> Bundle::location('basset') . 'libraries/csscompress.php',
-	'Basset\\Libs\\JSMin'		=> Bundle::location('basset') . 'libraries/jsmin.php',
-	'Basset\\Libs\\URIRewriter'	=> Bundle::location('basset') . 'libraries/urirewriter.php'
+	'Basset\\Basset'			=> Bundle::path('basset') . 'basset.php',
+	'Basset\\Libs\\CSSCompress'	=> Bundle::path('basset') . 'libraries/csscompress.php',
+	'Basset\\Libs\\JSMin'		=> Bundle::path('basset') . 'libraries/jsmin.php',
+	'Basset\\Libs\\URIRewriter'	=> Bundle::path('basset') . 'libraries/urirewriter.php'
 ));
 
 /**
