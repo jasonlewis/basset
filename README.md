@@ -1,6 +1,6 @@
 # Basset
 
-Basset is a Better Asset manager for the Laravel PHP framework. Basset allows you to generate asset routes which can be compressed and cached to maxamize website performance. Basset also allows compressed and cached assets to appear inline.
+Basset is a Better Asset manager for the Laravel PHP framework. Basset allows you to generate asset routes which can be compressed and cached to maximize website performance. Basset also allows compressed and cached assets to appear inline.
 
 - **Author:** Jason Lewis
 - **Website:** [http://jasonlewis.me/code/basset](http://jasonlewis.me/code/basset)
