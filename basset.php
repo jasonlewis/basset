@@ -7,6 +7,7 @@
  * but includes many other features such as route based loading, compression and caching.
  *
  * @package 	Basset
+ * @version     1.2
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
@@ -84,9 +85,6 @@ class Basset {
 
 /**
  * Basset_Container
- *
- * The main class for Basset operations. The __callStatic() method in Basset
- * defers all calls to it's Basset_Container counterpart.
  */
 class Basset_Container {
 
@@ -259,9 +257,9 @@ class Basset_Container {
 			// If caching is enabled the cache will be run now and the current copy stored so
 			// that it can be loaded quicker on the next request. This is handy for compressed
 			// assets once an application has been deployed.
-			if($this->settings['caching'])
+			if($this->cache->time > 0)
 			{
-				$this->cache->run($assets, $this->settings['cache_for']);
+				$this->cache->run($assets);
 			}
 		}
 
@@ -351,11 +349,12 @@ class Basset_Container {
 	 *
 	 * Sets Basset to cache the files.
 	 *
+	 * @param  int  $time
 	 * @return Basset_Container
 	 */
-	public function remember()
+	public function remember($time = -1)
 	{
-		$this->settings['caching'] = true;
+		$this->cache->time = ($time > 0) ? $time : $this->settings['cache_for'];
 
 		return $this;
 	}
@@ -496,6 +495,9 @@ class Basset_Container {
 
 }
 
+/**
+ * Basset_Cache
+ */
 class Basset_Cache {
 
 	/**
@@ -512,6 +514,11 @@ class Basset_Cache {
 	 * @var bool $forget
 	 */
 	protected $forget;
+
+	/**
+	 * @var int $time
+	 */
+	public $time;
 
 	/**
 	 * register
@@ -579,13 +586,12 @@ class Basset_Cache {
 	 * Runs the cache and stores it if the cache has not already been set.
 	 *
 	 * @param  string  $assets
-	 * @param  int     $minutes
 	 */
-	public function run($assets, $minutes)
+	public function run($assets)
 	{
 		if(!$this->has())
 		{
-			Cache::put($this->name(), $assets, $minutes);
+			Cache::put($this->name(), $assets, $this->time);
 		}
 	}
 
