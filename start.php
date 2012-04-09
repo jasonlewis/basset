@@ -5,7 +5,7 @@ Autoloader::map(array(
 	'Basset\\CSSCompress' => __DIR__ . DS . 'libraries/csscompress.php',
 	'Basset\\JSMin'		  => __DIR__ . DS . 'libraries/jsmin.php',
 	'Basset\\URIRewriter' => __DIR__ . DS . 'libraries/urirewriter.php',
-	'Basset\\Less'		  => __DIR__ . DS . 'libraries/less.php'
+	'Basset\\lessc'		  => __DIR__ . DS . 'libraries/less.php'
 ));
 
 Route::filter('basset::after', function($response)

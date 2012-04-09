@@ -25,9 +25,18 @@ class Basset {
 	 * @var array $available
 	 */
 	public static $available = array(
-		'js'   => 'script',
-		'css'  => 'style',
-		'less' => 'style'
+		'css' => array(
+			'type' 		=> 'style',
+			'extension' => 'css'
+		),
+		'less' => array(
+			'type' 		=> 'style',
+			'extension' => 'css'
+		),
+		'js' => array(
+			'type' 		=> 'script',
+			'extension' => 'js'
+		)
 	);
 
 	/**
@@ -53,21 +62,42 @@ class Basset {
 	}
 
 	/**
+	 * valid
+	 * 
+	 * Iterate through the available formats and return the valid extension.
+	 * 
+	 * @param  string  $type
+	 * @return mixed
+	 */
+	protected static function valid($type)
+	{
+		foreach(static::$available as $available)
+		{
+			if($type == $available['type'])
+			{
+				return $available['extension'];
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * __callStatic
 	 *
 	 * Invokes one of the available containers and generates a new route.
 	 *
-	 * @param  string  $extension
+	 * @param  string  $type
 	 * @param  array   $arguments
 	 * @return Basset_Container
 	 */
-	public static function __callStatic($extension, $arguments)
+	public static function __callStatic($type, $arguments)
 	{
 		list($name, $callback) = $arguments;
 
-		if(array_key_exists($extension, static::$available))
+		if($extension = static::valid($type))
 		{
-			call_user_func($callback, $assets = new Basset_Container($extension));
+			call_user_func($callback, $assets = new Basset_Container($type));
 
 			static::$containers[$name] = $assets;
 
@@ -80,7 +110,7 @@ class Basset {
 		}
 		else
 		{
-			throw new BadMethodCallException('Could not find extension [' . $extension . '] on Basset.');
+			throw new BadMethodCallException('Could not find type [' . $type . '] on Basset.');
 		}
 	}
 
@@ -121,7 +151,7 @@ class Basset_Container {
 	 */
 	public function __construct($type = null)
 	{
-		$this->type = !is_null($type) ? Basset::$available[$type] : null;
+		$this->type = $type;
 
 		$this->cache = new Basset_Cache;
 
@@ -145,7 +175,10 @@ class Basset_Container {
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
-		$type = Basset::$available[$extension = pathinfo($file, PATHINFO_EXTENSION)];
+		if(is_null($type = array_key_exists($extension = File::extension($file), Basset::$available) ? Basset::$available[$extension]['type'] : null))
+		{
+			throw new Exception('Unsupported file type [' . $extension . '] added to Bassset container.');
+		}
 
 		// If this asset is prepended with the name of a bundle then we'll update
 		// the file to reflect the path to the bundle source.
@@ -301,14 +334,14 @@ class Basset_Container {
 
 		if(!parse_url($asset['file'], PHP_URL_SCHEME))
 		{
-			if(!file_exists($path = path('public') . str_replace(URL::to_asset('/'), '', $asset['source']) . Basset::$folders[$group] . '/' . $asset['file']))
+			if(!file_exists($path = path('public') . str_replace(URL::to_asset('/'), '', $asset['source']) . DS . $asset['file']))
 			{
 				// Could not locate the asset file. Probably named incorrect. To avoid cluttering
 				// it up with 404 not found we'll return a commented error.
 				return PHP_EOL . '/* Basset could not find asset [' . $path . '] */' . PHP_EOL;
 			}
 
-			$asset['file'] = $asset['source'] . Basset::$folders[$group] . '/' . $asset['file'];
+			$asset['file'] = $asset['source'] . '/' . $asset['file'];
 		}
 
 		$contents = file_get_contents($asset['file']);
@@ -320,7 +353,7 @@ class Basset_Container {
 
 		if($asset['less'] && $group == 'style')
 		{
-			$less = new Basset\Less;
+			$less = new Basset\lessc;
 
 			$contents = $less->parse($contents);
 		}
@@ -620,7 +653,7 @@ class Basset_Cache {
 
 		foreach($this->assets[$this->group] as $asset)
 		{
-			$name[] = $asset['source'] . Basset::$folders[$this->group] . '/' . $asset['file'];
+			$name[] = $asset['source'] . '/' . $asset['file'];
 		}
 
 		sort($name);
