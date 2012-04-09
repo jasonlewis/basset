@@ -31,8 +31,8 @@ Inline assets is pretty important, let's take a look at a composer which might a
 View::compose('layout', function($view)
 {
 	Basset::inline('assets')
-		->add('bootstrap', 'bootstrap.js')
-		->add('ie6', 'ie6.css');
+		->add('bootstrap', 'js/bootstrap.js')
+		->add('ie6', 'css/ie6.css');
 });
 ~~~~
 
@@ -59,7 +59,7 @@ It's as easy as that. We could have multiple composers that add assets to the sa
 An optional third parameter is available for dependency sorting. You can give the name of an asset that it will depend on or an array of names.
 
 ~~~~
-Basset::inline('assets')->add('template', 'template.css', 'things')->add('things', 'things.css');
+Basset::inline('assets')->add('template', 'css/template.css', 'things')->add('things', 'css/things.css');
 ~~~~
 
 Now **template** depends on **things**, so it will be loaded after **things** has been loaded.
@@ -77,10 +77,10 @@ So far I've been showing you how to use inline assets, but the best part about B
 Let's take a look at some routes. Open up **bundles/basset/routes.php** and look at the example CSS route.
 
 ~~~~
-Basset::css('example', function($basset)
+Basset::styles('example', function($basset)
 {
-	$basset->add('normalize', 'normalize.css')
-		   ->add('website', 'website.css');
+	$basset->add('normalize', 'css/normalize.css')
+		   ->add('website', 'css/website.css');
 });
 ~~~~
 
@@ -98,16 +98,16 @@ Remember, JavaScript files work the same. Just replace **css** with **js** when 
 You can compress both inline and route based assets. To globally enable compression just set the option in the configuration file. To set the option on a per asset basis you can do it like so:
 
 ~~~~
-Basset::inline('assets')->add('template', 'template.css')->compress();
+Basset::inline('assets')->add('template', 'css/template.css')->compress();
 ~~~~
 
 Or for your routes:
 
 ~~~~
-Basset::css('example', function($basset)
+Basset::styles('example', function($basset)
 {
-	$basset->add('normalize', 'normalize.css')
-		   ->add('website', 'website.css')
+	$basset->add('normalize', 'css/normalize.css')
+		   ->add('website', 'css/website.css')
 		   ->compress();
 });
 ~~~~
@@ -121,16 +121,16 @@ Basset uses Laravel's inbuilt caching mechanisms, so the settings you have defin
 configuration file or on a per asset basis.
 
 ~~~~
-Basset::inline('assets')->add('template', 'template.css')->remember();
+Basset::inline('assets')->add('template', 'css/template.css')->remember();
 ~~~~
 
 Or for your routes:
 
 ~~~~
-Basset::css('example', function($basset)
+Basset::styles('example', function($basset)
 {
-	$basset->add('normalize', 'normalize.css')
-		   ->add('website', 'website.css')
+	$basset->add('normalize', 'css/normalize.css')
+		   ->add('website', 'css/website.css')
 		   ->remember();
 });
 ~~~~
@@ -140,7 +140,7 @@ The cached copy will be used if it is available otherwise a new copy will be gen
 Want to specify a different amount of time to compress the assets for? Just pass the number of minutes you wish to cache them for as a parameter.
 
 ~~~~
-Basset::inline('assets')->add('template', 'template.css')->remember(60); // Will remember the assets for 60 minutes
+Basset::inline('assets')->add('template', 'css/template.css')->remember(60); // Will remember the assets for 60 minutes
 ~~~~
 
 ### Clearing the Cache
@@ -148,10 +148,22 @@ If you need to remove an asset from the cache you can use the forget method.
 
 
 ~~~~
-Basset::inline('assets')->add('template', 'template.css')->forget();
+Basset::inline('assets')->add('template', 'css/template.css')->forget();
 ~~~~
 
 This only clears the cache for the current Basset container.
+
+## LESS
+Basset ships with [LessPHP](http://leafo.net/lessphp/) to allow compiling of `.less` files without having LESS installed on your server. Once you enable LESS in the configuration file, simple start using your `.less` files.
+
+~~~~
+Basset::styles('example', function($basset)
+{
+	$basset->add('normalize', 'css/normalize.css')
+		   ->add('website', 'less/website.less');
+});
+~~~~
+
 
 ## In Closing
 This is a fairly in-depth walk through on using the features of Basset. Feel free to dig into the source. You can also pop over to

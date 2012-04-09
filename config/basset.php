@@ -1,33 +1,50 @@
 <?php
 
 return array(
-	/**
-	 * Compress assets to achieve smaller file size. This should not be enabled until
-	 * application is deployed and caching is enabled as well.
-	 */
-	'compress' 	=> false,
+	'compression' => array(
+		/**
+		 * Compression
+		 * 
+		 * Globally enable compression for all assets, this is only recommended once an application
+		 * is live and when used in conjunction with caching.
+		 */
+		'enabled' => false,
 
-	/**
-	 * When deploying an application, ensure you set this to true to achieve best
-	 * loading times. This uses the Laravel caching mechanism.
-	 */
-	'caching'	=> false,
+		/**
+		 * Preserve Lines
+		 * 
+		 * When compressing CSS files you may experience problems with extremely large files. You can
+		 * enable preserving of lines to maintain the occasional line break to split the file up
+		 * instead of one long continuous line.
+		 */
+		'preserve_lines' => false
+	),
 
-	/**
-	 * This is the time in MINUTES you wish to cache items for. The default value
-	 * of 44,640 is one month (31 days). You can change this to whatever number
-	 * you want.
-	 */
-	'cache_for'	=> 44640,
+	'caching' => array(
+		/**
+		 * Caching
+		 * 
+		 * Globally enable caching for all assets, this is only recommended once an application
+		 * is live.
+		 */
+		'enabled' => false,
 
-	/**
-	 * Whether or not to preserve some new line characters. By default all new lines
-	 * are stripped but if you want you can strip out all new lines to attain a single
-	 * line of compressed code. The amount of size saved from stripping out all new lines
-	 * is less than 1% in an average sized 5-10kb file. The only benefit gained from not
-	 * preserving lines is a nice looking single-line file.
-	 *
-	 * Note: This only applies to CSS compression.
-	 */
-	'preserve_lines' => false
+		/**
+		 * Time
+		 * 
+		 * The time in minutes to cache the assets for. By default it is set to one month, or 44640
+		 * minutes.
+		 */
+		'time' => 44640,
+	),
+
+	'less' => array(
+		/**
+		 * LessPHP Compiler
+		 * 
+		 * Use the LessPHP compiler to compile .less files, handy if you do not have LESS installed
+		 * on your server and you still want the LESS functionality.
+		 */
+		'compiler' => false
+	)
 );

@@ -26,15 +26,15 @@ class Basset {
 	 */
 	public static $available = array(
 		'css' => array(
-			'type' 		=> 'style',
+			'type' 		=> 'styles',
 			'extension' => 'css'
 		),
 		'less' => array(
-			'type' 		=> 'style',
+			'type' 		=> 'styles',
 			'extension' => 'css'
 		),
 		'js' => array(
-			'type' 		=> 'script',
+			'type' 		=> 'scripts',
 			'extension' => 'js'
 		)
 	);
@@ -155,8 +155,8 @@ class Basset_Container {
 
 		$this->cache = new Basset_Cache;
 
-		$this->settings = array_merge(Config::get('basset::basset'), array(
-			'forget'	=> false,
+		$this->settings = array_merge_recursive(Config::get('basset::basset'), array(
+			'caching'	=> array('forget' => false),
 			'inline'	=> false
 		));
 
@@ -262,7 +262,7 @@ class Basset_Container {
 			return '';
 		}
 
-		$this->cache->register($this->assets, $group, $this->settings['forget']);
+		$this->cache->register($this->assets, $group, $this->settings['caching']['forget']);
 
 		// If this group of assets has a cached copy we'll use the cached version. If the
 		// cache is set to be forgotten it will be cleared and a new copy will be returned
@@ -280,11 +280,11 @@ class Basset_Container {
 			// is being rendered. Compression is done after combining of all files to save on
 			// running the compression on each file. This is ensures that the file is
 			// compressed before being cached.
-			if($this->settings['compress'])
+			if($this->settings['compression']['enabled'])
 			{
 				if($group == 'style')
 				{
-					$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['preserve_lines']));
+					$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
 				}
 				elseif($group == 'script')
 				{
@@ -346,12 +346,12 @@ class Basset_Container {
 
 		$contents = file_get_contents($asset['file']);
 
-		if($this->settings['compress'] && $group == 'style')
+		if($this->settings['compression']['enabled'] && $group == 'style')
 		{
 			$contents = Basset\URIRewriter::rewrite($contents, dirname(str_replace($asset['source'], '', $asset['file'])));
 		}
 
-		if($asset['less'] && $group == 'style')
+		if($asset['less'] && $this->settings['less']['compiler'])
 		{
 			$less = new Basset\lessc;
 
@@ -370,7 +370,7 @@ class Basset_Container {
 	 */
 	public function compress()
 	{
-		$this->settings['compress'] = true;
+		$this->settings['compression']['enabled'] = true;
 
 		return $this;
 	}
@@ -399,7 +399,7 @@ class Basset_Container {
 	 */
 	public function remember($time = -1)
 	{
-		$this->cache->time = ($time > 0) ? $time : $this->settings['cache_for'];
+		$this->cache->time = ($time > 0) ? $time : $this->settings['caching']['time'];
 
 		return $this;
 	}
@@ -413,7 +413,7 @@ class Basset_Container {
 	 */
 	public function forget()
 	{
-		$this->settings['forget'] = true;
+		$this->settings['caching']['forget'] = true;
 
 		return $this;
 	}
