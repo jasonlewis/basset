@@ -3,28 +3,31 @@
 /**
  * Basset
  *
- * Basset is a Better Asset manager. Basset is based off the Laravel Asset class
- * but includes many other features such as route based loading, compression and caching.
+ * Basset is a Better Asset Management Bundle for the Laravel PHP framework. Basset allows you to
+ * generate asset routes which can be compressed and cached to maximize website performance. Basset
+ * also allows compressed and cached assets to appear inline.
  *
  * @package 	Basset
- * @version     1.2
+ * @version     1.2.1
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
  */
 
 class Basset {
+
 	/**
 	 * @var array $containers
 	 */
 	protected static $containers = array();
 
 	/**
-	 * @var array $folders
+	 * @var array $available
 	 */
-	public static $folders = array(
-		'style'		=> 'css',
-		'script'	=> 'js'
+	public static $available = array(
+		'js'   => 'script',
+		'css'  => 'style',
+		'less' => 'style'
 	);
 
 	/**
@@ -52,23 +55,23 @@ class Basset {
 	/**
 	 * __callStatic
 	 *
-	 * This method invokes unreachable static methods via the default container.
+	 * Invokes one of the available containers and generates a new route.
 	 *
-	 * @param  string $method
-	 * @param  array  $arguments
+	 * @param  string  $extension
+	 * @param  array   $arguments
 	 * @return Basset_Container
 	 */
-	public static function __callStatic($method, $arguments)
+	public static function __callStatic($extension, $arguments)
 	{
 		list($name, $callback) = $arguments;
 
-		if(in_array($method, array('js', 'css')))
+		if(array_key_exists($extension, static::$available))
 		{
-			call_user_func($callback, $assets = new Basset_Container($method));
+			call_user_func($callback, $assets = new Basset_Container($extension));
 
 			static::$containers[$name] = $assets;
 
-			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $method;
+			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
 
 			Route::get($route, function() use ($assets)
 			{
@@ -77,7 +80,7 @@ class Basset {
 		}
 		else
 		{
-			throw new BadMethodCallException('Could not find method [' . $method . '] on Basset.');
+			throw new BadMethodCallException('Could not find extension [' . $extension . '] on Basset.');
 		}
 	}
 
@@ -118,7 +121,7 @@ class Basset_Container {
 	 */
 	public function __construct($type = null)
 	{
-		$this->type = !is_null($type) ? ($type == 'css' ? 'style' : 'script') : null;
+		$this->type = !is_null($type) ? Basset::$available[$type] : null;
 
 		$this->cache = new Basset_Cache;
 
@@ -142,7 +145,7 @@ class Basset_Container {
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
-		$type = (pathinfo($file, PATHINFO_EXTENSION) == 'css') ? 'style' : 'script';
+		$type = Basset::$available[$extension = pathinfo($file, PATHINFO_EXTENSION)];
 
 		// If this asset is prepended with the name of a bundle then we'll update
 		// the file to reflect the path to the bundle source.
@@ -154,12 +157,14 @@ class Basset_Container {
 		}
 		else
 		{
-			$source = URL::base() . '/';
+			$source = URL::to_asset('/');
 		}
 
 		$dependencies = (array) $dependencies;
 
-		$this->assets[$type][$name] = compact('file', 'source', 'dependencies');
+		$less = ($extension == 'less');
+
+		$this->assets[$type][$name] = compact('file', 'source', 'dependencies', 'less');
 
 		return $this;
 	}
@@ -296,7 +301,7 @@ class Basset_Container {
 
 		if(!parse_url($asset['file'], PHP_URL_SCHEME))
 		{
-			if(!file_exists($path = path('public') . str_replace(URL::base() . '/', '', $asset['source']) . Basset::$folders[$group] . '/' . $asset['file']))
+			if(!file_exists($path = path('public') . str_replace(URL::to_asset('/'), '', $asset['source']) . Basset::$folders[$group] . '/' . $asset['file']))
 			{
 				// Could not locate the asset file. Probably named incorrect. To avoid cluttering
 				// it up with 404 not found we'll return a commented error.
@@ -311,6 +316,13 @@ class Basset_Container {
 		if($this->settings['compress'] && $group == 'style')
 		{
 			$contents = Basset\URIRewriter::rewrite($contents, dirname(str_replace($asset['source'], '', $asset['file'])));
+		}
+
+		if($asset['less'] && $group == 'style')
+		{
+			$less = new Basset\Less;
+
+			$contents = $less->parse($contents);
 		}
 
 		return $contents . PHP_EOL;
