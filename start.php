@@ -1,9 +1,9 @@
 <?php
 
 Autoloader::map(array(
-	'Basset'						 => __DIR__ . DS . 'basset.php',
+	'Basset'			  => __DIR__ . DS . 'basset.php',
 	'Basset\\CSSCompress' => __DIR__ . DS . 'libraries/csscompress.php',
-	'Basset\\JSMin'		 => __DIR__ . DS . 'libraries/jsmin.php',
+	'Basset\\JSMin'		  => __DIR__ . DS . 'libraries/jsmin.php',
 	'Basset\\URIRewriter' => __DIR__ . DS . 'libraries/urirewriter.php'
 ));
 

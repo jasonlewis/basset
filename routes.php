@@ -1,22 +1,32 @@
 <?php
-Basset::css('website', function($basset)
+
+/**
+ * 
+ * Example Basset Route
+ * 
+ * -----------------------------------------------------------------------
+ * 
+ * The following are example routes, one CSS and one JS, that you can use
+ * as a model for your own routes.
+ * 
+ * Routes for Basset are very simple, the method is either 'css' or 'js'
+ * depending on what you want to use, the first parameter is the route
+ * that will be handled. For example:
+ * 
+ * Basset::css('website', function($basset) {});
+ * 
+ * The above will generate a route for yoursite.com/basset/website.css
+ * Note the extension is placed automatically for you.
+ * 
+ * Please refer to the README.md for further help.
+ */
+Basset::css('example', function($basset)
 {
 	$basset->add('normalize', 'normalize.css')
-		   ->add('website', 'main.css')
-		   ->add('forms', 'forms.css')
-		   ->add('tooltip', 'tooltip.css');
+		   ->add('website', 'website.css');
 });
 
-Basset::js('website', function($basset)
+Basset::js('example', function($basset)
 {
-	$basset->add('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js')
-		    ->add('underscore', 'vendor/underscore.js')
-		    ->add('json', 'vendor/json.js')
-		    ->add('placeholder', 'vendor/placeholder.js')
-		    ->add('tooltip', 'vendor/tooltip.js')
-		    ->add('follow', 'follow.js')
-		    ->add('updates', 'updates.js')
-		    ->add('socket.io', URL::base() . ':' . Config::get('site.node.port') . '/socket.io/socket.io.js')
-		    ->add('notifications', 'notifications.js')
-		    ->add('website', 'main.js');
+	$basset->add('jquery', 'jquery.js');
 });
