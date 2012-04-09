@@ -1,4 +1,4 @@
-<?php namespace Basset\Libs;
+<?php namespace Basset;
 /**
  * JSMin.php - modified PHP implementation of Douglas Crockford's JSMin.
  *
