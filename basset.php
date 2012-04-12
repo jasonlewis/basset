@@ -3,12 +3,12 @@
 /**
  * Basset
  *
- * Basset is a Better Asset Management Bundle for the Laravel PHP framework. Basset allows you to
+ * Basset is a better asset management bundle for the Laravel PHP framework. Basset allows you to
  * generate asset routes which can be compressed and cached to maximize website performance. Basset
  * also allows compressed and cached assets to appear inline.
  *
  * @package 	Basset
- * @version     1.2.1
+ * @version     1.3
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
@@ -162,6 +162,7 @@ class Basset_Container {
 
 		$this->settings = array_merge_recursive(Config::get('basset::basset'), array(
 			'caching'	=> array('forget' => false),
+			'compiling' => array('forget' => false),
 			'inline'	=> false
 		));
 
@@ -235,7 +236,9 @@ class Basset_Container {
 
 		$dependencies = (array) $dependencies;
 
-		$bundle = false;
+		$bundle = $external = false;
+
+		$updated = 0;
 
 		// In order of priority. If using a defined source we'll stick to that,
 		// or if we can find a prefixed bundle we'll attempt to use that. Last
@@ -267,9 +270,9 @@ class Basset_Container {
 
 		$source = realpath($source);
 
-		$this->assets[$group][$name] = compact('file', 'source', 'dependencies', 'less', 'bundle');
+		$this->assets[$group][$name] = compact('file', 'source', 'dependencies', 'less', 'bundle', 'external', 'updated');
 
-		if($this->find($name, $group))
+		if($this->find($name, $group) && !$this->assets[$group][$name]['external'])
 		{
 			$this->assets[$group][$name]['updated'] = filemtime($source . '/' . $file);
 		}
@@ -347,18 +350,20 @@ class Basset_Container {
 			$recompile = true;
 			$assets = '';
 
-			if($this->settings['compiling']['enabled'])
+			if(file_exists($compiled = (__DIR__ . DS . 'compiled' . DS . $this->cache->name())))
 			{
-				if(file_exists($compiled = (__DIR__ . DS . 'compiled' . DS . $this->cache->name())))
+				// If we are to forget the compiled assets, delete the file and continue.
+				if($this->settings['compiling']['forget'])
 				{
-					if($this->newest($group) < filemtime($compiled))
-					{
-						// Assets have not been changed since last compile.
-						$assets = file_get_contents($compiled);
+					@unlink($compiled);
+				}
+				elseif($this->settings['compiling']['enabled'] && $this->newest($group) < filemtime($compiled))
+				{
+					// Assets have not been changed since last compile.
+					$assets = file_get_contents($compiled);
 
-						// We no longer want the assets recompiled.
-						$recompile = false;
-					}
+					// We no longer want the assets recompiled.
+					$recompile = false;
 				}
 			}
 
@@ -477,6 +482,10 @@ class Basset_Container {
 
 			$asset['file'] = $asset['source'] . '/' . $asset['file'];
 		}
+		else
+		{
+			$asset['external'] = $this->assets[$group][$name]['external'] = true;
+		}
 
 		return $asset;
 	}
@@ -548,15 +557,29 @@ class Basset_Container {
 	}
 
 	/**
+	 * compile
+	 * 
+	 * Sets Basset to use compiling.
+	 * 
+	 * @return Basset_Container
+	 */
+	public function compile()
+	{
+		$this->settings['compiling']['enabled'] = true;
+
+		return $this;
+	}
+
+	/**
 	 * forget
 	 *
-	 * Sets Basset to clear the cache.
+	 * Sets Basset to clear the cache and the compiled assets.
 	 *
 	 * @return Basset_Container
 	 */
 	public function forget()
 	{
-		$this->settings['caching']['forget'] = true;
+		$this->settings['caching']['forget'] = $this->settings['compiling']['forget'] = true;
 
 		return $this;
 	}
@@ -741,7 +764,9 @@ class Basset_Cache {
 	 */
 	public function has()
 	{
-		if($this->forget)
+		$name = $this->name();
+
+		if(($has = Cache::has($name)) && $this->forget)
 		{
 			Cache::forget($name);
 
@@ -750,7 +775,7 @@ class Basset_Cache {
 			return false;
 		}
 
-		return Cache::has($this->name());
+		return $has;
 	}
 
 	/**
