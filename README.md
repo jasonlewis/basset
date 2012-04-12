@@ -21,6 +21,12 @@ Basset is a Better Asset manager for the Laravel PHP framework. Basset allows yo
 3. Open the **bundles/basset/config/basset.php** config file and make changes where you see fit.
 4. Begin using Basset!
 
+## Upgrading
+
+**Before upgrading!** Remember to backup your `bundles/basset/routes.php` file as it may be overwritten during upgrade.
+
+You can upgrade via the Artisan CLI: `php artisan bundle:upgrade basset`
+
 ## Congfiguration
 The configuration file is commented quite well. I'd just like to point out a few things here.
 
