@@ -19,22 +19,22 @@ class Basset {
 	/**
 	 * @var array $containers
 	 */
-	protected static $containers = array();
+	public static $containers = array();
 
 	/**
 	 * @var array $available
 	 */
 	public static $available = array(
 		'css' => array(
-			'type' 		=> 'styles',
+			'group' 	=> 'styles',
 			'extension' => 'css'
 		),
 		'less' => array(
-			'type' 		=> 'styles',
+			'group' 	=> 'styles',
 			'extension' => 'css'
 		),
 		'js' => array(
-			'type' 		=> 'scripts',
+			'group' 	=> 'scripts',
 			'extension' => 'js'
 		)
 	);
@@ -66,14 +66,14 @@ class Basset {
 	 * 
 	 * Iterate through the available formats and return the valid extension.
 	 * 
-	 * @param  string  $type
+	 * @param  string  $group
 	 * @return mixed
 	 */
-	protected static function valid($type)
+	protected static function valid($group)
 	{
 		foreach(static::$available as $available)
 		{
-			if($type == $available['type'])
+			if($group == $available['group'])
 			{
 				return $available['extension'];
 			}
@@ -87,30 +87,30 @@ class Basset {
 	 *
 	 * Invokes one of the available containers and generates a new route.
 	 *
-	 * @param  string  $type
+	 * @param  string  $group
 	 * @param  array   $arguments
 	 * @return Basset_Container
 	 */
-	public static function __callStatic($type, $arguments)
+	public static function __callStatic($group, $arguments)
 	{
-		list($name, $callback) = $arguments;
-
-		if($extension = static::valid($type))
+		if($extension = static::valid($group))
 		{
-			call_user_func($callback, $assets = new Basset_Container($type));
-
-			static::$containers[$name] = $assets;
+			list($name, $callback) = $arguments;
 
 			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
 
-			Route::get($route, function() use ($assets)
+			Route::get($route, function() use ($callback, $name, $group, $extension)
 			{
+				call_user_func($callback, $assets = new Basset_Container($group));
+
+				Basset::$containers[$name] = $assets;
+
 				return $assets;
 			});
 		}
 		else
 		{
-			throw new BadMethodCallException('Could not find type [' . $type . '] on Basset.');
+			throw new BadMethodCallException('Could not find group [' . $group . '] on Basset.');
 		}
 	}
 
@@ -122,9 +122,9 @@ class Basset {
 class Basset_Container {
 
 	/**
-	 * @var string $type
+	 * @var string $group
 	 */
-	protected $type;
+	protected $group;
 
 	/**
 	 * @var object $cache
@@ -142,16 +142,21 @@ class Basset_Container {
 	protected $settings = array();
 
 	/**
+	 * @var string $source
+	 */
+	protected $source = null;
+
+	/**
 	 * __construct
 	 *
 	 * Loads the config and sets up some basic data.
 	 *
-	 * @param  string  $type
+	 * @param  string  $group
 	 * @return Basset_Container
 	 */
-	public function __construct($type = null)
+	public function __construct($group = null)
 	{
-		$this->type = $type;
+		$this->group = $group;
 
 		$this->cache = new Basset_Cache;
 
@@ -161,6 +166,52 @@ class Basset_Container {
 		));
 
 		return $this;
+	}
+
+	/**
+	 * directory
+	 * 
+	 * Create a new directory collection of assets.
+	 * 
+	 * @param  string   $source
+	 * @param  Closure  $callback
+	 * @return object
+	 */
+	public function directory($source, $callback)
+	{
+		if(strpos($source, '::') !== false)
+		{
+			list($bundle, $source) = explode('::', $source);
+
+			$source = str_replace(path('base'), '', path('public')) . $this->corrector(Bundle::assets($bundle)) . $source;
+		}
+
+		if(!file_exists(path('base') . $source))
+		{
+			// Could not locate source from the base directory, return nothing.
+			return $this;
+		}
+
+		$this->source = $source;
+
+		call_user_func($callback, $assets = $this);
+
+		$this->source = null;
+
+		return $this;
+	}
+
+	/**
+	 * corrector
+	 * 
+	 * Corrects the end path to be used by Basset.
+	 * 
+	 * @param  string  $path
+	 * @return string
+	 */
+	protected function corrector($path)
+	{
+		return substr(str_replace(URL::base(), '', $path), 1);
 	}
 
 	/**
@@ -175,51 +226,75 @@ class Basset_Container {
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
-		if(is_null($type = array_key_exists($extension = File::extension($file), Basset::$available) ? Basset::$available[$extension]['type'] : null))
+		if(is_null($group = array_key_exists($extension = File::extension($file), Basset::$available) ? Basset::$available[$extension]['group'] : null))
 		{
-			throw new Exception('Unsupported file type [' . $extension . '] added to Bassset container.');
+			throw new Exception('Unsupported file group [' . $extension . '] added to Bassset container.');
 		}
-
-		// If this asset is prepended with the name of a bundle then we'll update
-		// the file to reflect the path to the bundle source.
-		if(strpos($file, '::') !== false)
-		{
-			list($bundle, $file) = explode('::', $file);
-
-			$source = Bundle::assets($bundle);
-		}
-		else
-		{
-			$source = URL::to_asset('/');
-		}
-
-		$dependencies = (array) $dependencies;
 
 		$less = ($extension == 'less');
 
-		$this->assets[$type][$name] = compact('file', 'source', 'dependencies', 'less');
+		$dependencies = (array) $dependencies;
+
+		$bundle = false;
+
+		// In order of priority. If using a defined source we'll stick to that,
+		// or if we can find a prefixed bundle we'll attempt to use that. Last
+		// option is to use the standard public path.
+		if(!is_null($this->source))
+		{
+			$source = path('base') . $this->source;
+		}
+		elseif(strpos($file, '::') !== false)
+		{
+			list($bundle, $file) = explode('::', $file);
+
+			$source = path('public') . $this->corrector(Bundle::assets($bundle));
+
+			$bundle = true;
+		}
+		else
+		{
+			$source = path('public') . $this->corrector(URL::to_asset('/'));
+		}
+
+		// If the source has not been specified the public directory or bundle
+		// directory is being used, by default we'll go to the public directory
+		// and depending on the asset group we'll add the css or js folder.
+		if(is_null($this->source) && strpos($file, '/') == false)
+		{
+			$source .= ($group == 'styles' ? 'css' : 'js');
+		}
+
+		$source = realpath($source);
+
+		$this->assets[$group][$name] = compact('file', 'source', 'dependencies', 'less', 'bundle');
+
+		if($this->find($name, $group))
+		{
+			$this->assets[$group][$name]['updated'] = filemtime($source . '/' . $file);
+		}
 
 		return $this;
 	}
 
 	/**
-	 * type
+	 * group
 	 * 
-	 * Sets the type, either style or script, to be used when displaying assets.
+	 * Sets the group, either style or script, to be used when displaying assets.
 	 * 
-	 * @param  string  $type
+	 * @param  string  $group
 	 * @return Basset_Container
 	 */
-	public function type($type)
+	public function group($group)
 	{
-		if(in_array($type, array('style', 'script')))
+		if(in_array($group, array('style', 'script')))
 		{
-			$this->type = $type;
+			$this->group = $group;
 
 			return $this;
 		}
 
-		throw new Exception('Unrecognized asset type could not be set in Basset.');
+		throw new Exception('Unrecognized asset group could not be set in Basset.');
 	}
 
 	/**
@@ -231,7 +306,7 @@ class Basset_Container {
 	 */
 	public function styles()
 	{
-		return $this->group('style');
+		return $this->render('style');
 	}
 
 	/**
@@ -243,19 +318,18 @@ class Basset_Container {
 	 */
 	public function scripts()
 	{
-		return $this->group('script');
+		return $this->render('script');
 	}
 
 	/**
 	 * render
 	 *
-	 * Renders all the assets for the given types and container. Minifies when required.
-	 * Also loads cache if available.
+	 * Renders all the assets for the given group.
 	 *
 	 * @param  string  $group
 	 * @return string
 	 */
-	protected function group($group)
+	protected function render($group)
 	{
 		if(!isset($this->assets[$group]) || count($this->assets[$group]) == 0)
 		{
@@ -264,31 +338,60 @@ class Basset_Container {
 
 		$this->cache->register($this->assets, $group, $this->settings['caching']['forget']);
 
-		// If this group of assets has a cached copy we'll use the cached version. If the
-		// cache is set to be forgotten it will be cleared and a new copy will be returned
-		// instead.
-		if(!$assets = $this->cache->get())
+		if($this->cache->has())
 		{
+			$assets = $this->cache->get();
+		}
+		else
+		{
+			$recompile = true;
 			$assets = '';
-			
-			foreach($this->arrange($this->assets[$group]) as $name => $data)
+
+			if($this->settings['compiling']['enabled'])
 			{
-				$assets .= $this->asset($name, $group);
+				if(file_exists($compiled = (__DIR__ . DS . 'compiled' . DS . $this->cache->name())))
+				{
+					if($this->newest($group) < filemtime($compiled))
+					{
+						// Assets have not been changed since last compile.
+						$assets = file_get_contents($compiled);
+
+						// We no longer want the assets recompiled.
+						$recompile = false;
+					}
+				}
 			}
 
-			// If compression is enabled then compress the assets according to the group that
-			// is being rendered. Compression is done after combining of all files to save on
-			// running the compression on each file. This is ensures that the file is
-			// compressed before being cached.
-			if($this->settings['compression']['enabled'])
+			if($recompile)
 			{
-				if($group == 'style')
+				foreach($this->arrange($this->assets[$group]) as $name => $data)
 				{
-					$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
+					$assets .= $this->asset($name, $group);
 				}
-				elseif($group == 'script')
+
+				// If compression is enabled then compress the assets according to the group that
+				// is being rendered. Compression is done after combining of all files to save on
+				// running the compression on each file. This is ensures that the file is
+				// compressed before being cached.
+				if($this->settings['compression']['enabled'])
 				{
-					$assets = Basset\JSMin::minify($assets);
+					if($group == 'style')
+					{
+						$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
+					}
+					elseif($group == 'script')
+					{
+						$assets = Basset\JSMin::minify($assets);
+					}
+				}
+
+				if($this->settings['compiling']['enabled'])
+				{
+					// Save the recompiled assets.
+					file_put_contents($compiled, $assets);
+
+					// Debugging.
+					file_put_contents(path('base') . DS . 'compile.log', 'Recompiled at ' . date('jS F Y, \a\\t h:ia') . '\r\n', FILE_APPEND);
 				}
 			}
 
@@ -330,18 +433,9 @@ class Basset_Container {
 	 */
 	protected function asset($name, $group)
 	{
-		$asset = $this->assets[$group][$name];
-
-		if(!parse_url($asset['file'], PHP_URL_SCHEME))
+		if(!$asset = $this->find($name, $group))
 		{
-			if(!file_exists($path = path('public') . str_replace(URL::to_asset('/'), '', $asset['source']) . DS . $asset['file']))
-			{
-				// Could not locate the asset file. Probably named incorrect. To avoid cluttering
-				// it up with 404 not found we'll return a commented error.
-				return PHP_EOL . '/* Basset could not find asset [' . $path . '] */' . PHP_EOL;
-			}
-
-			$asset['file'] = $asset['source'] . '/' . $asset['file'];
+			return PHP_EOL . '/* Basset could not find asset [' . $name . '] */' . PHP_EOL;
 		}
 
 		$contents = file_get_contents($asset['file']);
@@ -351,7 +445,7 @@ class Basset_Container {
 			$contents = Basset\URIRewriter::rewrite($contents, dirname(str_replace($asset['source'], '', $asset['file'])));
 		}
 
-		if($asset['less'] && $this->settings['less']['compiler'])
+		if($asset['less'] && $this->settings['less']['php'])
 		{
 			$less = new Basset\lessc;
 
@@ -359,6 +453,55 @@ class Basset_Container {
 		}
 
 		return $contents . PHP_EOL;
+	}
+
+	/**
+	 * find
+	 * 
+	 * Attempt to find an asset.
+	 * 
+	 * @param  string  $name
+	 * @param  string  $group
+	 * @return mixed
+	 */
+	protected function find($name, $group)
+	{
+		$asset = $this->assets[$group][$name];
+
+		if(!parse_url($asset['file'], PHP_URL_SCHEME))
+		{
+			if(!file_exists($path = ($asset['source'] . DS . $asset['file'])))
+			{
+				return false;
+			}
+
+			$asset['file'] = $asset['source'] . '/' . $asset['file'];
+		}
+
+		return $asset;
+	}
+
+	/**
+	 * newest
+	 * 
+	 * Determine the newest file to be compiled.
+	 * 
+	 * @param  string  $group
+	 * @return int
+	 */
+	protected function newest($group)
+	{
+		$newest = 0;
+
+		foreach($this->assets[$group] as $asset)
+		{
+			if($asset['updated'] > $newest)
+			{
+				$newest = $asset['updated'];
+			}
+		}
+
+		return $newest;
 	}
 
 	/**
@@ -530,12 +673,12 @@ class Basset_Container {
 	 */
 	public function __toString()
 	{
-		if(!$this->type)
+		if(!$this->group)
 		{
-			$this->type = (array_key_exists('style', $this->assets) && array_key_exists('script', $this->assets) ? 'style' : (array_key_exists('style', $this->assets) ? 'style' : 'script'));
+			$this->group = (array_key_exists('style', $this->assets) && array_key_exists('script', $this->assets) ? 'style' : (array_key_exists('style', $this->assets) ? 'style' : 'script'));
 		}
 
-		return $this->group($this->type);
+		return $this->render($this->group);
 	}
 
 }
@@ -559,6 +702,11 @@ class Basset_Cache {
 	 * @var bool $forget
 	 */
 	protected $forget;
+
+	/**
+	 * @var string $name
+	 */
+	protected $name;
 
 	/**
 	 * @var int $time
@@ -586,20 +734,29 @@ class Basset_Cache {
 	/**
 	 * has
 	 *
-	 * Checks if the current group of assets has a cached copy.
+	 * Checks if the current group of assets has a cached copy. If the assets are set to be
+	 * forgotten the cached copy will not be returned.
 	 *
 	 * @return bool
 	 */
 	public function has()
 	{
+		if($this->forget)
+		{
+			Cache::forget($name);
+
+			// We don't want to return the cached assets because we cleared
+			// the cache and we want a new fresh copy of the assets returned.
+			return false;
+		}
+
 		return Cache::has($this->name());
 	}
 
 	/**
 	 * get
 	 *
-	 * Get a cached copy of the group of assets. If the assets are set to be
-	 * forgotten the cached copy will not be returned.
+	 * Get a cached copy of the group of assets.
 	 *
 	 * @return mixed
 	 */
@@ -608,16 +765,6 @@ class Basset_Cache {
 		if($this->has())
 		{
 			$assets = Cache::get($name = $this->name());
-
-			if($this->forget)
-			{
-				Cache::forget($name);
-
-				// We don't want to return the cached assets because we cleared
-				// the cache and we want a new fresh copy of the assets returned.
-				return false;
-			}
-
 
 			return $assets;
 		}
@@ -647,17 +794,22 @@ class Basset_Cache {
 	 *
 	 * @return string
 	 */
-	protected function name()
+	public function name()
 	{
+		if($this->name)
+		{
+			return $this->name;
+		}
+
 		$name = array();
 
 		foreach($this->assets[$this->group] as $asset)
 		{
-			$name[] = $asset['source'] . '/' . $asset['file'];
+			$name[] = str_replace(path('base'), '', $asset['source']) . '/' . $asset['file'];
 		}
 
 		sort($name);
 
-		return 'basset_' . $this->group . '_' . md5(implode('', $name));
+		return $this->name =  md5('basset_' . $this->group . '_' . implode('', $name));
 	}
 }

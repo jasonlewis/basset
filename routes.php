@@ -20,13 +20,31 @@
  * 
  * Please refer to the README.md for further help.
  */
-Basset::css('example', function($basset)
+Basset::styles('example', function($basset)
 {
-	$basset->add('normalize', 'normalize.css')
-		   ->add('website', 'website.css');
+
+		// Add a normal asset located at public/css/main.css
+$basset->add('main', 'main.css')
+		// Create a new collection. Collections are groups of assets contained within the same directory. Directories are
+		// relative from the root of your application, NOT the public directory.
+	   ->collection('assets/less', function($basset)
+	    {
+			$basset->add('less-styles', 'less-styles.less', 'links');
+		})
+		// Add a normal asset this time specifying it's containing folder within the public directory. It can be anything
+		// we want.
+	   ->add('links', 'css/links.css')
+		// Create a new collection within a bundle. This is a shortcut for defining a collection at: public/bundles/example/assets/css
+	   ->collection('example::assets/css', function($basset)
+	    {
+	   		$basset->add('example-style', 'style.css');
+	    })
+		// Add a normal bundle asset not within a collection. This will link to the CSS directory within public/bundles/example/css/css.css
+		// We could however specify our own path with example::our/own/path/css.css
+	   ->add('bundle-normal', 'example::css.css');
 });
 
-Basset::js('example', function($basset)
+Basset::scripts('example', function($basset)
 {
 	$basset->add('jquery', 'jquery.js');
 });

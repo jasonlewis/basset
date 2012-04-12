@@ -20,6 +20,17 @@ return array(
 		'preserve_lines' => false
 	),
 
+	'compiling' => array(
+		/**
+		 * Compiling
+		 * 
+		 * Similar to caching apart from that the assets will only be recompiled when a change is
+		 * detected within one of the assets. This is not recommended for production apps. It is
+		 * best to use caching once an application goes live.
+		 */
+		'enabled' => false
+	),
+
 	'caching' => array(
 		/**
 		 * Caching
@@ -45,6 +56,6 @@ return array(
 		 * Use the LessPHP compiler to compile .less files, handy if you do not have LESS installed
 		 * on your server and you still want the LESS functionality.
 		 */
-		'compiler' => false
+		'php' => false
 	)
 );
