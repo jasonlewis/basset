@@ -125,7 +125,7 @@ Basset::styles('example', function($basset)
 });
 ~~~~
 
-**Read before your compressing your assets!**
+**Read before you compress your assets!**
 
 When developing a local application there is no need to be compressing assets. When your application becomes live that's when compression should be used and only in conjunction with caching. You may like to enable this along with **compiling**.
 
