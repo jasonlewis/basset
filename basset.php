@@ -394,9 +394,6 @@ class Basset_Container {
 				{
 					// Save the recompiled assets.
 					file_put_contents($compiled, $assets);
-
-					// Debugging.
-					file_put_contents(path('base') . DS . 'compile.log', 'Recompiled at ' . date('jS F Y, \a\\t h:ia') . '\r\n', FILE_APPEND);
 				}
 			}
 
