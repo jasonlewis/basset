@@ -4,7 +4,7 @@ Basset is a Better Asset manager for the Laravel PHP framework. Basset allows yo
 
 - **Author:** Jason Lewis
 - **Website:** [http://jasonlewis.me/code/basset](http://jasonlewis.me/code/basset)
-- **Version:** 1.3
+- **Version:** 1.3.1
 
 ## Installation
 
@@ -308,26 +308,26 @@ Basset is released under the MIT License. See the LICENSE file for details.
 Copyright 2011-2012 Jason Lewis
 
 ## Changelog
-**Version 1.3 - 12th April 2012**
 
+### Basset 1.3.1
+- Bug fix with compression, compiling, and inline assets not working.
+
+### Basset 1.3
 - Updated API, routes are now defined with Basset::styles() and Basset::scripts()
 - LESS support has been reintegrated.
 - Directory support.
 - Compiling support.
 
-**Version 1.2 - 9th April 2012**
-
+### Basset 1.2
 - Now ships as a bundle for Laravel 3.
 - Better route based loading support.
 - Removal of LESS support for the time being.
 
-**Version 1.1 - 15th September 2011**
-
+### Basset 1.1
 - Added LESS compatibility.
 - Bug fix in asset dependency sorting.
 - Dependency is now not type-limited.
-- Re-write of a few internal methods, no API breaking changes.
+- General code cleanup.
 
-**Version 1.0 - 2nd September 2011**
-
-- Initial release
+### Bassset 1.0
+- Initial release of Basset.
