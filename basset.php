@@ -290,7 +290,7 @@ class Basset_Container {
 	 */
 	public function group($group)
 	{
-		if(in_array($group, array('style', 'script')))
+		if(in_array($group, array('styles', 'scripts')))
 		{
 			$this->group = $group;
 
@@ -309,7 +309,7 @@ class Basset_Container {
 	 */
 	public function styles()
 	{
-		return $this->render('style');
+		return $this->render('styles');
 	}
 
 	/**
@@ -321,7 +321,7 @@ class Basset_Container {
 	 */
 	public function scripts()
 	{
-		return $this->render('script');
+		return $this->render('scripts');
 	}
 
 	/**
@@ -380,11 +380,11 @@ class Basset_Container {
 				// compressed before being cached.
 				if($this->settings['compression']['enabled'])
 				{
-					if($group == 'style')
+					if($group == 'styles')
 					{
 						$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
 					}
-					elseif($group == 'script')
+					elseif($group == 'scripts')
 					{
 						$assets = Basset\JSMin::minify($assets);
 					}
@@ -413,7 +413,7 @@ class Basset_Container {
 		// stylesheets and javascript assets.
 		if($this->settings['inline'])
 		{
-			if($group == 'style')
+			if($group == 'styles')
 			{
 				$assets = '<style type="text/css" media="all">' . $assets . '</style>';
 			}
@@ -445,7 +445,7 @@ class Basset_Container {
 
 		$contents = file_get_contents($asset['file']);
 
-		if($this->settings['compression']['enabled'] && $group == 'style')
+		if($this->settings['compression']['enabled'] && $group == 'styles')
 		{
 			$contents = Basset\URIRewriter::rewrite($contents, dirname(str_replace($asset['source'], '', $asset['file'])));
 		}
@@ -698,7 +698,7 @@ class Basset_Container {
 	{
 		if(!$this->group)
 		{
-			$this->group = (array_key_exists('style', $this->assets) && array_key_exists('script', $this->assets) ? 'style' : (array_key_exists('style', $this->assets) ? 'style' : 'script'));
+			$this->group = (isset($this->assets['styles']) && isset($this->assets['scripts']) ? 'styles' : (isset($this->assets['styles']) ? 'styles' : 'scripts'));
 		}
 
 		return $this->render($this->group);
