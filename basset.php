@@ -442,9 +442,9 @@ class Basset_Container {
 
 		$contents = file_get_contents($asset['file']);
 
-		if($this->settings['compression']['enabled'] && $group == 'styles')
+		if($group == 'styles')
 		{
-			$contents = Basset\URIRewriter::rewrite($contents, dirname(str_replace($asset['source'], '', $asset['file'])));
+			$contents = Basset\URIRewriter::rewrite($contents, dirname($asset['file']));
 		}
 
 		if($asset['less'] && $this->settings['less']['php'])
