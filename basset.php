@@ -41,9 +41,9 @@ class Basset {
 
 	/**
 	 * inline
-	 * 
+	 *
 	 * Create a new inline Basset_Container instance or return an existing instance.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @return Basset_Container
 	 */
@@ -63,9 +63,9 @@ class Basset {
 
 	/**
 	 * valid
-	 * 
+	 *
 	 * Iterate through the available formats and return the valid extension.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return mixed
 	 */
@@ -95,18 +95,34 @@ class Basset {
 	{
 		if($extension = static::valid($group))
 		{
-			list($name, $callback) = $arguments;
+            $argument_no = count($arguments);
 
-			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
+            $options = array();
+            for ($i = 0; $i < $argument_no; $i++)
+            {
+                switch ($i) {
+                    case 0:
+                        $name = $arguments[0];
+                        break;
+                    case 1:
+                        $callback = $arguments[1];
+                        break;
+                    case 2:
+                        $options = $arguments[2];
+                        break;
+                }
+            }
 
-			Route::get($route, function() use ($callback, $name, $group, $extension)
-			{
-				call_user_func($callback, $assets = new Basset_Container($group));
+            $route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
 
-				Basset::$containers[$name] = $assets;
+            Route::get($route, function() use ($callback, $name, $group, $extension, $options)
+            {
+                call_user_func($callback, $assets = new Basset_Container($group, $options));
 
-				return $assets;
-			});
+                Basset::$containers[$name] = $assets;
+
+                return $assets;
+            });
 		}
 		else
 		{
@@ -146,15 +162,30 @@ class Basset_Container {
 	 */
 	protected $source = null;
 
+    /**
+     * @var array $options
+     */
+    protected $options = array();
+
 	/**
 	 * __construct
 	 *
 	 * Loads the config and sets up some basic data.
+     * Options used values:
 	 *
 	 * @param  string  $group
+     * @param  array   $options (default = array()) , (options = array('symlinks' => array(), 'doc_root' = '')
+     * If the CSS file is stored in a symlink-ed directory, provide an array of link paths to
+     * target paths, where the link paths are within the document root.
+     * Because paths need to be normalized for this to work, use "//" to substitute
+     * the doc root in the link paths (the array keys). E.g.:
+     * <code>
+     * array('symlinks' => array('//symlink' => '/real/target/path')) // unix
+     * array('symlinks' => array('//static' => 'D:\\staticStorage'))  // Windows
+     *
 	 * @return Basset_Container
 	 */
-	public function __construct($group = null)
+	public function __construct($group = null, $options = array())
 	{
 		$this->group = $group;
 
@@ -166,14 +197,16 @@ class Basset_Container {
 			'inline'	=> false
 		));
 
+        $this->options = $options;
+
 		return $this;
 	}
 
 	/**
 	 * directory
-	 * 
+	 *
 	 * Create a new directory collection of assets.
-	 * 
+	 *
 	 * @param  string   $source
 	 * @param  Closure  $callback
 	 * @return object
@@ -204,9 +237,9 @@ class Basset_Container {
 
 	/**
 	 * corrector
-	 * 
+	 *
 	 * Corrects the end path to be used by Basset.
-	 * 
+	 *
 	 * @param  string  $path
 	 * @return string
 	 */
@@ -282,9 +315,9 @@ class Basset_Container {
 
 	/**
 	 * group
-	 * 
+	 *
 	 * Sets the group, either style or script, to be used when displaying assets.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return Basset_Container
 	 */
@@ -444,7 +477,19 @@ class Basset_Container {
 
 		if($group == 'styles')
 		{
-			$contents = Basset\URIRewriter::rewrite($contents, dirname($asset['file']));
+            $doc_root = null;
+            if (isset($this->options['doc_root']))
+            {
+                $doc_root = $this->options['doc_root'];
+            }
+
+            $symlinks = array();
+            if (isset($this->options['symlinks']))
+            {
+                $symlinks = $this->options['symlinks'];
+            }
+
+			$contents = Basset\URIRewriter::rewrite($contents, dirname($asset['file']), $doc_root, $symlinks);
 		}
 
 		if($asset['less'] && $this->settings['less']['php'])
@@ -459,9 +504,9 @@ class Basset_Container {
 
 	/**
 	 * find
-	 * 
+	 *
 	 * Attempt to find an asset.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @param  string  $group
 	 * @return mixed
@@ -489,9 +534,9 @@ class Basset_Container {
 
 	/**
 	 * newest
-	 * 
+	 *
 	 * Determine the newest file to be compiled.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return int
 	 */
@@ -555,9 +600,9 @@ class Basset_Container {
 
 	/**
 	 * compile
-	 * 
+	 *
 	 * Sets Basset to use compiling.
-	 * 
+	 *
 	 * @return Basset_Container
 	 */
 	public function compile()
