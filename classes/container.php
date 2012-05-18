@@ -1,6 +1,6 @@
 <?php namespace Basset;
 
-use Config, File, Basset;
+use File, Basset;
 
 class Container {
 
@@ -20,9 +20,9 @@ class Container {
 	protected $assets = array();
 
 	/**
-	 * @var array $settings
+	 * @var array $config
 	 */
-	protected $settings = array();
+	protected $config;
 
 	/**
 	 * @var string $directory
@@ -43,11 +43,7 @@ class Container {
 
 		$this->cache = new Cache;
 
-		$this->settings = array_merge_recursive(Config::get('basset::basset'), array(
-			'caching'	=> array('forget' => false),
-			'compiling' => array('forget' => false),
-			'inline'	=> false
-		));
+		$this->config = new Config;
 
 		return $this;
 	}
@@ -173,7 +169,7 @@ class Container {
 			return '';
 		}
 
-		$this->cache->register($this->assets, $group, $this->settings['caching']['forget']);
+		$this->cache->register($this->assets, $group, $this->config->get('caching.forget'));
 
 		if($this->cache->has())
 		{
@@ -207,11 +203,11 @@ class Container {
 				// is being rendered. Compression is done after combining of all files to save on
 				// running the compression on each file. This is ensures that the file is
 				// compressed before being cached.
-				if($this->settings['compression']['enabled'])
+				if($this->config->get('compression.enabled'))
 				{
 					if($group == 'styles')
 					{
-						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
+						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->config('compression.preserve_lines')));
 					}
 					elseif($group == 'scripts')
 					{
@@ -233,7 +229,7 @@ class Container {
 
 		// If displaying the assets inline this wraps the assets in the correct tags for both
 		// stylesheets and javascript assets.
-		if($this->settings['inline'])
+		if($this->config->get('inline'))
 		{
 			if($group == 'styles')
 			{
@@ -280,7 +276,7 @@ class Container {
 	 */
 	public function compress()
 	{
-		$this->settings['compression']['enabled'] = true;
+		$this->config->set('compression.enabled', true);
 
 		return $this;
 	}
@@ -294,7 +290,7 @@ class Container {
 	 */
 	public function inline()
 	{
-		$this->settings['inline'] = true;
+		$this->config->set('inline', true);
 
 		return $this;
 	}
@@ -309,7 +305,7 @@ class Container {
 	 */
 	public function remember($time = -1)
 	{
-		$this->cache->time = ($time > 0) ? $time : $this->settings['caching']['time'];
+		$this->cache->time = ($time > 0) ? $time : $this->config->get('caching.time');
 
 		return $this;
 	}
@@ -323,7 +319,7 @@ class Container {
 	 */
 	public function forget()
 	{
-		$this->settings['caching']['forget'] = true;
+		$this->config->set('caching.forget', true);
 
 		return $this;
 	}
