@@ -15,6 +15,9 @@ Autoloader::map(array(
 Route::filter('basset::after', function($response)
 {
 	$types = array(
+		'less'  => 'text/css',
+		'sass'  => 'text/css',
+		'scss'  => 'text/css',
 		'css' 	=> 'text/css',
 		'js'	=> 'text/javascript'
 	);
