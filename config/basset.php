@@ -20,17 +20,6 @@ return array(
 		'preserve_lines' => false
 	),
 
-	'compiling' => array(
-		/**
-		 * Compiling
-		 * 
-		 * Similar to caching apart from that the assets will only be recompiled when a change is
-		 * detected within one of the assets. This is not recommended for production apps. It is
-		 * best to use caching once an application goes live.
-		 */
-		'enabled' => false
-	),
-
 	'caching' => array(
 		/**
 		 * Caching
@@ -57,5 +46,27 @@ return array(
 		 * on your server and you still want the LESS functionality.
 		 */
 		'php' => false
-	)
+	),
+
+	/**
+	 * Document Root
+	 * 
+	 * The document root of the website in which the CSS files reside. If no document root is provided
+	 * then Basset uses $_SERVER['DOCUMENT_ROOT']
+	 */
+	'document_root' => '',
+
+	/**
+	 * Symlinks
+	 * 
+	 * An array of user specified symlinks. If the CSS files are stored in symlink'd directories provide
+	 * an array of link paths to target paths, where the link paths are within the document root. Because
+	 * paths need to be normalized for this to work you may use "//" to substitute the document root
+	 * in the link paths.
+	 * 
+	 * Example:
+	 * 
+	 * array('//symlink' => '/path/to/target')
+	 */
+	'symlinks' => array()
 );

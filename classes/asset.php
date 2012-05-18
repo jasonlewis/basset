@@ -5,42 +5,42 @@ use BadMethodCallException, URL, Basset;
 class Asset {
 
 	/**
-	 * @var  string  $group
+	 * @var string $group
 	 */
 	public $group;
 
 	/**
-	 * @var  string  $name
+	 * @var string $name
 	 */
 	public $name;
 
 	/**
-	 * @var  string  $file
+	 * @var string $file
 	 */
 	public $file;
 
 	/**
-	 * @var  bool  $less
+	 * @var bool $less
 	 */
 	public $less = false;
 
 	/**
-	 * @var  bool  $bundle
+	 * @var bool $bundle
 	 */
 	public $bundle = false;
 
 	/**
-	 * @var  bool  $external
+	 * @var bool $external
 	 */
 	public $external = false;
 
 	/**
-	 * @var  int  @updated
+	 * @var int @updated
 	 */
 	public $updated = 0;
 
 	/**
-	 * @var  string  $source
+	 * @var string $source
 	 */
 	public $source;
 
@@ -107,9 +107,11 @@ class Asset {
 	 * Gets the contents of an asset and if it's a stylesheet it is run through the
 	 * URI rewriter to correct any ill-formed directories.
 	 *
+	 * @param  array   $symlinks
+	 * @param  string  $document_root
 	 * @return string
 	 */
-	public function get()
+	public function get($symlinks = array(), $document_root = '')
 	{
 		if(!$this->exists())
 		{
@@ -120,7 +122,7 @@ class Asset {
 
 		if($this->group == 'styles')
 		{
-			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->file));
+			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->file), $document_root, $symlinks);
 		}
 
 		if($this->less && $this->settings['less']['php'])

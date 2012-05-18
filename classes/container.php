@@ -30,6 +30,11 @@ class Container {
 	protected $directory = null;
 
 	/**
+	 * @var array $symlinks
+	 */
+	protected $symlinks = array();
+
+	/**
 	 * __construct
 	 *
 	 * Loads the config and sets up some basic data.
@@ -68,7 +73,6 @@ class Container {
 
 		if(!file_exists(path('base') . $directory))
 		{
-			// Could not locate source from the base directory, return nothing.
 			return $this;
 		}
 
@@ -89,7 +93,7 @@ class Container {
 	 * @param  string  $name
 	 * @param  string  $file
 	 * @param  array   $dependencies
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
@@ -111,12 +115,29 @@ class Container {
 	}
 
 	/**
+	 * symlink
+	 * 
+	 * Add a symlink to the array of symlinks. Configuration symlinks are merged
+	 * in prior to rendering of assets.
+	 * 
+	 * @param  string  $symlink
+	 * @param  string  $target
+	 * @return object
+	 */
+	public function symlink($symlink, $target)
+	{
+		$this->symlinks[$symlink] = $target;
+
+		return $this;
+	}
+
+	/**
 	 * group
 	 * 
 	 * Sets the group, either style or script, to be used when displaying assets.
 	 * 
 	 * @param  string  $group
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function group($group)
 	{
@@ -178,7 +199,7 @@ class Container {
 		else
 		{
 			$recompile = true;
-			$assets    = '';
+			$assets    = array();
 
 			if(file_exists($compiled = (realpath(__DIR__ . DS . '..' . DS . 'compiled') . DS . $this->cache->name())))
 			{
@@ -194,10 +215,17 @@ class Container {
 
 			if($recompile)
 			{
-				foreach($this->arrange($this->assets[$group]) as $name => $asset)
+				// Merge in the configuration symlinks to the current array of symlinks so that
+				// they can be passed onto each asset so when fetching CSS files the symlinks
+				// are available.
+				$symlinks = array_merge($this->symlinks, $this->config->get('symlinks'));
+
+				foreach($this->arrange($this->assets[$group]) as $asset)
 				{
-					$assets .= $asset->get();
+					$assets[] = $asset->get($symlinks, $this->config->get('document_root'));
 				}
+
+				$assets = implode('', $assets);
 
 				// If compression is enabled then compress the assets according to the group that
 				// is being rendered. Compression is done after combining of all files to save on
@@ -272,7 +300,7 @@ class Container {
 	 *
 	 * Sets Basset to use compression on scripts and styles.
 	 *
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function compress()
 	{
@@ -286,7 +314,7 @@ class Container {
 	 *
 	 * Sets Basset to render assets inline. This will combine files.
 	 *
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function inline()
 	{
@@ -301,7 +329,7 @@ class Container {
 	 * Sets Basset to cache the files.
 	 *
 	 * @param  int  $time
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function remember($time = -1)
 	{
@@ -315,7 +343,7 @@ class Container {
 	 *
 	 * Sets Basset to clear the cache and the compiled assets.
 	 *
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function forget()
 	{
