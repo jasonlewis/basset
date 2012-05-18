@@ -1,7 +1,10 @@
 <?php
 
 Autoloader::map(array(
-	'Basset'			  		  => __DIR__ . DS . 'basset.php',
+	'Basset'			  		  => __DIR__ . DS . 'classes' . DS . 'basset.php',
+	'Basset\\Asset'				  => __DIR__ . DS . 'classes' . DS . 'asset.php',
+	'Basset\\Cache'				  => __DIR__ . DS . 'classes' . DS . 'cache.php',
+	'Basset\\Container'			  => __DIR__ . DS . 'classes' . DS . 'container.php',
 	'Basset\\Vendor\\CSSCompress' => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'csscompress.php',
 	'Basset\\Vendor\\JSMin'		  => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'jsmin.php',
 	'Basset\\Vendor\\URIRewriter' => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'urirewriter.php',
