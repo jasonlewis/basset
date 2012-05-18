@@ -37,8 +37,9 @@ class Config {
 	public function __construct()
 	{
 		$this->config = array_merge(\Laravel\Config::get('basset::basset'), array(
-			'caching'	=> array('forget' => false),
-			'inline'	=> false
+			'caching'	  => array('forget' => false),
+			'inline'	  => false,
+			'development' => false
 		), Config::$extend);
 	}
 

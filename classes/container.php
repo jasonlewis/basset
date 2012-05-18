@@ -185,11 +185,24 @@ class Container {
 	 */
 	protected function render($group)
 	{
-		if(!isset($this->assets[$group]) || count($this->assets[$group]) == 0)
+		if(!isset($this->assets[$group]) || count($this->assets[$group]) == 0) return '';
+
+		$assets = array();
+
+		// If we are in development mode then we'll return the respective HTML include form for each
+		// asset.
+		if($this->config->get('development'))
 		{
-			return '';
+			foreach($this->arrange($this->assets[$group]) as $asset)
+			{
+				$assets[] = $asset->html();
+			}
+
+			return implode('\n', $assets);
 		}
 
+		// Register the assets with the cache. This allows the name of the cache and compiled files to be
+		// determined as well as the cache to be used.
 		$this->cache->register($this->assets, $group, $this->config->get('caching.forget'));
 
 		if($this->cache->has())
@@ -199,7 +212,6 @@ class Container {
 		else
 		{
 			$recompile = true;
-			$assets    = array();
 
 			if(file_exists($compiled = (realpath(__DIR__ . DS . '..' . DS . 'compiled') . DS . $this->cache->name())))
 			{
@@ -319,6 +331,20 @@ class Container {
 	public function inline()
 	{
 		$this->config->set('inline', true);
+
+		return $this;
+	}
+
+	/**
+	 * development
+	 *
+	 * Sets Basset to render assets in development mode.
+	 *
+	 * @return object
+	 */
+	public function development()
+	{
+		$this->config->set('development', true);
 
 		return $this;
 	}

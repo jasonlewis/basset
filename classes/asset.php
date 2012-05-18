@@ -1,6 +1,6 @@
 <?php namespace Basset;
 
-use BadMethodCallException, URL, Basset;
+use BadMethodCallException, URL, Basset, HTML;
 
 class Asset {
 
@@ -133,6 +133,34 @@ class Asset {
 		}
 
 		return $contents . PHP_EOL;
+	}
+
+	/**
+	 * html
+	 * 
+	 * Gets the HTML tag for the asset with the correct URL.
+	 * 
+	 * @return string
+	 */
+	public function html()
+	{
+		$url = URL::to_asset(str_replace(array(path('base') . 'public', '\\'), array('', '/'), $this->source) . '/' . $this->file);
+
+		$attributes = array();
+
+		if($this->group == 'styles')
+		{
+			if($this->less)
+			{
+				$attributes = array('rel' => 'stylesheet/less');
+			}
+
+			return HTML::style($url, $attributes);
+		}
+		else
+		{
+			return HTML::script($url);
+		}
 	}
 
 

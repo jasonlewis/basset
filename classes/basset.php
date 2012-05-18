@@ -100,6 +100,32 @@ class Basset {
 	}
 
 	/**
+	 * development
+	 * 
+	 * Renders a containers assets individually as HTML tags. No compression or caching is
+	 * applied to any of the assets.
+	 * 
+	 * @param  string  $container
+	 * @return string
+	 */
+	public static function development($container)
+	{
+		if(str_contains($container, '.'))
+		{
+			$container = substr($container, 0, strpos($container, '.'));
+		}
+
+		if(array_key_exists($container, static::$containers))
+		{
+			return static::$containers[$container]->development();
+		}
+		else
+		{
+			return '<!-- Basset could not find container [' . $container . '] -->';
+		}
+	}
+
+	/**
 	 * __callStatic
 	 *
 	 * Invokes one of the available containers and generates a new route.
