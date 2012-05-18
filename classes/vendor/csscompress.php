@@ -1,4 +1,5 @@
-<?php namespace Basset;
+<?php namespace Basset\Vendor;
+
 /**
  * Class Minify_CSS_Compressor
  * @package Minify

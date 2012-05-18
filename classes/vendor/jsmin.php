@@ -1,4 +1,4 @@
-<?php namespace Basset;
+<?php namespace Basset\Vendor;
 /**
  * JSMin.php - modified PHP implementation of Douglas Crockford's JSMin.
  *

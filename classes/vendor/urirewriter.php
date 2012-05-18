@@ -1,4 +1,5 @@
-<?php namespace Basset;
+<?php namespace Basset\Vendor;
+
 /**
  * Class Minify_CSS_UriRewriter  
  * @package Minify
@@ -194,7 +195,7 @@ class URIRewriter {
      * if you extend Minify_CSS_UriRewriter
      * @var string
      */
-    protected static $className = '\\Basset\\URIRewriter';
+    protected static $className = '\\Basset\\Vendor\\URIRewriter';
 
     /**
      * Get realpath with any trailing slash removed. If realpath() fails,
