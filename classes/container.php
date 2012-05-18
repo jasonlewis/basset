@@ -35,7 +35,7 @@ class Container {
 	 * Loads the config and sets up some basic data.
 	 *
 	 * @param  string  $group
-	 * @return Basset_Container
+	 * @return object
 	 */
 	public function __construct($group = null)
 	{

@@ -1,7 +1,5 @@
 <?php namespace Basset;
 
-use Cache as Laravel_Cache;
-
 class Cache {
 
 	/**
@@ -59,9 +57,9 @@ class Cache {
 	{
 		$name = $this->name();
 
-		if(($has = Laravel_Cache::has($name)) && $this->forget)
+		if(($has = \Laravel\Cache::has($name)) && $this->forget)
 		{
-			Laravel_Cache::forget($name);
+			\Laravel\Cache::forget($name);
 
 			// We don't want to return the cached assets because we cleared
 			// the cache and we want a new fresh copy of the assets returned.
@@ -82,7 +80,7 @@ class Cache {
 	{
 		if($this->has())
 		{
-			$assets = Laravel_Cache::get($name = $this->name());
+			$assets = \Laravel\Cache::get($name = $this->name());
 
 			return $assets;
 		}
@@ -101,7 +99,7 @@ class Cache {
 	{
 		if(!$this->has())
 		{
-			Laravel_Cache::put($this->name(), $assets, $this->time);
+			\Laravel\Cache::put($this->name(), $assets, $this->time);
 		}
 	}
 

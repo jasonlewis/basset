@@ -1,7 +1,5 @@
 <?php namespace Basset;
 
-use Config as Laravel_Config;
-
 class Config {
 
 	/**
@@ -20,7 +18,7 @@ class Config {
 	{
 		if(is_string($extend))
 		{
-			$extend = Laravel_Config::get($extend);
+			$extend = \Laravel\Config::get($extend);
 		}
 
 		static::$extend = $extend;
@@ -38,7 +36,7 @@ class Config {
 	 */
 	public function __construct()
 	{
-		$this->config = array_merge(Laravel_Config::get('basset::basset'), array(
+		$this->config = array_merge(\Laravel\Config::get('basset::basset'), array(
 			'caching'	=> array('forget' => false),
 			'inline'	=> false
 		), Config::$extend);
