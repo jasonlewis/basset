@@ -1,4 +1,4 @@
-<?php namespace Basset;
+<?php
 
 /**
  * Basset
@@ -33,6 +33,10 @@ class Basset {
 			'group' 	=> 'styles',
 			'extension' => 'css'
 		),
+		'sass' => array(
+			'group'		=> 'styles',
+			'extension' => 'css'
+		),
 		'js' => array(
 			'group' 	=> 'scripts',
 			'extension' => 'js'
@@ -56,7 +60,7 @@ class Basset {
 			return static::$containers[$name];
 		}
 
-		static::$containers[$name] = new Basset_Container;
+		static::$containers[$name] = new Container;
 
 		return static::$containers[$name]->inline();
 	}
@@ -83,6 +87,19 @@ class Basset {
 	}
 
 	/**
+	 * corrector
+	 * 
+	 * Corrects the end path to be used by Basset.
+	 * 
+	 * @param  string  $path
+	 * @return string
+	 */
+	public function corrector($path)
+	{
+		return substr(str_replace(URL::base(), '', $path), 1);
+	}
+
+	/**
 	 * __callStatic
 	 *
 	 * Invokes one of the available containers and generates a new route.
@@ -97,15 +114,18 @@ class Basset {
 		{
 			list($name, $callback) = $arguments;
 
+			if(str_contains($name, '.'))
+			{
+				list($name, $extension) = explode('.', $name);
+			}
+
+			call_user_func($callback, static::$containers[$name] = new Basset\Container($group));
+
 			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
 
-			Route::get($route, function() use ($callback, $name, $group, $extension)
+			Route::get($route, function() use ($name)
 			{
-				call_user_func($callback, $assets = new Basset_Container($group));
-
-				Basset::$containers[$name] = $assets;
-
-				return $assets;
+				return Basset::$containers[$name];
 			});
 		}
 		else

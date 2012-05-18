@@ -1,5 +1,7 @@
 <?php namespace Basset;
 
+use Config, File, Basset;
+
 class Container {
 
 	/**
@@ -23,9 +25,9 @@ class Container {
 	protected $settings = array();
 
 	/**
-	 * @var string $source
+	 * @var string $directory
 	 */
-	protected $source = null;
+	public $directory = null;
 
 	/**
 	 * __construct
@@ -39,7 +41,7 @@ class Container {
 	{
 		$this->group = $group;
 
-		$this->cache = new Basset_Cache;
+		$this->cache = new Cache;
 
 		$this->settings = array_merge_recursive(Config::get('basset::basset'), array(
 			'caching'	=> array('forget' => false),
@@ -55,45 +57,32 @@ class Container {
 	 * 
 	 * Create a new directory collection of assets.
 	 * 
-	 * @param  string   $source
+	 * @param  string   $directory
 	 * @param  Closure  $callback
 	 * @return object
 	 */
-	public function directory($source, $callback)
+	public function directory($directory, $callback)
 	{
-		if(strpos($source, '::') !== false)
+		if(strpos($directory, '::') !== false)
 		{
-			list($bundle, $source) = explode('::', $source);
+			list($bundle, $directory) = explode('::', $directory);
 
-			$source = str_replace(path('base'), '', path('public')) . $this->corrector(Bundle::assets($bundle)) . $source;
+			$directory = str_replace(path('base'), '', path('public')) . Basset::corrector(Bundle::assets($bundle)) . $directory;
 		}
 
-		if(!file_exists(path('base') . $source))
+		if(!file_exists(path('base') . $directory))
 		{
 			// Could not locate source from the base directory, return nothing.
 			return $this;
 		}
 
-		$this->source = $source;
+		$this->directory = $directory;
 
-		call_user_func($callback, $assets = $this);
+		call_user_func($callback, $this);
 
-		$this->source = null;
+		$this->directory = null;
 
 		return $this;
-	}
-
-	/**
-	 * corrector
-	 * 
-	 * Corrects the end path to be used by Basset.
-	 * 
-	 * @param  string  $path
-	 * @return string
-	 */
-	protected function corrector($path)
-	{
-		return substr(str_replace(URL::base(), '', $path), 1);
 	}
 
 	/**
@@ -113,50 +102,14 @@ class Container {
 			throw new Exception('Unsupported file group [' . $extension . '] added to Bassset container.');
 		}
 
-		$less = ($extension == 'less');
+		$asset = new Asset($name, $file, $group, $extension, $this->directory, $dependencies);
 
-		$dependencies = (array) $dependencies;
-
-		$bundle = $external = false;
-
-		$updated = 0;
-
-		// In order of priority. If using a defined source we'll stick to that,
-		// or if we can find a prefixed bundle we'll attempt to use that. Last
-		// option is to use the standard public path.
-		if(!is_null($this->source))
+		if($asset->exists() && !$asset->external)
 		{
-			$source = path('base') . $this->source;
-		}
-		elseif(strpos($file, '::') !== false)
-		{
-			list($bundle, $file) = explode('::', $file);
-
-			$source = path('public') . $this->corrector(Bundle::assets($bundle));
-
-			$bundle = true;
-		}
-		else
-		{
-			$source = path('public') . $this->corrector(URL::to_asset('/'));
+			$asset->updated = filemtime($asset->source . DS . $asset->file);
 		}
 
-		// If the source has not been specified the public directory or bundle
-		// directory is being used, by default we'll go to the public directory
-		// and depending on the asset group we'll add the css or js folder.
-		if(is_null($this->source) && strpos($file, '/') == false)
-		{
-			$source .= ($group == 'styles' ? 'css' : 'js');
-		}
-
-		$source = realpath($source);
-
-		$this->assets[$group][$name] = compact('file', 'source', 'dependencies', 'less', 'bundle', 'external', 'updated');
-
-		if($this->find($name, $group) && !$this->assets[$group][$name]['external'])
-		{
-			$this->assets[$group][$name]['updated'] = filemtime($source . '/' . $file);
-		}
+		$this->assets[$group][$name] = $asset;
 
 		return $this;
 	}
@@ -229,16 +182,11 @@ class Container {
 		else
 		{
 			$recompile = true;
-			$assets = '';
+			$assets    = '';
 
-			if(file_exists($compiled = (__DIR__ . DS . 'compiled' . DS . $this->cache->name())))
+			if(file_exists($compiled = (realpath(__DIR__ . DS . '..' . DS . 'compiled') . DS . $this->cache->name())))
 			{
-				// If we are to forget the compiled assets, delete the file and continue.
-				if($this->settings['compiling']['forget'])
-				{
-					@unlink($compiled);
-				}
-				elseif($this->settings['compiling']['enabled'] && $this->newest($group) < filemtime($compiled))
+				if($this->newest($group) < filemtime($compiled))
 				{
 					// Assets have not been changed since last compile.
 					$assets = file_get_contents($compiled);
@@ -250,9 +198,9 @@ class Container {
 
 			if($recompile)
 			{
-				foreach($this->arrange($this->assets[$group]) as $name => $data)
+				foreach($this->arrange($this->assets[$group]) as $name => $asset)
 				{
-					$assets .= $this->asset($name, $group);
+					$assets .= $asset->get();
 				}
 
 				// If compression is enabled then compress the assets according to the group that
@@ -263,19 +211,15 @@ class Container {
 				{
 					if($group == 'styles')
 					{
-						$assets = Basset\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
+						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->settings['compression']['preserve_lines']));
 					}
 					elseif($group == 'scripts')
 					{
-						$assets = Basset\JSMin::minify($assets);
+						$assets = Basset\Vendor\JSMin::minify($assets);
 					}
 				}
 
-				if($this->settings['compiling']['enabled'])
-				{
-					// Save the recompiled assets.
-					file_put_contents($compiled, $assets);
-				}
+				file_put_contents($compiled, $assets);
 			}
 
 			// If caching is enabled the cache will be run now and the current copy stored so
@@ -305,70 +249,6 @@ class Container {
 	}
 
 	/**
-	 * asset
-	 *
-	 * Gets the contents of an asset and if it's a stylesheet it is run through the
-	 * URI rewriter to correct any ill-formed directories.
-	 *
-	 * @param  string  $name
-	 * @param  string  $group
-	 * @return string
-	 */
-	protected function asset($name, $group)
-	{
-		if(!$asset = $this->find($name, $group))
-		{
-			return PHP_EOL . '/* Basset could not find asset [' . $name . '] */' . PHP_EOL;
-		}
-
-		$contents = file_get_contents($asset['file']);
-
-		if($group == 'styles')
-		{
-			$contents = Basset\URIRewriter::rewrite($contents, dirname($asset['file']));
-		}
-
-		if($asset['less'] && $this->settings['less']['php'])
-		{
-			$less = new Basset\lessc;
-
-			$contents = $less->parse($contents);
-		}
-
-		return $contents . PHP_EOL;
-	}
-
-	/**
-	 * find
-	 * 
-	 * Attempt to find an asset.
-	 * 
-	 * @param  string  $name
-	 * @param  string  $group
-	 * @return mixed
-	 */
-	protected function find($name, $group)
-	{
-		$asset = $this->assets[$group][$name];
-
-		if(!parse_url($asset['file'], PHP_URL_SCHEME))
-		{
-			if(!file_exists($path = ($asset['source'] . DS . $asset['file'])))
-			{
-				return false;
-			}
-
-			$asset['file'] = $asset['source'] . '/' . $asset['file'];
-		}
-		else
-		{
-			$asset['external'] = $this->assets[$group][$name]['external'] = true;
-		}
-
-		return $asset;
-	}
-
-	/**
 	 * newest
 	 * 
 	 * Determine the newest file to be compiled.
@@ -382,9 +262,9 @@ class Container {
 
 		foreach($this->assets[$group] as $asset)
 		{
-			if($asset['updated'] > $newest)
+			if($asset->updated > $newest)
 			{
-				$newest = $asset['updated'];
+				$newest = $asset->updated;
 			}
 		}
 
@@ -435,20 +315,6 @@ class Container {
 	}
 
 	/**
-	 * compile
-	 * 
-	 * Sets Basset to use compiling.
-	 * 
-	 * @return Basset_Container
-	 */
-	public function compile()
-	{
-		$this->settings['compiling']['enabled'] = true;
-
-		return $this;
-	}
-
-	/**
 	 * forget
 	 *
 	 * Sets Basset to clear the cache and the compiled assets.
@@ -457,7 +323,7 @@ class Container {
 	 */
 	public function forget()
 	{
-		$this->settings['caching']['forget'] = $this->settings['compiling']['forget'] = true;
+		$this->settings['caching']['forget'] = true;
 
 		return $this;
 	}
@@ -504,7 +370,7 @@ class Container {
 		// If the asset has no more dependencies, we can add it to the sorted list
 		// and remove it from the array of assets. Otherwise, we will not verify
 		// the asset's dependencies and determine if they've been sorted.
-		if (count($assets[$asset]['dependencies']) == 0)
+		if (count($assets[$asset]->dependencies) == 0)
 		{
 			$sorted[$asset] = $value;
 
@@ -512,11 +378,11 @@ class Container {
 		}
 		else
 		{
-			foreach ($assets[$asset]['dependencies'] as $key => $dependency)
+			foreach ($assets[$asset]->dependencies as $key => $dependency)
 			{
 				if ( ! $this->dependency_is_valid($asset, $dependency, $original, $assets))
 				{
-					unset($assets[$asset]['dependencies'][$key]);
+					unset($assets[$asset]->dependencies[$key]);
 
 					continue;
 				}
@@ -526,7 +392,7 @@ class Container {
 				// the next trip through the loop.
 				if ( ! isset($sorted[$dependency])) continue;
 
-				unset($assets[$asset]['dependencies'][$key]);
+				unset($assets[$asset]->dependencies[$key]);
 			}
 		}
 	}

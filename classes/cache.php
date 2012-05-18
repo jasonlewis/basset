@@ -123,7 +123,7 @@ class Cache {
 
 		foreach($this->assets[$this->group] as $asset)
 		{
-			$name[] = str_replace(path('base'), '', $asset['source']) . '/' . $asset['file'];
+			$name[] = str_replace(path('base'), '', $asset->source) . '/' . $asset->file;
 		}
 
 		sort($name);
