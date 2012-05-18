@@ -28,4 +28,8 @@ Route::filter('basset::after', function($response)
 	{
 		$response->header('Content-Type', $types[$extension]);
 	}
+
+	// To prevent any further output being added to any Basset routes we'll clear any events listening
+	// for the laravel.done event.
+	Event::clear('laravel.done');
 });
