@@ -24,6 +24,7 @@ Copyright 2011-2012 Jason Lewis
 - Fix for removing profiler and any output being displayed for Basset routes.
 - Fixed #6, added symlink functionality.
 - Added in a development mode.
+- Basset now only recompiles when changes detected by default.
 
 ### Basset 1.3.2
 - Bug fix with CSS URIs not being rewritten correctly causing badly formed links to images.
