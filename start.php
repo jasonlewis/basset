@@ -1,11 +1,11 @@
 <?php
 
 Autoloader::map(array(
-	'Basset'			  => __DIR__ . DS . 'basset.php',
-	'Basset\\CSSCompress' => __DIR__ . DS . 'vendor/csscompress.php',
-	'Basset\\JSMin'		  => __DIR__ . DS . 'vendor/jsmin.php',
-	'Basset\\URIRewriter' => __DIR__ . DS . 'vendor/urirewriter.php',
-	'Basset\\lessc'		  => __DIR__ . DS . 'vendor/less.php'
+	'Basset'			  		  => __DIR__ . DS . 'basset.php',
+	'Basset\\Vendor\\CSSCompress' => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'csscompress.php',
+	'Basset\\Vendor\\JSMin'		  => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'jsmin.php',
+	'Basset\\Vendor\\URIRewriter' => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'urirewriter.php',
+	'Basset\\Vendor\\lessc'		  => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'less.php'
 ));
 
 Route::filter('basset::after', function($response)
