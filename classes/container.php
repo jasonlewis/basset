@@ -27,7 +27,7 @@ class Container {
 	/**
 	 * @var string $directory
 	 */
-	public $directory = null;
+	protected $directory = null;
 
 	/**
 	 * __construct
