@@ -113,12 +113,19 @@ class Asset {
 	 */
 	public function get($symlinks = array(), $document_root = '')
 	{
+		$fail = PHP_EOL . '/* Basset could not find asset [' . $this->name . '] */' . PHP_EOL;
+
 		if(!$this->exists())
 		{
-			return PHP_EOL . '/* Basset could not find asset [' . $this->name . '] */' . PHP_EOL;
+			return $fail;
 		}
 
-		$contents = file_get_contents($this->source . DS . $this->file);
+		$contents = @file_get_contents($this->file);
+
+		if(empty($contents))
+		{
+			return $fail;
+		}
 
 		if($this->group == 'styles')
 		{
@@ -179,6 +186,8 @@ class Asset {
 			{
 				return false;
 			}
+
+			$this->file = $this->source . DS . $this->file;
 		}
 		else
 		{

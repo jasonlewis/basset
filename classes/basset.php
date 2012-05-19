@@ -60,7 +60,7 @@ class Basset {
 			return static::$containers[$name];
 		}
 
-		static::$containers[$name] = new Container;
+		static::$containers[$name] = new Basset\Container;
 
 		return static::$containers[$name]->inline();
 	}
@@ -94,9 +94,28 @@ class Basset {
 	 * @param  string  $path
 	 * @return string
 	 */
-	public function corrector($path)
+	public static function corrector($path)
 	{
 		return substr(str_replace(URL::base(), '', $path), 1);
+	}
+
+	/**
+	 * route
+	 * 
+	 * Return the route for the given name and extension.
+	 * 
+	 * @param  string  $name
+	 * @param  string  $group
+	 * @return string
+	 */
+	protected static function route($name, $group)
+	{
+		$groups = array(
+			'styles'  => 'css',
+			'scripts' => 'js'
+		);
+
+		return Bundle::option('basset', 'handles') . '/' . $name . '.' . $groups[$group];
 	}
 
 	/**
@@ -108,7 +127,7 @@ class Basset {
 	 * @param  string  $container
 	 * @return string
 	 */
-	public static function development($container)
+	public static function development($container, $group = 'styles')
 	{
 		if(str_contains($container, '.'))
 		{
@@ -117,7 +136,7 @@ class Basset {
 
 		if(array_key_exists($container, static::$containers))
 		{
-			return static::$containers[$container]->development();
+			return static::$containers[static::route($container, $group)]->development();
 		}
 		else
 		{
@@ -145,13 +164,15 @@ class Basset {
 				list($name, $extension) = explode('.', $name);
 			}
 
-			call_user_func($callback, static::$containers[$name] = new Basset\Container($group));
+			$route = static::route($name, $group);
 
-			$route = Bundle::option('basset', 'handles') . '/' . $name . '.' . $extension;
+			$assets = static::$containers[$route] = new Basset\Container($group);
 
-			Route::get($route, function() use ($name)
+			call_user_func($callback, $assets);
+
+			Route::get($route, function() use ($assets)
 			{
-				return Basset::$containers[$name];
+				return $assets;
 			});
 		}
 		else
