@@ -125,9 +125,9 @@ class Basset {
 	 * applied to any of the assets.
 	 * 
 	 * @param  string  $container
-	 * @return string
+	 * @return string  $group
 	 */
-	public static function development($container, $group = 'styles')
+	public static function development($container, $group = null)
 	{
 		if(str_contains($container, '.'))
 		{
@@ -136,6 +136,18 @@ class Basset {
 
 		if(array_key_exists($container, static::$containers))
 		{
+			if(is_null($group))
+			{
+				if(array_key_exists(static::route($container, 'styles'), static::$containers))
+				{
+					$group = 'styles';
+				}
+				elseif(array_key_exists(static::route($container, 'scripts'), static::$containers))
+				{
+					$group = 'scripts';
+				}
+			}
+
 			return static::$containers[static::route($container, $group)]->development();
 		}
 		else
