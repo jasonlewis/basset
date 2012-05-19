@@ -4,7 +4,7 @@ Basset is a Better Asset manager for the Laravel PHP framework. Basset allows yo
 
 - **Author:** Jason Lewis
 - **Website:** [http://jasonlewis.me/code/basset](http://jasonlewis.me/code/basset)
-- **Version:** 1.3.2
+- **Version:** 1.4
 
 ## Documentation
 For a complete documentation guide please see the [official documentation](http://jasonlewis.me/code/basset/docs).

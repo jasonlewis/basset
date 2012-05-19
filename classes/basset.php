@@ -8,7 +8,7 @@
  * also allows compressed and cached assets to appear inline.
  *
  * @package 	Basset
- * @version     1.3.2
+ * @version     1.4
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
