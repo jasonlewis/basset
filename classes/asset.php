@@ -129,7 +129,7 @@ class Asset {
 
 		if($this->group == 'styles')
 		{
-			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->file), $document_root, $symlinks);
+			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->source .DS . $this->file), $document_root, $symlinks);
 		}
 
 		if($this->less && $this->settings['less']['php'])
