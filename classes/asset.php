@@ -120,7 +120,7 @@ class Asset {
 			return $fail;
 		}
 
-		$contents = @file_get_contents($this->file);
+		$contents = @file_get_contents($this->source . DS . $this->file);
 
 		if(empty($contents))
 		{
@@ -186,8 +186,6 @@ class Asset {
 			{
 				return false;
 			}
-
-			$this->file = $this->source . DS . $this->file;
 		}
 		else
 		{

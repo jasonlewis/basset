@@ -106,7 +106,7 @@ class Container {
 
 		if($asset->exists() && !$asset->external)
 		{
-			$asset->updated = filemtime($asset->file);
+			$asset->updated = filemtime($asset->source . DS . $asset->file);
 		}
 
 		$this->assets[$group][$name] = $asset;
