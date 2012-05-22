@@ -132,7 +132,7 @@ class Asset {
 			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->source .DS . $this->file), $document_root, $symlinks);
 		}
 
-		if($this->less && $this->settings['less']['php'])
+		if($this->less && Config::get('less.php'))
 		{
 			$less = new Vendor\lessc;
 

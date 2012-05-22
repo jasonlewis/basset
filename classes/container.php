@@ -48,7 +48,7 @@ class Container {
 
 		$this->cache = new Cache;
 
-		$this->config = new Config;
+		Config::load();
 
 		return $this;
 	}
@@ -191,7 +191,7 @@ class Container {
 
 		// If we are in development mode then we'll return the respective HTML include form for each
 		// asset.
-		if($this->config->get('development'))
+		if(Config::get('development'))
 		{
 			foreach($this->arrange($this->assets[$group]) as $asset)
 			{
@@ -203,7 +203,7 @@ class Container {
 
 		// Register the assets with the cache. This allows the name of the cache and compiled files to be
 		// determined as well as the cache to be used.
-		$this->cache->register($this->assets, $group, $this->config->get('caching.forget'));
+		$this->cache->register($this->assets, $group, Config::get('caching.forget'));
 
 		if($this->cache->has())
 		{
@@ -230,11 +230,11 @@ class Container {
 				// Merge in the configuration symlinks to the current array of symlinks so that
 				// they can be passed onto each asset so when fetching CSS files the symlinks
 				// are available.
-				$symlinks = array_merge($this->symlinks, $this->config->get('symlinks'));
+				$symlinks = array_merge($this->symlinks, Config::get('symlinks'));
 
 				foreach($this->arrange($this->assets[$group]) as $asset)
 				{
-					$assets[] = $asset->get($symlinks, $this->config->get('document_root'));
+					$assets[] = $asset->get($symlinks, Config::get('document_root'));
 				}
 
 				$assets = implode('', $assets);
@@ -243,7 +243,7 @@ class Container {
 				// is being rendered. Compression is done after combining of all files to save on
 				// running the compression on each file. This is ensures that the file is
 				// compressed before being cached.
-				if($this->config->get('compression.enabled'))
+				if(Config::get('compression.enabled'))
 				{
 					if($group == 'styles')
 					{
@@ -269,7 +269,7 @@ class Container {
 
 		// If displaying the assets inline this wraps the assets in the correct tags for both
 		// stylesheets and javascript assets.
-		if($this->config->get('inline'))
+		if(Config::get('inline'))
 		{
 			if($group == 'styles')
 			{
@@ -316,7 +316,7 @@ class Container {
 	 */
 	public function compress()
 	{
-		$this->config->set('compression.enabled', true);
+		Config::set('compression.enabled', true);
 
 		return $this;
 	}
@@ -330,7 +330,7 @@ class Container {
 	 */
 	public function inline()
 	{
-		$this->config->set('inline', true);
+		Config::set('inline', true);
 
 		return $this;
 	}
@@ -344,7 +344,7 @@ class Container {
 	 */
 	public function development()
 	{
-		$this->config->set('development', true);
+		Config::set('development', true);
 
 		return $this;
 	}
@@ -359,7 +359,7 @@ class Container {
 	 */
 	public function remember($time = -1)
 	{
-		$this->cache->time = ($time > 0) ? $time : $this->config->get('caching.time');
+		$this->cache->time = ($time > 0) ? $time : Config::get('caching.time');
 
 		return $this;
 	}
@@ -373,7 +373,7 @@ class Container {
 	 */
 	public function forget()
 	{
-		$this->config->set('caching.forget', true);
+		Config::set('caching.forget', true);
 
 		return $this;
 	}

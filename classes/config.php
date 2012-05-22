@@ -8,6 +8,11 @@ class Config {
 	public static $extend = array();
 
 	/**
+	 * @var array $config
+	 */
+	protected static $config = array();
+
+	/**
 	 * extend
 	 * 
 	 * Extend the configuration with a custom configuration file.
@@ -24,19 +29,15 @@ class Config {
 		static::$extend = $extend;
 	}
 
-	/**
-	 * @var array $config
-	 */
-	protected $config;
 
 	/**
-	 * __construct
+	 * load
 	 * 
-	 * Create a new config object and fetch the config file, merging in any extensions and defaults.
+	 * Loads the config and merges in defaults and any extenders.
 	 */
-	public function __construct()
+	public static function load()
 	{
-		$this->config = array_merge(\Laravel\Config::get('basset::basset'), array(
+		static::$config = array_merge(\Laravel\Config::get('basset::basset'), array(
 			'caching'	  => array('forget' => false),
 			'inline'	  => false,
 			'development' => false
@@ -51,9 +52,9 @@ class Config {
 	 * @param  string  $key
 	 * @return mixed
 	 */
-	public function get($key)
+	public static function get($key)
 	{
-		return array_get($this->config, $key);
+		return array_get(static::$config, $key);
 	}
 
 	/**
@@ -67,7 +68,7 @@ class Config {
 	 */
 	public function set($key, $value)
 	{
-		array_set($this->config, $key, $value);
+		array_set(static::$config, $key, $value);
 	}
 
 }
