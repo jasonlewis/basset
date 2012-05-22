@@ -115,17 +115,15 @@ class Asset {
 	{
 		$fail = PHP_EOL . '/* Basset could not find asset [' . $this->name . '] */' . PHP_EOL;
 
-		if(!$this->exists())
+        if(!$this->exists())
 		{
-			return $fail;
+            if ($this->group != 'styles' or empty($symlinks))
+            {
+                return $fail;
+            }
 		}
 
 		$contents = @file_get_contents($this->source . DS . $this->file);
-
-		if(empty($contents))
-		{
-			return $fail;
-		}
 
 		if($this->group == 'styles')
 		{
@@ -137,6 +135,11 @@ class Asset {
 			$less = new Vendor\lessc;
 
 			$contents = $less->parse($contents);
+		}
+
+        if(empty($contents))
+		{
+			return $fail;
 		}
 
 		return $contents . PHP_EOL;
