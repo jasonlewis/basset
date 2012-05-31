@@ -66,7 +66,7 @@ class Config {
 	 * @param  mixed   $value
 	 * @return void
 	 */
-	public function set($key, $value)
+	public static function set($key, $value)
 	{
 		array_set(static::$config, $key, $value);
 	}
