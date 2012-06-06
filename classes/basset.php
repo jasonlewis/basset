@@ -45,9 +45,9 @@ class Basset {
 
 	/**
 	 * inline
-	 * 
+	 *
 	 * Create a new inline Basset_Container instance or return an existing instance.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @return Basset_Container
 	 */
@@ -67,9 +67,9 @@ class Basset {
 
 	/**
 	 * valid
-	 * 
+	 *
 	 * Iterate through the available formats and return the valid extension.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return mixed
 	 */
@@ -88,9 +88,9 @@ class Basset {
 
 	/**
 	 * corrector
-	 * 
+	 *
 	 * Corrects the end path to be used by Basset.
-	 * 
+	 *
 	 * @param  string  $path
 	 * @return string
 	 */
@@ -101,9 +101,9 @@ class Basset {
 
 	/**
 	 * route
-	 * 
+	 *
 	 * Return the route for the given name and extension.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @param  string  $group
 	 * @return string
@@ -120,10 +120,10 @@ class Basset {
 
 	/**
 	 * development
-	 * 
+	 *
 	 * Renders a containers assets individually as HTML tags. No compression or caching is
 	 * applied to any of the assets.
-	 * 
+	 *
 	 * @param  string  $container
 	 * @return string  $group
 	 */
@@ -170,11 +170,6 @@ class Basset {
 		if($extension = static::valid($group))
 		{
 			list($name, $callback) = $arguments;
-
-			if(str_contains($name, '.'))
-			{
-				list($name, $extension) = explode('.', $name);
-			}
 
 			$route = static::route($name, $group);
 
