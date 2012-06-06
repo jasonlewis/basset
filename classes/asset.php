@@ -135,6 +135,7 @@ class Asset {
 		if($this->less && Config::get('less.php'))
 		{
 			$less = new Vendor\lessc;
+			$less->importDir = $this->source;
 
 			$contents = $less->parse($contents);
 		}
@@ -144,9 +145,9 @@ class Asset {
 
 	/**
 	 * html
-	 * 
+	 *
 	 * Gets the HTML tag for the asset with the correct URL.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function html()
@@ -173,9 +174,9 @@ class Asset {
 
 	/**
 	 * exists
-	 * 
+	 *
 	 * Determines if the asset exists.
-	 * 
+	 *
 	 * @return mixed
 	 */
 	public function exists()
