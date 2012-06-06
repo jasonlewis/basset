@@ -55,9 +55,9 @@ class Container {
 
 	/**
 	 * directory
-	 * 
+	 *
 	 * Create a new directory collection of assets.
-	 * 
+	 *
 	 * @param  string   $directory
 	 * @param  Closure  $callback
 	 * @return object
@@ -116,10 +116,10 @@ class Container {
 
 	/**
 	 * symlink
-	 * 
+	 *
 	 * Add a symlink to the array of symlinks. Configuration symlinks are merged
 	 * in prior to rendering of assets.
-	 * 
+	 *
 	 * @param  string  $symlink
 	 * @param  string  $target
 	 * @return object
@@ -133,9 +133,9 @@ class Container {
 
 	/**
 	 * group
-	 * 
+	 *
 	 * Sets the group, either style or script, to be used when displaying assets.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return object
 	 */
@@ -247,7 +247,7 @@ class Container {
 				{
 					if($group == 'styles')
 					{
-						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->config('compression.preserve_lines')));
+						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => Config::get('compression.preserve_lines')));
 					}
 					elseif($group == 'scripts')
 					{
@@ -286,9 +286,9 @@ class Container {
 
 	/**
 	 * newest
-	 * 
+	 *
 	 * Determine the newest file to be compiled.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return int
 	 */
