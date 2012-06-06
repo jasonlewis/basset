@@ -213,7 +213,7 @@ class Container {
 		{
 			$recompile = true;
 
-			if(file_exists($compiled = (realpath(__DIR__ . DS . '..' . DS . 'compiled') . DS . $this->cache->name())))
+			if(file_exists($compiled = Config::get('compiled_dir') . DS . $this->cache->name()))
 			{
 				if($this->newest($group) < filemtime($compiled))
 				{
