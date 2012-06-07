@@ -157,6 +157,39 @@ class Basset {
 	}
 
 	/**
+	 * Returns a url to the passed container
+	 * @param  string $container asset container
+	 * @return string
+	 */
+	public static function url($container = '')
+	{
+		$info = new SplFileInfo($container);
+		$ext = $info->getExtension();
+		$name = $info->getBasename(".{$ext}");
+
+		if (array_key_exists($ext, static::$available))
+		{
+			$group = static::$available[$ext]['group'];
+			$route = static::route($name, $group);
+
+			if (array_key_exists($route, static::$containers))
+			{
+				$url = URL::to($route);
+			}
+			else
+			{
+				throw new Exception("{$route} does not exists in containers.");
+			}
+		}
+		else
+		{
+			throw new Exception("{$ext} is not available.");
+		}
+
+		return $url;
+	}
+
+	/**
 	 * __callStatic
 	 *
 	 * Invokes one of the available containers and generates a new route.
