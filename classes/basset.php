@@ -45,9 +45,9 @@ class Basset {
 
 	/**
 	 * inline
-	 * 
+	 *
 	 * Create a new inline Basset_Container instance or return an existing instance.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @return Basset_Container
 	 */
@@ -67,9 +67,9 @@ class Basset {
 
 	/**
 	 * valid
-	 * 
+	 *
 	 * Iterate through the available formats and return the valid extension.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return mixed
 	 */
@@ -88,9 +88,9 @@ class Basset {
 
 	/**
 	 * corrector
-	 * 
+	 *
 	 * Corrects the end path to be used by Basset.
-	 * 
+	 *
 	 * @param  string  $path
 	 * @return string
 	 */
@@ -101,9 +101,9 @@ class Basset {
 
 	/**
 	 * route
-	 * 
+	 *
 	 * Return the route for the given name and extension.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @param  string  $group
 	 * @return string
@@ -120,10 +120,10 @@ class Basset {
 
 	/**
 	 * development
-	 * 
+	 *
 	 * Renders a containers assets individually as HTML tags. No compression or caching is
 	 * applied to any of the assets.
-	 * 
+	 *
 	 * @param  string  $container
 	 * @return string  $group
 	 */
@@ -157,6 +157,39 @@ class Basset {
 	}
 
 	/**
+	 * Returns a url to the passed container
+	 * @param  string $container asset container
+	 * @return string
+	 */
+	public static function url($container = '')
+	{
+		$info = new SplFileInfo($container);
+		$ext = $info->getExtension();
+		$name = $info->getBasename(".{$ext}");
+
+		if (array_key_exists($ext, static::$available))
+		{
+			$group = static::$available[$ext]['group'];
+			$route = static::route($name, $group);
+
+			if (array_key_exists($route, static::$containers))
+			{
+				$url = URL::to($route);
+			}
+			else
+			{
+				throw new Exception("{$route} does not exists in containers.");
+			}
+		}
+		else
+		{
+			throw new Exception("{$ext} is not available.");
+		}
+
+		return $url;
+	}
+
+	/**
 	 * __callStatic
 	 *
 	 * Invokes one of the available containers and generates a new route.
@@ -170,11 +203,6 @@ class Basset {
 		if($extension = static::valid($group))
 		{
 			list($name, $callback) = $arguments;
-
-			if(str_contains($name, '.'))
-			{
-				list($name, $extension) = explode('.', $name);
-			}
 
 			$route = static::route($name, $group);
 
