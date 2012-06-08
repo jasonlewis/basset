@@ -247,7 +247,7 @@ class Container {
 				{
 					if($group == 'styles')
 					{
-						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->config('compression.preserve_lines')));
+						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => Config::get('compression.preserve_lines')));
 					}
 					elseif($group == 'scripts')
 					{
