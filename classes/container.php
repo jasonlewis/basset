@@ -1,6 +1,6 @@
 <?php namespace Basset;
 
-use File, Basset;
+use File, Basset, \Laravel\Bundle;
 
 class Container {
 
