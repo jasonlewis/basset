@@ -17,6 +17,10 @@ Copyright 2011-2012 Jason Lewis
 
 ## Changelog
 
+### Basset 1.4.3
+- Compiled directory can now be set in the configuration.
+- Numerous bug fixes.
+
 ### Basset 1.4.2
 - Fixed issue #10, set method on config was not static.
 - Fixed issue #9, missed an old settings reference. Config has been made statically global.

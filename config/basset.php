@@ -70,5 +70,10 @@ return array(
 	 */
 	'symlinks' => array(),
 
+	/**
+	 * Compiled Directory
+	 * 
+	 * The directory to save the compiled Basset files, ensure this directory is writeable.
+	 */
 	'compiled_dir' => Bundle::path('basset').'compiled',
 );
