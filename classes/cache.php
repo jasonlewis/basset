@@ -1,131 +1,105 @@
 <?php namespace Basset;
 
+use Laravel\Cache as C;
+
 class Cache {
 
 	/**
-	 * @var array $assets
+	 * The route that the cached assets respond to.
+	 * 
+	 * @var string
 	 */
-	protected $assets = array();
+	protected $route;
 
 	/**
-	 * @var string $group
-	 */
-	protected $group;
-
-	/**
-	 * @var bool $forget
+	 * If the cached copy is set to be forgotten.
+	 * 
+	 * @var bool
 	 */
 	protected $forget;
 
 	/**
-	 * @var string $name
+	 * The name of the cached copy, also used for the compiled files.
+	 * 
+	 * @var string
 	 */
 	protected $name;
 
 	/**
-	 * @var int $time
+	 * The time the cached copy will be stored for.
+	 * 
+	 * @var int
 	 */
 	public $time;
 
-	/**
-	 * register
-	 *
-	 * Registers the assets and the group that is being rendered.
-	 *
-	 * @param  array   $assets
-	 * @param  string  $group
-	 * @param  bool    $forget
-	 */
-	public function register($assets, $group, $forget)
+	public function __construct($route)
 	{
-		$this->assets = $assets;
-
-		$this->group = $group;
-
-		$this->forget = $forget;
+		$this->route = $route;
 	}
 
 	/**
-	 * has
-	 *
 	 * Checks if the current group of assets has a cached copy. If the assets are set to be
 	 * forgotten the cached copy will not be returned.
 	 *
 	 * @return bool
 	 */
-	public function has()
+	public function exists($forget)
 	{
 		$name = $this->name();
 
-		if(($has = \Laravel\Cache::has($name)) && $this->forget)
+		if(($exists = C::has($name)) and $forget)
 		{
-			\Laravel\Cache::forget($name);
+			C::forget($name);
 
 			// We don't want to return the cached assets because we cleared
 			// the cache and we want a new fresh copy of the assets returned.
 			return false;
 		}
 
-		return $has;
+		return $exists;
 	}
 
 	/**
-	 * get
-	 *
 	 * Get a cached copy of the group of assets.
 	 *
-	 * @return mixed
+	 * @return string|bool
 	 */
 	public function get()
 	{
-		if($this->has())
+		if($this->exists())
 		{
-			$assets = \Laravel\Cache::get($name = $this->name());
-
-			return $assets;
+			return C::get($this->name());
 		}
 
 		return false;
 	}
 
 	/**
-	 * run
-	 *
-	 * Runs the cache and stores it if the cache has not already been set.
+	 * Stores the assets in the cache for a set amount of time.
 	 *
 	 * @param  string  $assets
+	 * @return void
 	 */
-	public function run($assets)
+	public function store($assets)
 	{
-		if(!$this->has())
+		if(!$this->exists())
 		{
-			\Laravel\Cache::put($this->name(), $assets, $this->time);
+			C::put($this->name(), $assets, $this->time);
 		}
 	}
 
 	/**
-	 * name
-	 *
-	 * Determines the cached name of the group of assets.
+	 * Determines the name of the cached assets.
 	 *
 	 * @return string
 	 */
 	public function name()
 	{
-		if($this->name)
+		if(!is_null($this->name))
 		{
 			return $this->name;
 		}
 
-		$name = array();
-
-		foreach($this->assets[$this->group] as $asset)
-		{
-			$name[] = str_replace(path('base'), '', $asset->source) . '/' . $asset->file;
-		}
-
-		sort($name);
-
-		return $this->name =  md5('basset_' . $this->group . '_' . implode('', $name));
+		return $this->name = md5('basset::' . $this->route);
 	}
 }
