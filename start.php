@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Register all the classes that are used by Basset with the autoloader.
+ */
 Autoloader::map(array(
 	'Basset'			  		  => __DIR__ . DS . 'classes' . DS . 'basset.php',
 	'Basset\\Asset'				  => __DIR__ . DS . 'classes' . DS . 'asset.php',
@@ -12,6 +15,19 @@ Autoloader::map(array(
 	'Basset\\Vendor\\lessc'		  => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'less.php'
 ));
 
+/**
+ * In this before filter we'll grab the compiled assets for this route and return them here.
+ * This is what makes it possible for Basset routes to be adjusted prior to them being displayed.
+ */
+Route::filter('basset::before', function()
+{
+	return Basset::compiled();
+});
+
+/**
+ * After the Basset route is run we'll adjust the response object setting the appropriate content
+ * type for the assets.
+ */
 Route::filter('basset::after', function($response)
 {
 	$types = array(
@@ -22,7 +38,7 @@ Route::filter('basset::after', function($response)
 		'js'	=> 'text/javascript'
 	);
 
-	$extension = File::extension($uri = Request::uri());
+	$extension = File::extension(Request::uri());
 
 	if(array_key_exists($extension, $types))
 	{
@@ -33,3 +49,15 @@ Route::filter('basset::after', function($response)
 	// for the laravel.done event.
 	Event::clear('laravel.done');
 });
+
+/**
+ * If the current URI is not being handled by Basset then all registered Basset routes will be
+ * compiled once Laravel has finished doing its thing.
+ */
+if(!starts_with(URI::current(), Bundle::option('basset', 'handles')))
+{
+	Event::listen('laravel.done', function()
+	{
+		Basset::compile();
+	});
+}
