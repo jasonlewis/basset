@@ -1,6 +1,7 @@
 <?php namespace Basset;
 
 use File;
+use Event;
 use Bundle;
 
 class Container {
@@ -59,6 +60,8 @@ class Container {
 	 */
 	public function __construct($route, $group)
 	{
+		$this->route = $route;
+
 		$this->group = $group;
 
 		$this->cache = new Cache($route);
@@ -283,9 +286,20 @@ class Container {
 				// are available.
 				$symlinks = array_merge($this->symlinks, Config::get('symlinks'));
 
+				$route = substr(str_replace(array(Bundle::option('basset', 'handles') . '/', File::extension($this->route)), '', $this->route), 0, -1);
+
 				foreach($this->arrange($this->assets[$group]) as $asset)
 				{
-					$assets[] = $asset->get($symlinks, Config::get('document_root'));
+					$contents = $asset->get($symlinks, Config::get('document_root'));
+
+					// Fire the basset.<route>: <file> event until we receive a response. That response
+					// will then be used for the asset contents.
+					if(!is_null($response = Event::until('basset.' . $route . ': ' . $asset->file, array($contents))))
+					{
+						$contents = $response;
+					}
+
+					$assets[] = $contents;
 				}
 
 				$assets = implode('', $assets);
