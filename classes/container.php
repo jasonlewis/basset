@@ -67,8 +67,6 @@ class Container {
 	}
 
 	/**
-	 * directory
-	 *
 	 * Create a new directory collection of assets.
 	 *
 	 * @param  string   $directory
@@ -99,8 +97,6 @@ class Container {
 	}
 
 	/**
-	 * add
-	 *
 	 * Adds an asset to the container.
 	 *
 	 * @param  string  $name
@@ -361,13 +357,10 @@ class Container {
 	}
 
 	/**
-	 * arrange
-	 *
 	 * Sort and retrieve assets based on their dependencies
 	 *
-	 * @author  Taylor Otwell
-	 * @param   array  $assets
-	 * @return  array
+	 * @param  array  $assets
+	 * @return array
 	 */
 	protected function arrange($assets)
 	{
@@ -385,17 +378,14 @@ class Container {
 	}
 
 	/**
-	 * evaluate_asset
-	 *
 	 * Evaluate an asset and its dependencies.
 	 *
-	 * @author  Taylor Otwell
-	 * @param   string  $asset
-	 * @param   string  $value
-	 * @param   array   $original
-	 * @param   array   $sorted
-	 * @param   array   $assets
-	 * @return  void
+	 * @param  string  $asset
+	 * @param  tring  $value
+	 * @param  array   $original
+	 * @param  array   $sorted
+	 * @param  array   $assets
+	 * @return void
 	 */
 	protected function evaluate_asset($asset, $value, $original, &$sorted, &$assets)
 	{
@@ -430,20 +420,17 @@ class Container {
 	}
 
 	/**
-	 * dependency_is_valid
-	 *
 	 * Verify that an asset's dependency is valid.
 	 *
 	 * A dependency is considered valid if it exists, is not a circular reference, and is
 	 * not a reference to the owning asset itself. If the dependency doesn't exist, no
 	 * error or warning will be given. For the other cases, an exception is thrown.
 	 *
-	 * @author  Taylor Otwell
-	 * @param   string  $asset
-	 * @param   string  $dependency
-	 * @param   array   $original
-	 * @param   array   $assets
-	 * @return  bool
+	 * @param  string  $asset
+	 * @param  string  $dependency
+	 * @param  array   $original
+	 * @param  array   $assets
+	 * @return bool
 	 */
 	protected function dependency_is_valid($asset, $dependency, $original, $assets)
 	{

@@ -17,9 +17,6 @@ class Asset {
 	 *
 	 * @param  string  $name
 	 * @param  string  $file
-	 * @param  string  $group
-	 * @param  string  $extension
-	 * @param  string  $directory
 	 * @param  array   $dependencies
 	 * @return void
 	 */
@@ -38,6 +35,12 @@ class Asset {
 		$this->updated = 0;
 	}
 
+	/**
+	 * Checks if the asset exists within the given directory.
+	 * 
+	 * @param  string  $directory
+	 * @return bool
+	 */
 	public function exists($directory)
 	{
 		if(!parse_url($this->file, PHP_URL_SCHEME))
@@ -97,8 +100,6 @@ class Asset {
 	}
 
 	/**
-	 * get
-	 *
 	 * Gets the contents of an asset and if it's a stylesheet it is run through the
 	 * URI rewriter to correct any ill-formed directories.
 	 *

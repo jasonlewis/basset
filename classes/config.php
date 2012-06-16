@@ -5,12 +5,16 @@ use Laravel\Config as C;
 class Config {
 
 	/**
-	 * @var array $extend
+	 * Array containing the extended configuration.
+	 * 
+	 * @var array
 	 */
 	public static $extend = array();
 
 	/**
-	 * @var array $config
+	 * Array containing the configuration.
+	 * 
+	 * @var array
 	 */
 	protected static $config = array();
 
