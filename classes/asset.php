@@ -147,7 +147,12 @@ class Asset {
 			'js'   => 'scripts'
 		);
 
-		return in_array(File::extension($this->file), $extensions);
+		if(!array_key_exists($extension = File::extension($this->file), $extensions))
+		{
+			return false;
+		}
+
+		return $group == $extensions[$extension];
 	}
 
 	/**
