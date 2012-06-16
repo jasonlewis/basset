@@ -1,5 +1,7 @@
 <?php namespace Basset;
 
+use Laravel\Config as C;
+
 class Config {
 
 	/**
@@ -13,17 +15,16 @@ class Config {
 	protected static $config = array();
 
 	/**
-	 * extend
-	 * 
 	 * Extend the configuration with a custom configuration file.
 	 * 
-	 * @param array $extend
+	 * @param  array  $extend
+	 * @return void
 	 */
 	public static function extend($extend)
 	{
 		if(is_string($extend))
 		{
-			$extend = \Laravel\Config::get($extend);
+			$extend = C::get($extend);
 		}
 
 		static::$extend = $extend;
@@ -31,13 +32,13 @@ class Config {
 
 
 	/**
-	 * load
-	 * 
 	 * Loads the config and merges in defaults and any extenders.
+	 * 
+	 * @return void
 	 */
 	public static function load()
 	{
-		static::$config = array_merge(\Laravel\Config::get('basset::basset'), array(
+		static::$config = array_merge(C::get('basset::basset'), array(
 			'caching'	  => array('forget' => false),
 			'inline'	  => false,
 			'development' => false
@@ -45,8 +46,6 @@ class Config {
 	}
 
 	/**
-	 * get
-	 * 
 	 * Get a config key from the config array.
 	 * 
 	 * @param  string  $key
@@ -58,8 +57,6 @@ class Config {
 	}
 
 	/**
-	 * set
-	 * 
 	 * Set a config key in the config array.
 	 * 
 	 * @param  string  $key
