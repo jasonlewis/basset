@@ -1,56 +1,69 @@
 <?php namespace Basset;
 
-use File, Basset, \Laravel\Bundle;
+use File;
+use Bundle;
 
 class Container {
 
 	/**
-	 * @var string $group
+	 * The route the assets will be display on.
+	 * 
+	 * @var string
+	 */
+	protected $route;
+
+	/**
+	 * The group the assets belong to, either scripts or styles.
+	 * 
+	 * @var string
 	 */
 	protected $group;
 
 	/**
-	 * @var object $cache
+	 * The cache object used to store the cached assets.
+	 * 
+	 * @var object
 	 */
 	protected $cache;
 
 	/**
-	 * @var array $assets
+	 * The array containing all the registered assets.
+	 * 
+	 * @var array
 	 */
-	protected $assets = array();
+	protected $assets = array(
+		'styles'  => array(),
+		'scripts' => array()
+	);
 
 	/**
-	 * @var array $config
+	 * The current directory to register assets from.
+	 * 
+	 * @var string
 	 */
-	protected $config;
+	protected $directory;
 
 	/**
-	 * @var string $directory
-	 */
-	protected $directory = null;
-
-	/**
-	 * @var array $symlinks
+	 * The array of registered symlinks.
+	 * 
+	 * @var array
 	 */
 	protected $symlinks = array();
 
 	/**
-	 * __construct
+	 * Create a new Basset\Container instance.
 	 *
-	 * Loads the config and sets up some basic data.
-	 *
+	 * @param  string  $route
 	 * @param  string  $group
-	 * @return object
+	 * @return void
 	 */
-	public function __construct($group = null)
+	public function __construct($route, $group)
 	{
 		$this->group = $group;
 
-		$this->cache = new Cache;
+		$this->cache = new Cache($route);
 
 		Config::load();
-
-		return $this;
 	}
 
 	/**
@@ -68,7 +81,7 @@ class Container {
 		{
 			list($bundle, $directory) = explode('::', $directory);
 
-			$directory = str_replace(path('base'), '', path('public')) . Basset::corrector(Bundle::assets($bundle)) . $directory;
+			$directory = str_replace(path('base'), '', path('public')) . substr(Bundle::assets($bundle), 1) . $directory;
 		}
 
 		if(!file_exists(path('base') . $directory))
@@ -97,26 +110,35 @@ class Container {
 	 */
 	public function add($name, $file, $dependencies = array())
 	{
-		if(is_null($group = array_key_exists($extension = File::extension($file), Basset::$available) ? Basset::$available[$extension]['group'] : null))
+		$asset = new Asset($name, $file, $dependencies);
+
+		if($asset->exists($this->directory) and !$asset->external())
 		{
-			throw new Exception('Unsupported file group [' . $extension . '] added to Bassset container.');
+			$asset->updated = filemtime($asset->directory . DS . $asset->file);
 		}
 
-		$asset = new Asset($name, $file, $group, $extension, $this->directory, $dependencies);
-
-		if($asset->exists() && !$asset->external)
-		{
-			$asset->updated = filemtime($asset->source . DS . $asset->file);
-		}
-
-		$this->assets[$group][$name] = $asset;
+		$this->assets[$this->group][$name] = $asset;
 
 		return $this;
 	}
 
 	/**
-	 * symlink
-	 *
+	 * Delete an asset from the container.
+	 * 
+	 * @param  string  $name
+	 * @return object
+	 */
+	public function delete($name)
+	{
+		if(array_key_exists($name, $this->assets[$this->group]))
+		{
+			unset($this->assets[$this->group][$name]);
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Add a symlink to the array of symlinks. Configuration symlinks are merged
 	 * in prior to rendering of assets.
 	 *
@@ -132,80 +154,115 @@ class Container {
 	}
 
 	/**
-	 * group
-	 *
-	 * Sets the group, either style or script, to be used when displaying assets.
+	 * Set the group to be used when compiling assets.
 	 *
 	 * @param  string  $group
 	 * @return object
 	 */
-	public function group($group)
+	public function show($group)
 	{
 		if(in_array($group, array('styles', 'scripts')))
 		{
 			$this->group = $group;
-
-			return $this;
 		}
 
-		throw new Exception('Unrecognized asset group could not be set in Basset.');
+		return $this;
 	}
 
 	/**
-	 * styles
+	 * Enables compression for the current container.
 	 *
-	 * Return the registered styles.
-	 *
-	 * @return string
+	 * @return object
 	 */
-	public function styles()
+	public function compress()
 	{
-		return $this->render('styles');
+		Config::set('compression.enabled', true);
+
+		return $this;
 	}
 
 	/**
-	 * scripts
+	 * Enables inline displaying for the current container.
 	 *
-	 * Return the registered scripts.
+	 * @return object
+	 */
+	public function inline()
+	{
+		Config::set('inline', true);
+
+		return $this;
+	}
+
+	/**
+	 * Enables development mode for the current container.
 	 *
+	 * @return object
+	 */
+	public function development()
+	{
+		Config::set('development', true);
+
+		return $this;
+	}
+
+	/**
+	 * Enables caching for the current container.
+	 *
+	 * @param  int  $time
+	 * @return object
+	 */
+	public function remember($time = -1)
+	{
+		$this->cache->time = ($time > 0) ? $time : Config::get('caching.time');
+
+		return $this;
+	}
+
+	/**
+	 * Basset will clear the cache and/or compiled asset.
+	 *
+	 * @return object
+	 */
+	public function forget()
+	{
+		Config::set('caching.forget', true);
+
+		return $this;
+	}
+
+	/**
+	 * Compiles the scripts for the current container.
+	 * 
 	 * @return string
 	 */
 	public function scripts()
 	{
-		return $this->render('scripts');
+		return $this->compile('scripts');
 	}
 
 	/**
-	 * render
-	 *
-	 * Renders all the assets for the given group.
+	 * Compiles the styles for the current container.
+	 * 
+	 * @return string
+	 */
+	public function styles()
+	{
+		return $this->compile('styles');
+	}
+
+	/**
+	 * Compiles and returns the registered assets.
 	 *
 	 * @param  string  $group
 	 * @return string
 	 */
-	protected function render($group)
+	public function compile($group = null)
 	{
-		if(!isset($this->assets[$group]) || count($this->assets[$group]) == 0) return '';
+		if(is_null($group)) $group = $this->group;
 
 		$assets = array();
 
-		// If we are in development mode then we'll return the respective HTML include form for each
-		// asset.
-		if(Config::get('development'))
-		{
-			foreach($this->arrange($this->assets[$group]) as $asset)
-			{
-				$assets[] = $asset->html();
-			}
-
-			return implode('\n', $assets);
-		}
-
-		// Register the assets with the cache. This allows the name of the cache and compiled files to be
-		// determined as well as the cache to be used.
-		$this->cache->register($this->assets, $group, Config::get('caching.forget'));
-
-		if($this->cache->has())
+		if($this->cache->exists(Config::get('caching.forget')))
 		{
 			$assets = $this->cache->get();
 		}
@@ -213,14 +270,12 @@ class Container {
 		{
 			$recompile = true;
 
-			if(file_exists($compiled = Config::get('compiled_dir') . DS . $this->cache->name()))
+			if(file_exists($compiled = Config::get('compiling.directory') . DS . $this->cache->name()))
 			{
-				if($this->newest($group) < filemtime($compiled))
+				if($this->newest($group) < filemtime($compiled) and !Config::get('compiling.recompile'))
 				{
-					// Assets have not been changed since last compile.
 					$assets = file_get_contents($compiled);
 
-					// We no longer want the assets recompiled.
 					$recompile = false;
 				}
 			}
@@ -263,7 +318,7 @@ class Container {
 			// assets once an application has been deployed.
 			if($this->cache->time > 0)
 			{
-				$this->cache->run($assets);
+				$this->cache->store($assets);
 			}
 		}
 
@@ -285,8 +340,6 @@ class Container {
 	}
 
 	/**
-	 * newest
-	 *
 	 * Determine the newest file to be compiled.
 	 *
 	 * @param  string  $group
@@ -305,77 +358,6 @@ class Container {
 		}
 
 		return $newest;
-	}
-
-	/**
-	 * compress
-	 *
-	 * Sets Basset to use compression on scripts and styles.
-	 *
-	 * @return object
-	 */
-	public function compress()
-	{
-		Config::set('compression.enabled', true);
-
-		return $this;
-	}
-
-	/**
-	 * inline
-	 *
-	 * Sets Basset to render assets inline. This will combine files.
-	 *
-	 * @return object
-	 */
-	public function inline()
-	{
-		Config::set('inline', true);
-
-		return $this;
-	}
-
-	/**
-	 * development
-	 *
-	 * Sets Basset to render assets in development mode.
-	 *
-	 * @return object
-	 */
-	public function development()
-	{
-		Config::set('development', true);
-
-		return $this;
-	}
-
-	/**
-	 * remember
-	 *
-	 * Sets Basset to cache the files.
-	 *
-	 * @param  int  $time
-	 * @return object
-	 */
-	public function remember($time = -1)
-	{
-		$this->cache->time = ($time > 0) ? $time : Config::get('caching.time');
-
-		return $this;
-	}
-
-	/**
-	 * forget
-	 *
-	 * Sets Basset to clear the cache and the compiled assets.
-	 *
-	 * @return object
-	 */
-	public function forget()
-	{
-		Config::set('caching.forget', true);
-
-		return $this;
 	}
 
 	/**
@@ -482,20 +464,13 @@ class Container {
 	}
 
 	/**
-	 * __toString
-	 *
-	 * Render the Basset files.
-	 *
+	 * Magic method for converting the object to a string. Simply shows the compiled assets.
+	 * 
 	 * @return string
 	 */
 	public function __toString()
 	{
-		if(!$this->group)
-		{
-			$this->group = (isset($this->assets['styles']) && isset($this->assets['scripts']) ? 'styles' : (isset($this->assets['styles']) ? 'styles' : 'scripts'));
-		}
-
-		return $this->render($this->group);
+		return $this->compile();
 	}
 
 }

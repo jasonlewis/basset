@@ -1,53 +1,19 @@
 <?php namespace Basset;
 
-use BadMethodCallException, URL, Basset, HTML;
+use File;
+use Bundle;
 
 class Asset {
 
 	/**
-	 * @var string $group
+	 * Array containing the data related to the asset.
+	 * 
+	 * @var array
 	 */
-	public $group;
+	protected $data;
 
 	/**
-	 * @var string $name
-	 */
-	public $name;
-
-	/**
-	 * @var string $file
-	 */
-	public $file;
-
-	/**
-	 * @var bool $less
-	 */
-	public $less = false;
-
-	/**
-	 * @var bool $bundle
-	 */
-	public $bundle = false;
-
-	/**
-	 * @var bool $external
-	 */
-	public $external = false;
-
-	/**
-	 * @var int @updated
-	 */
-	public $updated = 0;
-
-	/**
-	 * @var string $source
-	 */
-	public $source;
-
-	/**
-	 * __construct
-	 *
-	 * Create a new Asset object and prepare the new asset.
+	 * Create a new Basset\Asset instance.
 	 *
 	 * @param  string  $name
 	 * @param  string  $file
@@ -55,50 +21,79 @@ class Asset {
 	 * @param  string  $extension
 	 * @param  string  $directory
 	 * @param  array   $dependencies
+	 * @return void
 	 */
-	public function __construct($name, $file, $group, $extension, $directory, $dependencies)
+	public function __construct($name, $file, $dependencies)
 	{
 		$this->name = $name;
 
 		$this->file = $file;
 
-		$this->group = $group;
-
-		$this->directory = $directory;
-
-		$this->less = ($extension == 'less');
-
 		$this->dependencies = (array) $dependencies;
 
-		// In order of priority. If using a defined source we'll stick to that,
-		// or if we can find a prefixed bundle we'll attempt to use that. Last
-		// option is to use the standard public path.
-		if(!is_null($this->directory))
-		{
-			$this->source = path('base') . $this->directory;
-		}
-		elseif(strpos($file, '::') !== false)
-		{
-			list($bundle, $file) = explode('::', $file);
+		$this->bundle = false;
 
-			$this->source = path('public') . Basset::corrector(Bundle::assets($bundle));
+		$this->external = false;
 
-			$this->bundle = true;
+		$this->updated = 0;
+	}
+
+	public function exists($directory)
+	{
+		if(!parse_url($this->file, PHP_URL_SCHEME))
+		{
+
+			// If a directory is defined we'll use what the user has set. If the asset is
+			// prefixed with a bundle identifier then we'll use that. In the end we'll just
+			// use the normal public path.
+			if(!is_null($directory))
+			{
+				$this->directory = path('base') . $directory;
+			}
+			elseif(str_contains($this->file, '::'))
+			{
+				list($bundle, $file) = explode('::', $this->file);
+
+				$this->directory = path('public') . Bundle::assets($bundle);
+
+				$this->bundle = true;
+			}
+			else
+			{
+				$this->directory = path('public');
+			}
+
+			// If the directory that was provided initially is empty and no directory separator
+			// is in the file name we'll default to the CSS or JS directory within the public
+			// directory.
+			if(is_null($directory) and !str_contains($this->file, '/'))
+			{
+				$this->directory .= File::extension($this->file);
+			}
+
+			$this->directory = realpath($this->directory);
+
+			if(!file_exists($this->directory . DS . $this->file))
+			{
+				return false;
+			}
 		}
 		else
 		{
-			$this->source = path('public') . Basset::corrector(URL::to_asset('/'));
+			$this->external = true;
 		}
 
-		// If the source has not been specified the public directory or bundle
-		// directory is being used, by default we'll go to the public directory
-		// and depending on the asset group we'll add the css or js folder.
-		if(is_null($this->directory) && strpos($this->file, '/') == false)
-		{
-			$this->source .= ($this->group == 'styles' ? 'css' : 'js');
-		}
+		return true;
+	}
 
-		$this->source = realpath($this->source);
+	/**
+	 * If the asset is external or internal.
+	 * 
+	 * @return bool
+	 */
+	public function external()
+	{
+		return $this->external;
 	}
 
 	/**
@@ -113,29 +108,24 @@ class Asset {
 	 */
 	public function get($symlinks = array(), $document_root = '')
 	{
-		$fail = PHP_EOL . '/* Basset could not find asset [' . $this->name . '] */' . PHP_EOL;
+		$failed = PHP_EOL . '/* Basset could not find asset [' . $this->directory . DS . $this->file . '] */' . PHP_EOL;
 
-		if(!$this->exists())
-		{
-			return $fail;
-		}
-
-		$contents = @file_get_contents($this->source . DS . $this->file);
+		$contents = @file_get_contents($this->directory . DS . $this->file);
 
 		if(empty($contents))
 		{
-			return $fail;
+			return $failed;
 		}
 
-		if($this->group == 'styles')
+		if($this->is('styles'))
 		{
-			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->source .DS . $this->file), $document_root, $symlinks);
+			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->directory .DS . $this->file), $document_root, $symlinks);
 		}
 
-		if($this->less && Config::get('less.php'))
+		if($this->is('less') && Config::get('less.php'))
 		{
 			$less = new Vendor\lessc;
-			$less->importDir = $this->source;
+			$less->importDir = $this->directory;
 
 			$contents = $less->parse($contents);
 		}
@@ -144,56 +134,43 @@ class Asset {
 	}
 
 	/**
-	 * html
-	 *
-	 * Gets the HTML tag for the asset with the correct URL.
-	 *
-	 * @return string
+	 * Checks if the asset is part of a group based on its extension.
+	 * 
+	 * @param  string  $group
+	 * @return void
 	 */
-	public function html()
+	public function is($group)
 	{
-		$url = URL::to_asset(str_replace(array(path('base') . 'public', '\\'), array('', '/'), $this->source) . '/' . $this->file);
+		$extensions = array(
+			'css'  => 'styles',
+			'less' => 'styles',
+			'js'   => 'scripts'
+		);
 
-		$attributes = array();
-
-		if($this->group == 'styles')
-		{
-			if($this->less)
-			{
-				$attributes = array('rel' => 'stylesheet/less');
-			}
-
-			return HTML::style($url, $attributes);
-		}
-		else
-		{
-			return HTML::script($url);
-		}
+		return in_array(File::extension($this->file), $extensions);
 	}
 
+	/**
+	 * Magic setter for asset data.
+	 * 
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function __set($key, $value)
+	{
+		$this->data[$key] = $value;
+	}
 
 	/**
-	 * exists
-	 *
-	 * Determines if the asset exists.
-	 *
+	 * Magic getter for asset data.
+	 * 
+	 * @param  string  $key
 	 * @return mixed
 	 */
-	public function exists()
+	public function __get($key)
 	{
-		if(!parse_url($this->file, PHP_URL_SCHEME))
-		{
-			if(!file_exists($path = ($this->source . DS . $this->file)))
-			{
-				return false;
-			}
-		}
-		else
-		{
-			$this->external = true;
-		}
-
-		return true;
+		return $this->data[$key];
 	}
 
 }

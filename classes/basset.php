@@ -1,14 +1,10 @@
 <?php
 
 /**
- * Basset
- *
- * Basset is a better asset management bundle for the Laravel PHP framework. Basset allows you to
- * generate asset routes which can be compressed and cached to maximize website performance. Basset
- * also allows compressed and cached assets to appear inline.
+ * Basset is a better asset management bundle for Laravel.
  *
  * @package 	Basset
- * @version     1.4.3
+ * @version     2.0.0
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
@@ -17,208 +13,147 @@
 class Basset {
 
 	/**
-	 * @var array $containers
+	 * Array of registered route containers.
+	 * 
+	 * @var array
 	 */
-	public static $containers = array();
+	protected static $routes = array();
 
 	/**
-	 * @var array $available
+	 * Array of registered inline containers.
+	 * 
+	 * @var array
 	 */
-	public static $available = array(
-		'css' => array(
-			'group' 	=> 'styles',
-			'extension' => 'css'
-		),
-		'less' => array(
-			'group' 	=> 'styles',
-			'extension' => 'css'
-		),
-		'sass' => array(
-			'group'		=> 'styles',
-			'extension' => 'css'
-		),
-		'js' => array(
-			'group' 	=> 'scripts',
-			'extension' => 'js'
-		)
-	);
+	protected static $inline = array();
 
 	/**
-	 * inline
-	 *
-	 * Create a new inline Basset_Container instance or return an existing instance.
-	 *
+	 * Register a new inline container.
+	 * 
 	 * @param  string  $name
-	 * @return Basset_Container
 	 */
 	public static function inline($name)
 	{
 		$name = 'inline::' . $name;
 
-		if(isset(static::$containers[$name]))
+		if(array_key_exists($name, static::$inline))
 		{
-			return static::$containers[$name];
+			return static::$inline[$name];
 		}
 
-		static::$containers[$name] = new Basset\Container;
+		static::$inline[$name] = new Basset\Container;
 
-		return static::$containers[$name]->inline();
+		return static::$inline[$name]->inline();
 	}
 
 	/**
-	 * valid
+	 * Return the route to be handled.
 	 *
-	 * Iterate through the available formats and return the valid extension.
-	 *
-	 * @param  string  $group
-	 * @return mixed
-	 */
-	protected static function valid($group)
-	{
-		foreach(static::$available as $available)
-		{
-			if($group == $available['group'])
-			{
-				return $available['extension'];
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * corrector
-	 *
-	 * Corrects the end path to be used by Basset.
-	 *
-	 * @param  string  $path
-	 * @return string
-	 */
-	public static function corrector($path)
-	{
-		return substr(str_replace(URL::base(), '', $path), 1);
-	}
-
-	/**
-	 * route
-	 *
-	 * Return the route for the given name and extension.
-	 *
-	 * @param  string  $name
-	 * @param  string  $group
+	 * @param  string   $name
+	 * @param  string   $group
 	 * @return string
 	 */
 	protected static function route($name, $group)
 	{
-		$groups = array(
+		$extensions = array(
 			'styles'  => 'css',
 			'scripts' => 'js'
 		);
 
-		return Bundle::option('basset', 'handles') . '/' . $name . '.' . $groups[$group];
+		return Bundle::option('basset', 'handles') . '/' . $name . '.' . $extensions[$group];
 	}
 
 	/**
-	 * development
-	 *
-	 * Renders a containers assets individually as HTML tags. No compression or caching is
-	 * applied to any of the assets.
-	 *
-	 * @param  string  $container
-	 * @return string  $group
+	 * Creates a new container to register assets or uses an already existing container.
+	 * 
+	 * @param  string   $name
+	 * @param  string   $group
+	 * @param  Closure  $callback
+	 * @return void
 	 */
-	public static function development($container, $group = null)
+	protected static function assets($name, $group, Closure $callback)
 	{
-		if(str_contains($container, '.'))
+		$route = static::route($name, $group);
+
+		if(!array_key_exists($route, static::$routes))
 		{
-			$container = substr($container, 0, strpos($container, '.'));
+			static::$routes[$route] = new Basset\Container($route, $group);
 		}
 
-		if(array_key_exists($container, static::$containers))
-		{
-			if(is_null($group))
-			{
-				if(array_key_exists(static::route($container, 'styles'), static::$containers))
-				{
-					$group = 'styles';
-				}
-				elseif(array_key_exists(static::route($container, 'scripts'), static::$containers))
-				{
-					$group = 'scripts';
-				}
-			}
+		call_user_func($callback, static::$routes[$route]);
 
-			return static::$containers[static::route($container, $group)]->development();
-		}
-		else
+		// Register a blank route so we don't get nasty 404's thrown at us when we attempt
+		// to display the compiled assets.
+		Route::get($route, function(){});
+	}
+
+	/**
+	 * Generate a scripts route.
+	 * 
+	 * @param  string   $name
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function scripts($name, Closure $callback)
+	{
+		static::assets($name, 'scripts', $callback);
+	}
+
+	/**
+	 * Generate a styles route.
+	 * 
+	 * @param  string   $name
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public static function styles($name, Closure $callback)
+	{
+		static::assets($name, 'styles', $callback);
+	}
+
+	/**
+	 * Compiles assets for all registered containers.
+	 * 
+	 * @return void
+	 */
+	public static function compile()
+	{
+		foreach(static::$routes as $route)
 		{
-			return '<!-- Basset could not find container [' . $container . '] -->';
+			$route->compile();
 		}
 	}
 
 	/**
-	 * Returns a url to the passed container
-	 * @param  string $container asset container
+	 * Return the compiled output for a given container.
+	 * 
 	 * @return string
 	 */
-	public static function url($container = '')
+	public static function compiled()
 	{
-		$info = new SplFileInfo($container);
-		$ext = $info->getExtension();
-		$name = $info->getBasename(".{$ext}");
-
-		if (array_key_exists($ext, static::$available))
+		if(!array_key_exists(URI::current(), static::$routes))
 		{
-			$group = static::$available[$ext]['group'];
-			$route = static::route($name, $group);
-
-			if (array_key_exists($route, static::$containers))
-			{
-				$url = URL::to($route);
-			}
-			else
-			{
-				throw new Exception("{$route} does not exists in containers.");
-			}
-		}
-		else
-		{
-			throw new Exception("{$ext} is not available.");
+			return null;
 		}
 
-		return $url;
+		Basset\Config::set('compiling.recompile', false);
+
+		return static::$routes[URI::current()]->compile();
 	}
 
 	/**
-	 * __callStatic
-	 *
-	 * Invokes one of the available containers and generates a new route.
-	 *
-	 * @param  string  $group
-	 * @param  array   $arguments
-	 * @return Basset_Container
+	 * Return the URL to the asset route container.
+	 * 
+	 * @param  string  $route
+	 * @return string
 	 */
-	public static function __callStatic($group, $arguments)
+	public static function show($route)
 	{
-		if($extension = static::valid($group))
-		{
-			list($name, $callback) = $arguments;
+		$methods = array(
+			'css' => 'style',
+			'js'  => 'script'
+		);
 
-			$route = static::route($name, $group);
-
-			$assets = static::$containers[$route] = new Basset\Container($group);
-
-			call_user_func($callback, $assets);
-
-			Route::get($route, function() use ($assets)
-			{
-				return $assets;
-			});
-		}
-		else
-		{
-			throw new BadMethodCallException('Could not find group [' . $group . '] on Basset.');
-		}
+		return HTML::$methods[File::extension($route)](URL::to_asset(Bundle::option('basset', 'handles') . '/' . $route));
 	}
 
 }
