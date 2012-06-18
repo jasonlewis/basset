@@ -130,22 +130,23 @@ class Basset {
 	 */
 	public static function compiled()
 	{
-		if(!array_key_exists(URI::current(), static::$routes))
-		{
-			return null;
-		}
-
 		$hash = md5('basset::' . URI::current());
 
+		// Cache is the first priority, if a cached copy exists then Basset will return
+		// it before anything else.
 		if(Cache::has($hash))
 		{
 			return Cache::get($hash);
 		}
-		elseif(File::exists(Basset\Config::get('compiling.directory') . DS . $hash))
+		// If there is no cached copy Basset will look for a compiled copy in the
+		// compiled directory and return it if it exists.
+		elseif(File::exists($path = Basset\Config::get('compiling.directory') . DS . $hash))
 		{
-			return File::get(Basset\Config::get('compiling.directory') . DS . $hash);
+			return File::get($path);
 		}
 
+		// If nothing could be found we'll let them know by simply returning a not found
+		// error to the browser.
 		return '/* Basset could not load [' . URI::current() . '] */';
 	}
 
