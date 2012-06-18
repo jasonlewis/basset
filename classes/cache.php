@@ -32,6 +32,12 @@ class Cache {
 	 */
 	public $time;
 
+	/**
+	 * Create a new Basset\Cache instance.
+	 * 
+	 * @param  string  $route
+	 * @return void
+	 */
 	public function __construct($route)
 	{
 		$this->route = $route;
