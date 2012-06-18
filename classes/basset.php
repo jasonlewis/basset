@@ -135,9 +135,18 @@ class Basset {
 			return null;
 		}
 
-		Basset\Config::set('compiling.recompile', false);
+		$hash = md5('basset::' . URI::current());
 
-		return static::$routes[URI::current()]->compile();
+		if(Cache::has($hash))
+		{
+			return Cache::get($hash);
+		}
+		elseif(File::exists(Basset\Config::get('compiling.directory') . DS . $hash))
+		{
+			return File::get(Basset\Config::get('compiling.directory') . DS . $hash);
+		}
+
+		return '/* Basset could not load [' . URI::current() . '] */';
 	}
 
 	/**
