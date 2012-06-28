@@ -45,25 +45,21 @@ class Asset {
 	{
 		if(!parse_url($this->file, PHP_URL_SCHEME))
 		{
+			$this->directory = path('public');
 
 			// If a directory is defined we'll use what the user has set. If the asset is
-			// prefixed with a bundle identifier then we'll use that. In the end we'll just
-			// use the normal public path.
+			// prefixed with a bundle identifier then we'll use that.
 			if(!is_null($directory))
 			{
-				$this->directory = path('base') . $directory;
+				$this->file = $directory . '/' . $this->file;
 			}
 			elseif(str_contains($this->file, '::'))
 			{
 				list($bundle, $file) = explode('::', $this->file);
 
-				$this->directory = path('public') . Bundle::assets($bundle);
+				$this->directory .= Bundle::assets($bundle);
 
 				$this->bundle = true;
-			}
-			else
-			{
-				$this->directory = path('public');
 			}
 
 			// If the directory that was provided initially is empty and no directory separator
