@@ -7,6 +7,13 @@ use Bundle;
 class Container {
 
 	/**
+	 * Array of shared assets.
+	 * 
+	 * @var array
+	 */
+	public static $shared = array();
+
+	/**
 	 * The route the assets will be display on.
 	 * 
 	 * @var string
@@ -107,8 +114,13 @@ class Container {
 	 * @param  array   $dependencies
 	 * @return object
 	 */
-	public function add($name, $file, $dependencies = array())
+	public function add($name, $file = null, $dependencies = array())
 	{
+		if(is_null($file) and array_key_exists($name, static::$shared))
+		{
+			$file = static::$shared[$name];
+		}
+
 		$asset = new Asset($name, $file, $dependencies);
 
 		if($asset->exists($this->directory) and !$asset->external())

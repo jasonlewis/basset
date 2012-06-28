@@ -87,6 +87,18 @@ class Basset {
 	}
 
 	/**
+	 * Shares an asset that can be later added without too much typing.
+	 * 
+	 * @param  string  $name
+	 * @param  string  $file
+	 * @return void
+	 */
+	public static function share($name, $file)
+	{
+		Basset\Container::$shared[$name] = $file;
+	}
+
+	/**
 	 * Generate a scripts route.
 	 * 
 	 * @param  string   $name
