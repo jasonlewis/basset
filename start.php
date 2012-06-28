@@ -21,6 +21,8 @@ Autoloader::map(array(
  */
 Route::filter('basset::before', function()
 {
+	Config::set('session.driver', '');
+	
 	return Basset::compiled();
 });
 
