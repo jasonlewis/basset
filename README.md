@@ -4,7 +4,7 @@ Basset is a Better Asset manager for the Laravel PHP framework. Basset allows yo
 
 - **Author:** Jason Lewis
 - **Website:** [http://jasonlewis.me/code/basset](http://jasonlewis.me/code/basset)
-- **Version:** 1.4.2
+- **Version:** 2.0.0
 
 ## Documentation
 For a complete documentation guide please see the [official documentation](http://jasonlewis.me/code/basset/docs).
@@ -16,6 +16,13 @@ Basset is released under the MIT License. See the LICENSE file for details.
 Copyright 2011-2012 Jason Lewis
 
 ## Changelog
+
+### Basset 2.0.0
+- Routes can now be updated throughout stages of your application. Closes issue #21.
+- Basset::url() is now Basset::show().
+- Refactoring of all major classes.
+- Assets can be shared and added a lot easier. Closes issue #24.
+- Sessions disabled for Basset route requests. Closes issue #23.
 
 ### Basset 1.4.3
 - Compiled directory can now be set in the configuration.
