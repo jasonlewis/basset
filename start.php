@@ -15,42 +15,49 @@ Autoloader::map(array(
 	'Basset\\Vendor\\lessc'		  => __DIR__ . DS . 'classes' . DS . 'vendor' . DS . 'less.php'
 ));
 
-/**
- * In this before filter we'll grab the compiled assets for this route and return them here.
- * This is what makes it possible for Basset routes to be adjusted prior to them being displayed.
- */
-Route::filter('basset::before', function()
+if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 {
-	Config::set('session.driver', '');
 	
-	return Basset::compiled();
-});
+	/**
+	 * In this before filter we'll grab the compiled assets for this route and return them here.
+	 * This is what makes it possible for Basset routes to be adjusted prior to them being displayed.
+	 */
+	$handler = Bundle::handles(URI::current());
 
-/**
- * After the Basset route is run we'll adjust the response object setting the appropriate content
- * type for the assets.
- */
-Route::filter('basset::after', function($response)
-{
-	$types = array(
-		'less'  => 'text/css',
-		'sass'  => 'text/css',
-		'scss'  => 'text/css',
-		'css' 	=> 'text/css',
-		'js'	=> 'text/javascript'
-	);
-
-	$extension = File::extension(Request::uri());
-
-	if(array_key_exists($extension, $types))
+	Route::filter("{$handler}::before", function()
 	{
-		$response->header('Content-Type', $types[$extension]);
-	}
+		Config::set('session.driver', '');
+		
+		return Basset::compiled();
+	});
 
-	// To prevent any further output being added to any Basset routes we'll clear any events listening
-	// for the laravel.done event.
-	Event::clear('laravel.done');
-});
+	/**
+	 * After the Basset route is run we'll adjust the response object setting the appropriate content
+	 * type for the assets.
+	 */
+	Route::filter("{$handler}::after", function($response)
+	{
+		$types = array(
+			'less'  => 'text/css',
+			'sass'  => 'text/css',
+			'scss'  => 'text/css',
+			'css' 	=> 'text/css',
+			'js'	=> 'text/javascript'
+		);
+
+		$extension = File::extension(Request::uri());
+
+		if(array_key_exists($extension, $types))
+		{
+			$response->header('Content-Type', $types[$extension]);
+		}
+
+		// To prevent any further output being added to any Basset routes we'll clear any events listening
+		// for the laravel.done event.
+		Event::clear('laravel.done');
+	});
+
+}
 
 /**
  * If the current URI is not being handled by Basset then all registered Basset routes will be

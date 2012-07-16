@@ -33,6 +33,8 @@ class Asset {
 		$this->external = false;
 
 		$this->updated = 0;
+
+		$this->directory = null;
 	}
 
 	/**
@@ -43,21 +45,21 @@ class Asset {
 	 */
 	public function exists($directory)
 	{
-		if(!parse_url($this->file, PHP_URL_SCHEME))
+		if(str_contains($this->file, '::') or !parse_url($this->file, PHP_URL_SCHEME))
 		{
-			$this->directory = path('public');
+			$this->directory = $directory;
 
-			// If a directory is defined we'll use what the user has set. If the asset is
-			// prefixed with a bundle identifier then we'll use that.
-			if(!is_null($directory))
+			if(is_null($directory))
 			{
-				$this->file = $directory . '/' . $this->file;
+				$this->directory = path('public');
 			}
-			elseif(str_contains($this->file, '::'))
+
+			// If the asset is prefixed with a bundle identifier then we'll navigate to the assets directory.
+			if(str_contains($this->file, '::'))
 			{
 				list($bundle, $file) = explode('::', $this->file);
 
-				$this->directory .= Bundle::assets($bundle);
+				$this->directory .= trim(Bundle::assets($bundle), '/');
 
 				$this->bundle = true;
 			}

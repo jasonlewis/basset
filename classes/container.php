@@ -89,10 +89,23 @@ class Container {
 		{
 			list($bundle, $directory) = explode('::', $directory);
 
-			$directory = str_replace(path('base'), '', path('public')) . substr(Bundle::assets($bundle), 1) . $directory;
+			$directory = 'path: ' . path('public') . trim(Bundle::assets($bundle), '/') . $directory;
 		}
 
-		if(!file_exists(path('base') . $directory))
+		if(starts_with($directory, 'path: '))
+		{
+			$directory = substr($directory, 6);
+		}
+		elseif(starts_with($directory, 'public: '))
+		{
+			$directory = path('public') . substr($directory, 8);
+		}
+		else
+		{
+			$directory = path('base') . $directory;
+		}
+
+		if(!file_exists($directory))
 		{
 			return $this;
 		}
