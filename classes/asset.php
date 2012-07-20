@@ -142,7 +142,7 @@ class Asset {
 	{
 		$extensions = array(
 			'css'  => 'styles',
-			'less' => 'styles',
+			'less' => 'less',
 			'js'   => 'scripts'
 		);
 
