@@ -4,7 +4,7 @@
  * Basset is a better asset management bundle for Laravel.
  *
  * @package 	Basset
- * @version     2.0.0
+ * @version     2.0.1
  * @author 		Jason Lewis
  * @copyright 	2011-2012 Jason Lewis
  * @link		http://jasonlewis.me/code/basset
@@ -40,7 +40,7 @@ class Basset {
 			return static::$inline[$name];
 		}
 
-		static::$inline[$name] = new Basset\Container($name, 'both');
+		static::$inline[$name] = new Basset\Container($name);
 
 		return static::$inline[$name]->inline();
 	}
@@ -174,6 +174,18 @@ class Basset {
 			'css' => 'style',
 			'js'  => 'script'
 		);
+
+		// If the container is set to development mode then Basset will show all the assets that have been added
+		// up until now. This may be a problem if assets are added after the template view is rendered, however
+		// this is acceptable. Assets should be added as early as possible during the application logic.
+		$container = static::$routes[Bundle::option('basset', 'handles') . '/' . $route];
+
+		if($container->config->get('development'))
+		{
+			$response = '<!-- BASSET NOTICE: Some assets may not be displayed depending on where they were set during the application flow. -->';
+
+			return $response . PHP_EOL . $container->compile();
+		}
 
 		return HTML::$methods[File::extension($route)](URL::to_asset(Bundle::option('basset', 'handles') . '/' . $route));
 	}

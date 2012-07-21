@@ -16,7 +16,7 @@ class Config {
 	 * 
 	 * @var array
 	 */
-	protected static $config = array();
+	protected $config = array();
 
 	/**
 	 * Extend the configuration with a custom configuration file.
@@ -40,9 +40,9 @@ class Config {
 	 * 
 	 * @return void
 	 */
-	public static function load()
+	public function __construct()
 	{
-		static::$config = array_merge(C::get('basset::basset'), array(
+		$this->config = array_merge(C::get('basset::basset'), array(
 			'caching'	  => array('forget' => false),
 			'inline'	  => false,
 			'development' => false
@@ -55,9 +55,9 @@ class Config {
 	 * @param  string  $key
 	 * @return mixed
 	 */
-	public static function get($key)
+	public function get($key)
 	{
-		return array_get(static::$config, $key);
+		return array_get($this->config, $key);
 	}
 
 	/**
@@ -67,9 +67,9 @@ class Config {
 	 * @param  mixed   $value
 	 * @return void
 	 */
-	public static function set($key, $value)
+	public function set($key, $value)
 	{
-		array_set(static::$config, $key, $value);
+		array_set($this->config, $key, $value);
 	}
 
 }

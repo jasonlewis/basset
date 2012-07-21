@@ -6,18 +6,53 @@ use Bundle;
 
 class Asset {
 
+	/**
+	 * Name of the asset.
+	 * 
+	 * @var string
+	 */
 	public $name;
 
+	/**
+	 * Path name of the asset.
+	 * 
+	 * @var string
+	 */
 	public $file;
 
+	/**
+	 * Asset dependencies.
+	 * 
+	 * @var array
+	 */
 	public $dependencies = array();
 
+	/**
+	 * If the asset is external.
+	 * 
+	 * @var bool
+	 */
 	public $external = false;
 
+	/**
+	 * Time the asset was updated.
+	 * 
+	 * @var int
+	 */
 	public $updated = 0;
 
+	/**
+	 * Directory location of the asset.
+	 * 
+	 * @var string
+	 */
 	public $directory = null;
 
+	/**
+	 * URL to the asset.
+	 * 
+	 * @var string
+	 */
 	public $url = null;
 
 	/**
@@ -47,7 +82,6 @@ class Asset {
 	 */
 	public function exists($directory)
 	{
-		dd($this->is('less'));
 		if(str_contains($this->file, '::') or !parse_url($this->file, PHP_URL_SCHEME))
 		{
 			$this->directory = $directory;
@@ -81,7 +115,10 @@ class Asset {
 				$this->url .= File::extension($this->file) . '/';
 			}
 
-			$this->directory = realpath($this->directory);
+			if($directory = realpath($this->directory))
+			{
+				$this->directory = $directory;
+			}
 
 			$this->url .= $this->file;
 
@@ -116,7 +153,7 @@ class Asset {
 	 * @param  string  $document_root
 	 * @return string
 	 */
-	public function get($symlinks = array(), $document_root = '')
+	public function get($lessphp, $symlinks = array(), $document_root = '')
 	{
 		$failed = PHP_EOL . '/* Basset could not find asset [' . $this->directory . DS . $this->file . '] */' . PHP_EOL;
 
@@ -132,7 +169,7 @@ class Asset {
 			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->directory .DS . $this->file), $document_root, $symlinks);
 		}
 
-		if($this->is('less') && Config::get('less.php'))
+		if($this->is('less') && $lessphp)
 		{
 			$less = new Vendor\lessc;
 			$less->importDir = $this->directory;
@@ -153,7 +190,7 @@ class Asset {
 	{
 		$extensions = array(
 			'css'  => 'styles',
-			'less' => 'less',
+			'less' => array('styles', 'less'),
 			'js'   => 'scripts'
 		);
 
@@ -162,7 +199,7 @@ class Asset {
 			return false;
 		}
 
-		return $group == $extensions[$extension];
+		return in_array($group, (array) $extensions[$extension]);
 	}
 
 }

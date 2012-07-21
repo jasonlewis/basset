@@ -1,5 +1,6 @@
 <?php namespace Basset;
 
+use Str;
 use File;
 use HTML;
 use Event;
@@ -60,13 +61,20 @@ class Container {
 	protected $symlinks = array();
 
 	/**
+	 * The array of configuration settings.
+	 * 
+	 * @var array
+	 */
+	public $config = array();
+
+	/**
 	 * Create a new Basset\Container instance.
 	 *
 	 * @param  string  $route
 	 * @param  string  $group
 	 * @return void
 	 */
-	public function __construct($route, $group)
+	public function __construct($route, $group = null)
 	{
 		$this->route = $route;
 
@@ -74,7 +82,7 @@ class Container {
 
 		$this->cache = new Cache($route);
 
-		Config::load();
+		$this->config = new Config;
 	}
 
 	/**
@@ -142,7 +150,7 @@ class Container {
 			$asset->updated = filemtime($asset->directory . DS . $asset->file);
 		}
 
-		$this->assets[$this->group][$name] = $asset;
+		$this->assets[$this->group()][$name] = $asset;
 
 		return $this;
 	}
@@ -201,7 +209,7 @@ class Container {
 	 */
 	public function compress()
 	{
-		Config::set('compression.enabled', true);
+		$this->config->set('compression.enabled', true);
 
 		return $this;
 	}
@@ -213,7 +221,7 @@ class Container {
 	 */
 	public function inline()
 	{
-		Config::set('inline', true);
+		$this->config->set('inline', true);
 
 		return $this;
 	}
@@ -225,7 +233,7 @@ class Container {
 	 */
 	public function development()
 	{
-		Config::set('development', true);
+		$this->config->set('development', true);
 
 		return $this;
 	}
@@ -238,7 +246,7 @@ class Container {
 	 */
 	public function remember($time = -1)
 	{
-		$this->cache->time = ($time > 0) ? $time : Config::get('caching.time');
+		$this->cache->time = ($time > 0) ? $time : $this->config->get('caching.time');
 
 		return $this;
 	}
@@ -250,7 +258,7 @@ class Container {
 	 */
 	public function forget()
 	{
-		Config::set('caching.forget', true);
+		$this->config->set('caching.forget', true);
 
 		return $this;
 	}
@@ -281,23 +289,25 @@ class Container {
 	 * @param  string  $group
 	 * @return string
 	 */
-	public function compile($group = null)
+	public function compile()
 	{
-		if(is_null($group)) $group = $this->group;
+		$group = $this->group();
 
 		$assets = array();
 
-		if(Config::get('development'))
+		if($this->config->get('development'))
 		{
+			$method = Str::singular($group);
+
 			foreach($this->arrange($this->assets[$group]) as $asset)
 			{
-				$assets[] = $asset->url;
+				$assets[] = HTML::$method($asset->url);
 			}
 
-			
+			return implode("\n", $assets);
 		}
 
-		if($this->cache->exists(Config::get('caching.forget')))
+		if($this->cache->exists($this->config->get('caching.forget')))
 		{
 			$assets = $this->cache->get();
 		}
@@ -305,9 +315,9 @@ class Container {
 		{
 			$recompile = true;
 
-			if(file_exists($compiled = Config::get('compiling.directory') . DS . $this->cache->name()))
+			if(file_exists($compiled = $this->config->get('compiling.directory') . DS . $this->cache->name()))
 			{
-				if($this->newest($group) < filemtime($compiled) and !Config::get('compiling.recompile'))
+				if($this->newest($group) < filemtime($compiled) and !$this->config->get('compiling.recompile'))
 				{
 					$assets = file_get_contents($compiled);
 
@@ -320,13 +330,13 @@ class Container {
 				// Merge in the configuration symlinks to the current array of symlinks so that
 				// they can be passed onto each asset so when fetching CSS files the symlinks
 				// are available.
-				$symlinks = array_merge($this->symlinks, Config::get('symlinks'));
+				$symlinks = array_merge($this->symlinks, $this->config->get('symlinks'));
 
 				$route = substr(str_replace(array(Bundle::option('basset', 'handles') . '/', File::extension($this->route)), '', $this->route), 0, -1);
 
 				foreach($this->arrange($this->assets[$group]) as $asset)
 				{
-					$contents = $asset->get($symlinks, Config::get('document_root'));
+					$contents = $asset->get($this->config->get('less.php'), $symlinks, $this->config->get('document_root'));
 
 					// Fire the basset.<route>: <file> event until we receive a response. That response
 					// will then be used for the asset contents.
@@ -344,11 +354,11 @@ class Container {
 				// is being rendered. Compression is done after combining of all files to save on
 				// running the compression on each file. This is ensures that the file is
 				// compressed before being cached.
-				if(Config::get('compression.enabled'))
+				if($this->config->get('compression.enabled'))
 				{
 					if($group == 'styles')
 					{
-						$assets = Vendor\CSSCompress::process($assets, array('preserve_lines' => Config::get('compression.preserve_lines')));
+						$assets = Vendor\CSSCompress::process($assets, array('preserve_lines' => $this->config->get('compression.preserve_lines')));
 					}
 					elseif($group == 'scripts')
 					{
@@ -370,7 +380,7 @@ class Container {
 
 		// If displaying the assets inline this wraps the assets in the correct tags for both
 		// stylesheets and javascript assets.
-		if(Config::get('inline'))
+		if($this->config->get('inline'))
 		{
 			if($group == 'styles')
 			{
@@ -383,6 +393,32 @@ class Container {
 		}
 
 		return $assets;
+	}
+
+	/**
+	 * Determines the group to be used.
+	 * 
+	 * @return string
+	 */
+	protected function group()
+	{
+		if(is_null($this->group))
+		{
+			if(empty($this->assets['scripts']) and !empty($this->assets['styles']))
+			{
+				$this->group = 'styles';
+			}
+			elseif(empty($this->assets['styles']) and !empty($this->assets['scripts']))
+			{
+				$this->group = 'scripts';
+			}
+			else
+			{
+				$this->group = 'styles';
+			}
+		}
+
+		return $this->group;
 	}
 
 	/**
