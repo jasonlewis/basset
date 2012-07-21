@@ -348,11 +348,11 @@ class Container {
 				{
 					if($group == 'styles')
 					{
-						$assets = Basset\Vendor\CSSCompress::process($assets, array('preserve_lines' => Config::get('compression.preserve_lines')));
+						$assets = Vendor\CSSCompress::process($assets, array('preserve_lines' => Config::get('compression.preserve_lines')));
 					}
 					elseif($group == 'scripts')
 					{
-						$assets = Basset\Vendor\JSMin::minify($assets);
+						$assets = Vendor\JSMin::minify($assets);
 					}
 				}
 

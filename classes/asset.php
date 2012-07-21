@@ -63,6 +63,8 @@ class Asset {
 				list($bundle, $file) = explode('::', $this->file);
 
 				$this->directory .= trim(Bundle::assets($bundle), '/');
+				
+				$this->file = $file;
 
 				$this->file = $file;
 
@@ -151,7 +153,7 @@ class Asset {
 	{
 		$extensions = array(
 			'css'  => 'styles',
-			'less' => 'styles',
+			'less' => 'less',
 			'js'   => 'scripts'
 		);
 
