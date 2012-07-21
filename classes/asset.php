@@ -1,16 +1,24 @@
 <?php namespace Basset;
 
+use URL;
 use File;
 use Bundle;
 
 class Asset {
 
-	/**
-	 * Array containing the data related to the asset.
-	 * 
-	 * @var array
-	 */
-	protected $data;
+	public $name;
+
+	public $file;
+
+	public $dependencies = array();
+
+	public $external = false;
+
+	public $updated = 0;
+
+	public $directory = null;
+
+	public $url = null;
 
 	/**
 	 * Create a new Basset\Asset instance.
@@ -28,13 +36,7 @@ class Asset {
 
 		$this->dependencies = (array) $dependencies;
 
-		$this->bundle = false;
-
-		$this->external = false;
-
-		$this->updated = 0;
-
-		$this->directory = null;
+		$this->url = URL::to_asset(null);
 	}
 
 	/**
@@ -45,6 +47,7 @@ class Asset {
 	 */
 	public function exists($directory)
 	{
+		dd($this->is('less'));
 		if(str_contains($this->file, '::') or !parse_url($this->file, PHP_URL_SCHEME))
 		{
 			$this->directory = $directory;
@@ -61,7 +64,9 @@ class Asset {
 
 				$this->directory .= trim(Bundle::assets($bundle), '/');
 
-				$this->bundle = true;
+				$this->file = $file;
+
+				$this->url .= trim(Bundle::assets($bundle), '/') . '/';
 			}
 
 			// If the directory that was provided initially is empty and no directory separator
@@ -69,10 +74,14 @@ class Asset {
 			// directory.
 			if(is_null($directory) and !str_contains($this->file, '/'))
 			{
-				$this->directory .= File::extension($this->file);
+				$this->directory .= DS . File::extension($this->file);
+
+				$this->url .= File::extension($this->file) . '/';
 			}
 
 			$this->directory = realpath($this->directory);
+
+			$this->url .= $this->file;
 
 			if(!file_exists($this->directory . DS . $this->file))
 			{
@@ -152,29 +161,6 @@ class Asset {
 		}
 
 		return $group == $extensions[$extension];
-	}
-
-	/**
-	 * Magic setter for asset data.
-	 * 
-	 * @param  string  $key
-	 * @param  mixed   $value
-	 * @return void
-	 */
-	public function __set($key, $value)
-	{
-		$this->data[$key] = $value;
-	}
-
-	/**
-	 * Magic getter for asset data.
-	 * 
-	 * @param  string  $key
-	 * @return mixed
-	 */
-	public function __get($key)
-	{
-		return $this->data[$key];
 	}
 
 }

@@ -1,6 +1,7 @@
 <?php namespace Basset;
 
 use File;
+use HTML;
 use Event;
 use Bundle;
 
@@ -285,6 +286,16 @@ class Container {
 		if(is_null($group)) $group = $this->group;
 
 		$assets = array();
+
+		if(Config::get('development'))
+		{
+			foreach($this->arrange($this->assets[$group]) as $asset)
+			{
+				$assets[] = $asset->url;
+			}
+
+			
+		}
 
 		if($this->cache->exists(Config::get('caching.forget')))
 		{

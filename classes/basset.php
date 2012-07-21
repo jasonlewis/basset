@@ -40,7 +40,7 @@ class Basset {
 			return static::$inline[$name];
 		}
 
-		static::$inline[$name] = new Basset\Container;
+		static::$inline[$name] = new Basset\Container($name, 'both');
 
 		return static::$inline[$name]->inline();
 	}
