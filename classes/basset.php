@@ -152,7 +152,7 @@ class Basset {
 		}
 		// If there is no cached copy Basset will look for a compiled copy in the
 		// compiled directory and return it if it exists.
-		elseif(File::exists($path = Basset\Config::get('compiling.directory') . DS . $hash))
+		elseif(File::exists($path = static::$routes[URI::current()]->config->get('compiling.directory') . DS . $hash))
 		{
 			return File::get($path);
 		}
