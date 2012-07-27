@@ -17,14 +17,14 @@ class Basset {
 	 * 
 	 * @var array
 	 */
-	protected static $routes = array();
+	public static $routes = array();
 
 	/**
 	 * Array of registered inline containers.
 	 * 
 	 * @var array
 	 */
-	protected static $inline = array();
+	public static $inline = array();
 
 	/**
 	 * Register a new inline container.
