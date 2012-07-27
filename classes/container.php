@@ -366,7 +366,10 @@ class Container {
 					}
 				}
 
-				file_put_contents($compiled, $assets);
+				if(!empty($assets))
+				{
+					file_put_contents($compiled, $assets);
+				}
 			}
 
 			// If caching is enabled the cache will be run now and the current copy stored so
