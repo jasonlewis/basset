@@ -17,7 +17,6 @@ Autoloader::map(array(
 
 if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 {
-	
 	/**
 	 * In this before filter we'll grab the compiled assets for this route and return them here.
 	 * This is what makes it possible for Basset routes to be adjusted prior to them being displayed.
@@ -52,18 +51,36 @@ if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 			$response->header('Content-Type', $types[$extension]);
 		}
 
+		// If the browser accepts gzip encoding we'll encode the content and send the
+		// appropriate headers to compress the output.
+		if(str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
+		{
+			$response->content = gzencode($response->content);
+
+			$response->header('Content-Encoding', 'gzip');
+
+			$response->header('Vary', 'Accept-Encoding');
+
+			$response->header('Content-Length', Str::length($response->content));
+
+			// Attempt to disable the zlib output compression so that we can use gzip content encoding.
+			if(ini_get('zlib.output_compression'))
+			{
+				ini_set('zlib.output_compression', 0);
+			}
+		}
+
 		// To prevent any further output being added to any Basset routes we'll clear any events listening
 		// for the laravel.done event.
 		Event::clear('laravel.done');
 	});
-
 }
 
 /**
  * If the current URI is not being handled by Basset then all registered Basset routes will be
  * compiled once Laravel has finished doing its thing.
  */
-if(!starts_with(URI::current(), Bundle::option('basset', 'handles')))
+else
 {
 	Event::listen('laravel.done', function()
 	{
