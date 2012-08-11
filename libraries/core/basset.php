@@ -131,7 +131,7 @@ class Basset {
 	{
 		foreach(static::$routes as $route)
 		{
-			$route->compile();
+			$route->prepare();
 		}
 	}
 
@@ -184,7 +184,7 @@ class Basset {
 		{
 			$response = '<!-- BASSET NOTICE: Some assets may not be displayed depending on where they were set during the application flow. -->';
 
-			return $response . PHP_EOL . $container->compile();
+			return $response . PHP_EOL . $container->prepare();
 		}
 
 		return HTML::$methods[File::extension($route)](URL::to_asset(Bundle::option('basset', 'handles') . '/' . $route));
