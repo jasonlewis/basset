@@ -31,7 +31,7 @@ class Config {
 			$extend = C::get($extend);
 		}
 
-		static::$extend = $extend;
+		static::$extend = (array) $extend;
 	}
 
 
