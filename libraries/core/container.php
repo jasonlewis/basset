@@ -270,7 +270,7 @@ class Container {
 	 */
 	public function scripts()
 	{
-		return $this->compile('scripts');
+		return $this->prepare('scripts');
 	}
 
 	/**
@@ -280,21 +280,26 @@ class Container {
 	 */
 	public function styles()
 	{
-		return $this->compile('styles');
+		return $this->prepare('styles');
 	}
 
 	/**
-	 * Compiles and returns the registered assets.
-	 *
+	 * Prepares the assets for compiling.
+	 * 
 	 * @param  string  $group
-	 * @return string
+	 * @return void
 	 */
-	public function compile()
+	public function prepare($group = null)
 	{
-		$group = $this->group();
+		if(is_null($group))
+		{
+			$group = $this->group();
+		}
 
 		$assets = array();
 
+		// If we are in development mode then we'll return the linked assets so that web developer tools
+		// like Firebug can work to the best of their ability.
 		if($this->config->get('development'))
 		{
 			$method = Str::singular($group);
@@ -304,7 +309,7 @@ class Container {
 				$assets[] = HTML::$method($asset->url);
 			}
 
-			return implode("\n", $assets);
+			return implode(PHP_EOL, $assets);
 		}
 
 		if($this->cache->exists($this->config->get('caching.forget')))
@@ -381,21 +386,35 @@ class Container {
 			}
 		}
 
+		// The assets have been prepared and are ready to be shown.
+		$this->assets = $assets;
+
+		return $this;
+	}
+
+	/**
+	 * Sends the prepared assets to the browser.
+	 *
+	 * @param  string  $group
+	 * @return string
+	 */
+	public function send()
+	{
 		// If displaying the assets inline this wraps the assets in the correct tags for both
 		// stylesheets and javascript assets.
 		if($this->config->get('inline'))
 		{
 			if($group == 'styles')
 			{
-				$assets = '<style type="text/css" media="all">' . $assets . '</style>';
+				$this->assets = '<style type="text/css" media="all">' . $this->assets . '</style>';
 			}
 			else
 			{
-				$assets = '<script type="text/javascript">' . $assets . '</script>';
+				$this->assets = '<script type="text/javascript">' . $this->assets . '</script>';
 			}
 		}
 
-		return $assets;
+		return $this->assets;
 	}
 
 	/**
@@ -546,7 +565,7 @@ class Container {
 	 */
 	public function __toString()
 	{
-		return $this->compile();
+		return $this->send();
 	}
 
 }
