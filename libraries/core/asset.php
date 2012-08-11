@@ -157,9 +157,9 @@ class Asset {
 	{
 		$path = $this->path();
 
-		$failed = PHP_EOL . '/* Basset could not find asset [' . $this->path() . '] */' . PHP_EOL;
+		$failed = PHP_EOL . '/* Basset could not find asset [' . $path . '] */' . PHP_EOL;
 
-		$contents = @file_get_contents($this->external() ? $this->path() . DS . $this->file);
+		$contents = @file_get_contents($path);
 
 		if(empty($contents))
 		{
