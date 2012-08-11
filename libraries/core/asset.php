@@ -166,11 +166,8 @@ class Asset {
 			return $failed;
 		}
 
-		if($this->is('styles'))
-		{
-			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->directory .DS . $this->file), $document_root, $symlinks);
-		}
-
+		// If the asset is not external and it's a less file we'll parse it with the less
+		// parser first.
 		if(!$this->external() and $this->is('less') and $lessphp)
 		{
 			$less = new Vendor\lessc;
@@ -178,6 +175,12 @@ class Asset {
 			$less->importDir = $this->directory;
 
 			$contents = $less->parse($contents);
+		}
+
+		// All styles need to have the URIs rewritten, we'll do that now!
+		if($this->is('styles') and !$this->external())
+		{
+			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->directory .DS . $this->file), $document_root, $symlinks);
 		}
 
 		return $contents . PHP_EOL;
