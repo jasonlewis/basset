@@ -155,9 +155,11 @@ class Asset {
 	 */
 	public function get($lessphp, $symlinks = array(), $document_root = '')
 	{
-		$failed = PHP_EOL . '/* Basset could not find asset [' . $this->directory . DS . $this->file . '] */' . PHP_EOL;
+		$path = $this->path();
 
-		$contents = @file_get_contents($this->directory . DS . $this->file);
+		$failed = PHP_EOL . '/* Basset could not find asset [' . $this->path() . '] */' . PHP_EOL;
+
+		$contents = @file_get_contents($this->external() ? $this->path() . DS . $this->file);
 
 		if(empty($contents))
 		{
@@ -169,15 +171,26 @@ class Asset {
 			$contents = Vendor\URIRewriter::rewrite($contents, dirname($this->directory .DS . $this->file), $document_root, $symlinks);
 		}
 
-		if($this->is('less') && $lessphp)
+		if(!$this->external() and $this->is('less') and $lessphp)
 		{
 			$less = new Vendor\lessc;
+			
 			$less->importDir = $this->directory;
 
 			$contents = $less->parse($contents);
 		}
 
 		return $contents . PHP_EOL;
+	}
+
+	/**
+	 * Returns the path to the asset or just the asset file if the asset is external.
+	 * 
+	 * @return string
+	 */
+	protected function path()
+	{
+		return $this->external() ? $this->file : $this->directory . DS . $this->file;
 	}
 
 	/**
