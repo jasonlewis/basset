@@ -23,12 +23,16 @@
 | and begin adding your assets.
 |
 */
-Basset::styles('example', function($basset)
-{
-	$basset->add('theme', 'theme.css');
-});
 
-Basset::scripts('example', function($basset)
+/*
+|--------------------------------------------------------------------------
+| Keep This Bad Boy
+|--------------------------------------------------------------------------
+|
+| Please leave this route alone, Basset needs it!
+|
+*/
+Route::get('(:bundle)/(:all)', function()
 {
-	$basset->add('jquery', 'jquery.js');
+	return Basset::compiled();
 });

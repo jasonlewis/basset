@@ -26,8 +26,6 @@ if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 	Route::filter("{$handler}::before", function()
 	{
 		Config::set('session.driver', '');
-		
-		return Basset::compiled();
 	});
 
 	/**
