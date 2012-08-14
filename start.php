@@ -49,25 +49,6 @@ if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 			$response->header('Content-Type', $types[$extension]);
 		}
 
-		// If the browser accepts gzip encoding we'll encode the content and send the
-		// appropriate headers to compress the output.
-		if(str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
-		{
-			$response->content = gzencode($response->content);
-
-			$response->header('Content-Encoding', 'gzip');
-
-			$response->header('Vary', 'Accept-Encoding');
-
-			$response->header('Content-Length', Str::length($response->content));
-
-			// Attempt to disable the zlib output compression so that we can use gzip content encoding.
-			if(ini_get('zlib.output_compression'))
-			{
-				ini_set('zlib.output_compression', 0);
-			}
-		}
-
 		// To prevent any further output being added to any Basset routes we'll clear any events listening
 		// for the laravel.done event.
 		Event::clear('laravel.done');

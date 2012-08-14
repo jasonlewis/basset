@@ -80,10 +80,6 @@ class Basset {
 		}
 
 		call_user_func($callback, static::$routes[$route]);
-
-		// Register a blank route so we don't get nasty 404's thrown at us when we attempt
-		// to display the compiled assets.
-		Route::get($route, function(){});
 	}
 
 	/**
