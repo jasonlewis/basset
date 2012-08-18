@@ -39,7 +39,7 @@ if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
 			'sass'  => 'text/css',
 			'scss'  => 'text/css',
 			'css' 	=> 'text/css',
-			'js'	=> 'text/javascript'
+			'js'	=> 'application/javascript'
 		);
 
 		$extension = File::extension(Request::uri());
