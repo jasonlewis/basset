@@ -8,49 +8,49 @@ class Asset {
 
 	/**
 	 * Name of the asset.
-	 * 
+	 *
 	 * @var string
 	 */
 	public $name;
 
 	/**
 	 * Path name of the asset.
-	 * 
+	 *
 	 * @var string
 	 */
 	public $file;
 
 	/**
 	 * Asset dependencies.
-	 * 
+	 *
 	 * @var array
 	 */
 	public $dependencies = array();
 
 	/**
 	 * If the asset is external.
-	 * 
+	 *
 	 * @var bool
 	 */
 	public $external = false;
 
 	/**
 	 * Time the asset was updated.
-	 * 
+	 *
 	 * @var int
 	 */
 	public $updated = 0;
 
 	/**
 	 * Directory location of the asset.
-	 * 
+	 *
 	 * @var string
 	 */
 	public $directory = null;
 
 	/**
 	 * URL to the asset.
-	 * 
+	 *
 	 * @var string
 	 */
 	public $url = null;
@@ -76,7 +76,7 @@ class Asset {
 
 	/**
 	 * Checks if the asset exists within the given directory.
-	 * 
+	 *
 	 * @param  string  $directory
 	 * @return bool
 	 */
@@ -97,7 +97,7 @@ class Asset {
 				list($bundle, $file) = explode('::', $this->file);
 
 				$this->directory .= trim(Bundle::assets($bundle), '/');
-				
+
 				$this->file = $file;
 
 				$this->file = $file;
@@ -137,7 +137,7 @@ class Asset {
 
 	/**
 	 * If the asset is external or internal.
-	 * 
+	 *
 	 * @return bool
 	 */
 	public function external()
@@ -171,10 +171,10 @@ class Asset {
 		if(!$this->external() and $this->is('less') and $lessphp)
 		{
 			$less = new Vendor\lessc;
-			
-			$less->importDir = $this->directory;
 
-			$contents = $less->parse($contents);
+			$less->setImportDir(pathinfo($path, PATHINFO_DIRNAME));
+
+			$contents = $less->compile($contents);
 		}
 
 		// All styles need to have the URIs rewritten, we'll do that now!
@@ -188,7 +188,7 @@ class Asset {
 
 	/**
 	 * Returns the path to the asset or just the asset file if the asset is external.
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function path()
@@ -198,7 +198,7 @@ class Asset {
 
 	/**
 	 * Checks if the asset is part of a group based on its extension.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return void
 	 */
