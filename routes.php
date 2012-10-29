@@ -34,5 +34,11 @@
 */
 Route::get('(:bundle)/(:all)', function()
 {
-	return Basset::compiled();
+	$headers = array(
+		'Cache-Control'	=> 'max-age='.(24*60*60).', public',
+		'Pragma'	=> 'cache',
+		'Last-Modified'	=> gmdate('D, d M Y H:i:s').' GMT'
+	);
+	
+	return Response::make(Basset::compiled(), 200, $headers);
 });
