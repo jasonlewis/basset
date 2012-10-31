@@ -6,35 +6,35 @@ class Cache {
 
 	/**
 	 * The route that the cached assets respond to.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $route;
 
 	/**
 	 * If the cached copy is set to be forgotten.
-	 * 
+	 *
 	 * @var bool
 	 */
 	protected $forget;
 
 	/**
 	 * The name of the cached copy, also used for the compiled files.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $name;
 
 	/**
 	 * The time the cached copy will be stored for.
-	 * 
+	 *
 	 * @var int
 	 */
 	public $time;
 
 	/**
 	 * Create a new Basset\Cache instance.
-	 * 
+	 *
 	 * @param  string  $route
 	 * @return void
 	 */

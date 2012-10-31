@@ -5,7 +5,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Starts basset and creates the mock directory. Not ideal but I'm too lazy to try and
 	 * work in a virtual directory system.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function setUp()
@@ -20,7 +20,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * If the mock directory exists we'll delete it in the tear down.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function tearDown()
@@ -33,7 +33,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that a container can be created.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testContainersCanBeCreated()
@@ -46,7 +46,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that style routes can be created.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testStyleRoutesCanBeCreated()
@@ -60,7 +60,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that script routes can be created.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testScriptRoutesCanBeCreated()
@@ -74,7 +74,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that the routes are created within the Laravel routing system.
-	 * 
+	 *
 	 * @return void
 	 */
 	private function routesCanBeCreated($route)
@@ -85,7 +85,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that inline containers can be created.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testInlineContainerCanBeCreated()
@@ -98,7 +98,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that assets are compiled.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testAssetsCanBeCompiled()
@@ -126,7 +126,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that a Basset URL can be created.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testBassetURLGenerated()
@@ -140,7 +140,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests that assets can be shared.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function testAssetsCanBeShared()

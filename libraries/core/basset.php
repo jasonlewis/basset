@@ -14,21 +14,21 @@ class Basset {
 
 	/**
 	 * Array of registered route containers.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $routes = array();
 
 	/**
 	 * Array of registered inline containers.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $inline = array();
 
 	/**
 	 * Register a new inline container.
-	 * 
+	 *
 	 * @param  string  $name
 	 */
 	public static function inline($name)
@@ -64,7 +64,7 @@ class Basset {
 
 	/**
 	 * Creates a new container to register assets or uses an already existing container.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  string   $group
 	 * @param  Closure  $callback
@@ -84,7 +84,7 @@ class Basset {
 
 	/**
 	 * Shares an asset that can be later added without too much typing.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @param  string  $file
 	 * @return void
@@ -96,7 +96,7 @@ class Basset {
 
 	/**
 	 * Generate a scripts route.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  Closure  $callback
 	 * @return void
@@ -108,7 +108,7 @@ class Basset {
 
 	/**
 	 * Generate a styles route.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  Closure  $callback
 	 * @return void
@@ -120,7 +120,7 @@ class Basset {
 
 	/**
 	 * Compiles assets for all registered containers.
-	 * 
+	 *
 	 * @return void
 	 */
 	public static function compile()
@@ -133,7 +133,7 @@ class Basset {
 
 	/**
 	 * Return the compiled output for a given container.
-	 * 
+	 *
 	 * @return string
 	 */
 	public static function compiled()
@@ -160,7 +160,7 @@ class Basset {
 
 	/**
 	 * Return the URL to the asset route container.
-	 * 
+	 *
 	 * @param  string  $route
 	 * @return string
 	 */

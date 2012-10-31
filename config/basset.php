@@ -51,14 +51,14 @@ return array(
 	'compiling' => array(
 		/**
 		 * Compiled Directory
-		 * 
+		 *
 		 * The directory to save the compiled Basset files, ensure this directory is writeable.
 		 */
 		'directory' => Bundle::path('basset') . 'compiled',
 
 		/**
 		 * Recompile
-		 * 
+		 *
 		 * Sometimes you may wish to have assets recompiled every time, setting this option to true will
 		 * allow this. Don't forget to set it to false on a live website for maximum performance.
 		 */
