@@ -12,9 +12,12 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	{
 		Bundle::start('basset');
 
+		// Empty existing routes from the application
+		Basset::$routes = array();
+
 		if(!file_exists(__DIR__ . '/mock'))
 		{
-			mkdir(__DIR__ . '/mock');
+			\Laravel\File::mkdir(__DIR__ . '/mock');
 		}
 	}
 
@@ -27,8 +30,21 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	{
 		if(file_exists(__DIR__ . '/mock'))
 		{
-			rmdir(__DIR__ . '/mock');
+			\Laravel\File::cleandir(__DIR__ . '/mock');
 		}
+	}
+
+	/**
+	 * Creates a fake stylesheet to use during mocking
+	 *
+	 * @param  string $stylesheet The stylesheet name
+	 * @return array              Path to the created file, its content
+	 */
+	public function createFakeStylesheet($stylesheet = 'mock')
+	{
+		\Laravel\File::put($file = __DIR__ . '/mock/' .$stylesheet. '.css', $contents = 'body { background-color: #ff0000; }');
+
+		return array($file, $contents);
 	}
 
 	/**
@@ -103,7 +119,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testAssetsCanBeCompiled()
 	{
-		file_put_contents($file = __DIR__ . '/mock/mock.css', $contents = 'body { background-color: #ff0000; }');
+		list($file, $contents) = $this->createFakeStylesheet();
 
 		Basset::styles('mock', function($basset)
 		{
