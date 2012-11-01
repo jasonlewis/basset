@@ -42,11 +42,11 @@ class Config {
 	 */
 	public function __construct()
 	{
-		$this->config = array_merge(C::get('basset::basset'), array(
-			'caching'	  => array('forget' => false),
-			'inline'	  => false,
+		$this->config = array_merge(array(
+			'caching'     => array('forget' => false),
+			'inline'      => false,
 			'development' => false
-		), Config::$extend);
+		), C::get('basset::basset'), Config::$extend);
 	}
 
 	/**

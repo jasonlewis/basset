@@ -66,6 +66,11 @@ return array(
 	),
 
 	/**
+	 * Whether files should always be displayed in development mode or not
+	 */
+	'development' => false,
+
+	/**
 	 * Document Root
 	 *
 	 * The document root of the website in which the CSS files reside. If no document root is provided
