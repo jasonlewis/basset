@@ -10,35 +10,35 @@ class Container {
 
 	/**
 	 * Array of shared assets.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $shared = array();
 
 	/**
 	 * The route the assets will be display on.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $route;
 
 	/**
 	 * The group the assets belong to, either scripts or styles.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $group;
 
 	/**
 	 * The cache object used to store the cached assets.
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $cache;
 
 	/**
 	 * The array containing all the registered assets.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $assets = array(
@@ -48,21 +48,21 @@ class Container {
 
 	/**
 	 * The current directory to register assets from.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $directory;
 
 	/**
 	 * The array of registered symlinks.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $symlinks = array();
 
 	/**
 	 * The array of configuration settings.
-	 * 
+	 *
 	 * @var array
 	 */
 	public $config = array();
@@ -92,8 +92,10 @@ class Container {
 	 * @param  Closure  $callback
 	 * @return object
 	 */
-	public function directory($directory, $callback)
+	public function directory($directory, $callback = null)
 	{
+		if(!$callback) $callback = function() {};
+
 		if(strpos($directory, '::') !== false)
 		{
 			list($bundle, $directory) = explode('::', $directory);
@@ -157,7 +159,7 @@ class Container {
 
 	/**
 	 * Delete an asset from the container.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @return object
 	 */
@@ -265,7 +267,7 @@ class Container {
 
 	/**
 	 * Compiles the scripts for the current container.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function scripts()
@@ -275,7 +277,7 @@ class Container {
 
 	/**
 	 * Compiles the styles for the current container.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function styles()
@@ -285,7 +287,7 @@ class Container {
 
 	/**
 	 * Prepares the assets for compiling.
-	 * 
+	 *
 	 * @param  string  $group
 	 * @return void
 	 */
@@ -419,7 +421,7 @@ class Container {
 
 	/**
 	 * Determines the group to be used.
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function group()
@@ -560,7 +562,7 @@ class Container {
 
 	/**
 	 * Magic method for converting the object to a string. Simply shows the compiled assets.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function __toString()

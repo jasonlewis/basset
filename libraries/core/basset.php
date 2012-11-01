@@ -14,21 +14,21 @@ class Basset {
 
 	/**
 	 * Array of registered route containers.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $routes = array();
 
 	/**
 	 * Array of registered inline containers.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $inline = array();
 
 	/**
 	 * Register a new inline container.
-	 * 
+	 *
 	 * @param  string  $name
 	 */
 	public static function inline($name)
@@ -64,14 +64,17 @@ class Basset {
 
 	/**
 	 * Creates a new container to register assets or uses an already existing container.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  string   $group
 	 * @param  Closure  $callback
 	 * @return void
 	 */
-	protected static function assets($name, $group, Closure $callback)
+	protected static function assets($name, $group, Closure $callback = null)
 	{
+		// If no callback was passed, mock one
+		if(!$callback) $callback = function() {};
+
 		$route = static::route($name, $group);
 
 		if(!array_key_exists($route, static::$routes))
@@ -80,11 +83,13 @@ class Basset {
 		}
 
 		call_user_func($callback, static::$routes[$route]);
+
+		return static::$routes[$route];
 	}
 
 	/**
 	 * Shares an asset that can be later added without too much typing.
-	 * 
+	 *
 	 * @param  string  $name
 	 * @param  string  $file
 	 * @return void
@@ -96,31 +101,31 @@ class Basset {
 
 	/**
 	 * Generate a scripts route.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  Closure  $callback
 	 * @return void
 	 */
-	public static function scripts($name, Closure $callback)
+	public static function scripts($name, Closure $callback = null)
 	{
-		static::assets($name, 'scripts', $callback);
+		return static::assets($name, 'scripts', $callback);
 	}
 
 	/**
 	 * Generate a styles route.
-	 * 
+	 *
 	 * @param  string   $name
 	 * @param  Closure  $callback
 	 * @return void
 	 */
-	public static function styles($name, Closure $callback)
+	public static function styles($name, Closure $callback = null)
 	{
-		static::assets($name, 'styles', $callback);
+		return static::assets($name, 'styles', $callback);
 	}
 
 	/**
 	 * Compiles assets for all registered containers.
-	 * 
+	 *
 	 * @return void
 	 */
 	public static function compile()
@@ -133,7 +138,7 @@ class Basset {
 
 	/**
 	 * Return the compiled output for a given container.
-	 * 
+	 *
 	 * @return string
 	 */
 	public static function compiled()
@@ -160,7 +165,7 @@ class Basset {
 
 	/**
 	 * Return the URL to the asset route container.
-	 * 
+	 *
 	 * @param  string  $route
 	 * @return string
 	 */
