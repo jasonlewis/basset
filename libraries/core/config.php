@@ -6,21 +6,21 @@ class Config {
 
 	/**
 	 * Array containing the extended configuration.
-	 * 
+	 *
 	 * @var array
 	 */
 	public static $extend = array();
 
 	/**
 	 * Array containing the configuration.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $config = array();
 
 	/**
 	 * Extend the configuration with a custom configuration file.
-	 * 
+	 *
 	 * @param  array  $extend
 	 * @return void
 	 */
@@ -37,21 +37,21 @@ class Config {
 
 	/**
 	 * Loads the config and merges in defaults and any extenders.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function __construct()
 	{
-		$this->config = array_merge(C::get('basset::basset'), array(
-			'caching'	  => array('forget' => false),
-			'inline'	  => false,
+		$this->config = array_merge(array(
+			'caching'     => array('forget' => false),
+			'inline'      => false,
 			'development' => false
-		), Config::$extend);
+		), C::get('basset::basset'), Config::$extend);
 	}
 
 	/**
 	 * Get a config key from the config array.
-	 * 
+	 *
 	 * @param  string  $key
 	 * @return mixed
 	 */
@@ -62,7 +62,7 @@ class Config {
 
 	/**
 	 * Set a config key in the config array.
-	 * 
+	 *
 	 * @param  string  $key
 	 * @param  mixed   $value
 	 * @return void
