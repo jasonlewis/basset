@@ -108,7 +108,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	{
 		$container = Basset::inline('mock');
 
-		$this->assertTrue($container === Basset::inline('mock'));
+		$this->assertEquals($container, Basset::inline('mock'));
 		$this->assertArrayHasKey('inline::mock', Basset::$inline);
 	}
 
@@ -137,7 +137,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 		unlink($file);
 
-		$this->assertTrue(trim($compiled) === $contents);
+		$this->assertEquals(trim($compiled), $contents);
 	}
 
 	/**
@@ -151,7 +151,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 
 		$route = URL::to(Bundle::option('basset', 'handles') . '/mock.css');
 
-		$this->assertTrue(HTML::style($route) === Basset::show('mock.css'));
+		$this->assertEquals(HTML::style($route), Basset::show('mock.css'));
 	}
 
 	/**
