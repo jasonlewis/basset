@@ -2,6 +2,15 @@
 
 class BassetTest extends PHPUnit_Framework_TestCase {
 
+	public static function setUpBeforeClass()
+	{
+		// Startup Basset
+		Bundle::start('basset');
+
+		// Shorten test domain for easier tests
+		URL::$base = 'http://test/';
+	}
+
 	/**
 	 * Starts basset and creates the mock directory. Not ideal but I'm too lazy to try and
 	 * work in a virtual directory system.
@@ -12,7 +21,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	{
 		Bundle::start('basset');
 
-		// Empty existing routes from the application
+		// Empty existing routes
 		Basset::$routes = array();
 
 		if(!file_exists(__DIR__ . '/mock'))
