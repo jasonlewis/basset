@@ -19,8 +19,6 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function setUp()
 	{
-		Bundle::start('basset');
-
 		// Empty existing routes
 		Basset::$routes = array();
 
@@ -39,7 +37,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	{
 		if(file_exists(__DIR__ . '/mock'))
 		{
-			\Laravel\File::cleandir(__DIR__ . '/mock');
+			\Laravel\File::rmdir(__DIR__ . '/mock');
 		}
 	}
 
@@ -173,6 +171,32 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 		Basset::share('mock', 'mock.css');
 
 		$this->assertArrayHasKey('mock', Basset\Container::$shared);
+	}
+
+	public function testAssetsCanBeGloballySetToDevelopment()
+	{
+		list($file,  $contents)  = $this->createFakeStylesheet('foo');
+		list($file2, $contents2) = $this->createFakeStylesheet('bar');
+
+		Config::set('basset::basset.development', true);
+
+		Basset::styles('mock', function($basset)
+		{
+			$basset->directory('path: ' . __DIR__ . '/mock', function($basset)
+			{
+				$basset->add('foo', 'foo.css');
+				$basset->add('bar', 'bar.css');
+			});
+		});
+
+		$expected =
+			"<!-- BASSET NOTICE: Some assets may not be displayed depending on where they were set during the application flow. -->\r\n".
+			'<link href="http://test/foo.css" media="all" type="text/css" rel="stylesheet">'."\r\n\r\n".
+			'<link href="http://test/bar.css" media="all" type="text/css" rel="stylesheet">'."\r\n";
+		$this->assertEquals($expected, Basset::show('mock.css'));
+
+		unlink($file);
+		unlink($file2);
 	}
 
 }
