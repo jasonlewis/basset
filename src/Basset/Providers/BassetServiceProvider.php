@@ -19,12 +19,12 @@ class BassetServiceProvider extends ServiceProvider {
 		{
 			$app['config']['path'] = array('app' => $app['path'], 'base' => $app['path.base']);
 
-			return new Basset($app['config'], $app['files'], $app['env']);
+			return new Basset($app['files'], $app['config'], $app['env']);
 		});
 
 		$app['basset.response'] = $app->share(function($app)
 		{
-			return new Response($app['files'], $app['request'], $app['config']);
+			return new Response($app['request'], $app['files'], $app['config']);
 		});
 
 		require __DIR__.'/../../facades.php';
@@ -50,7 +50,7 @@ class BassetServiceProvider extends ServiceProvider {
 		{
 			if ($app['basset.response']->verifyRequest() and $app['basset.response']->prepare())
 			{
-				return $app['basset.response']->send();
+				return $app['basset.response']->getResponse();
 			}
 		});		
 	}
