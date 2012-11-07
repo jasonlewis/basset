@@ -181,16 +181,6 @@ class Asset {
 	}
 
 	/**
-	 * Return the raw HTML.
-	 * 
-	 * @return string
-	 */
-	public function rawHtml()
-	{
-		return new Html($this->getGroup(), $this->getExtension(), path($this->config['basset.handles'].'/'.$this->getRelativePath()));
-	}
-
-	/**
 	 * Compile the asset.
 	 * 
 	 * @return string
