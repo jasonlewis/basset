@@ -57,7 +57,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
 		$pending = $directory->getPending();
 
-		$this->assertEquals('sample.css', $pending[1]->getName());
+		$asset = array_pop($pending);
+
+		$this->assertEquals('sample.css', $asset->getName());
 	}
 
 
