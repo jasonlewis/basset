@@ -38,12 +38,12 @@ class Response {
 	/**
 	 * Create a new response instance.
 	 * 
-	 * @param  Illuminate\Filesystem  $files
 	 * @param  Illuminate\Http\Request  $request
+	 * @param  Illuminate\Filesystem  $files
 	 * @param  Illuminate\Config\Repository  $config
 	 * @return void
 	 */
-	public function __construct(Filesystem $files, Request $request, Repository $config)
+	public function __construct(Request $request, Filesystem $files, Repository $config)
 	{
 		$this->files = $files;
 		$this->request = $request;
@@ -69,7 +69,7 @@ class Response {
 	 */
 	public function prepare()
 	{
-		$collection = new Collection(null, $this->config, $this->files);
+		$collection = new Collection(null, $this->files, $this->config);
 
 		$asset = $this->getAssetFromUri($this->request->getRequestUri());
 
@@ -92,15 +92,15 @@ class Response {
 				break;
 		}
 
-		return $this->response;
+		return $this;
 	}
 
 	/**
-	 * Send the response to the browser.
+	 * Get the response object.
 	 * 
 	 * @return string
 	 */
-	public function send()
+	public function getResponse()
 	{
 		return $this->response;
 	}

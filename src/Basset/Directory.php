@@ -40,6 +40,7 @@ class Directory {
 	 * Create a new directory instance.
 	 * 
 	 * @param  string  $path
+	 * @param  Illuminate\Filesystem  $config
 	 * @param  Illuminate\Config\Repository  $config
 	 * @return void
 	 */
@@ -95,7 +96,7 @@ class Directory {
 		// This allows assets to be excluded or included before being added as valid.
 		foreach (new FilesystemIterator($this->getPath()) as $file)
 		{
-			$asset = new Asset($file, $this->getPath(), $this->files);
+			$asset = new Asset($file, $this->getPath(), $this->files, $this->config);
 
 			if ($asset->isValid())
 			{

@@ -37,11 +37,11 @@ class Basset {
 	/**
 	 * Create a new Basset instance.
 	 * 
-	 * @param  Illuminate\Config\Respository  $config
 	 * @param  Illuminate\Filesystem  $files
+	 * @param  Illuminate\Config\Respository  $config
 	 * @return void
 	 */
-	public function __construct(Repository $config, Filesystem $files, $environment)
+	public function __construct(Filesystem $files, Repository $config, $environment)
 	{
 		$this->config = $config;
 		$this->files = $files;
@@ -84,7 +84,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = $asset->rawHtml();
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->config['basset.handles'].'/'.$asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
@@ -104,7 +104,7 @@ class Basset {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] =  new Collection($name, $this->config, $this->files);
+			$this->collections[$name] =  new Collection($name, $this->files, $this->config);
 		}
 
 		if (is_callable($callback))

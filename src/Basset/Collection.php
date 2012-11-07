@@ -71,11 +71,11 @@ class Collection {
 	 * Create a new Basset instance.
 	 * 
 	 * @param  string  $name
-	 * @param  Illuminate\Config\Respository  $config
 	 * @param  Illuminate\Filesystem  $files
+	 * @param  Illuminate\Config\Respository  $config
 	 * @return void
 	 */
-	public function __construct($name, Repository $config, Filesystem $files)
+	public function __construct($name, Filesystem $files, Repository $config)
 	{
 		$this->name = $name;
 		$this->config = $config;
@@ -92,7 +92,7 @@ class Collection {
 	{
 		foreach ($this->config['basset.directories'] as $directory => $path)
 		{
-			$directory = $this->parseDirectory($directory);
+			$directory = $this->parseDirectory($path);
 
 			foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory->getPath())) as $file)
 			{
@@ -231,7 +231,14 @@ class Collection {
 
 		$this->pending = array();
 
-		return is_null($group) ? $this->assets : $this->assets[$group];
+		if (is_null($group))
+		{
+			return $this->assets;
+		}
+		else
+		{
+			return isset($this->assets[$group]) ? $this->assets[$group] : array();
+		}
 	}
 
 	/**
@@ -300,12 +307,19 @@ class Collection {
 		}
 		else
 		{
-			if ( ! isset($this->config["basset.directories.{$directory}"]))
+			if ( isset($this->config["basset.directories.{$directory}"]))
 			{
-				throw new InvalidArgumentException('Basset could not find named directory ['.$directory.'] in directories.');
+				$directory = $this->config["basset.directories.{$directory}"];
 			}
 
-			$directory = $this->config['path.base'].'/'.$this->config["basset.directories.{$directory}"];
+			if (starts_with($directory, 'path: '))
+			{
+				$directory = substr($directory, 6);
+			}
+			else
+			{
+				$directory = $this->config['path.base'].'/'.$directory;
+			}
 		}
 
 		return new Directory($directory, $this->files, $this->config);
