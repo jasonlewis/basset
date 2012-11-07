@@ -56,8 +56,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$collection->requireDirectory('foo');
 
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
-		$this->assertEquals('sample-exclude.css', $styles[0]->getName());
-		$this->assertEquals('sample.css', $styles[1]->getName());
+		$this->assertCount(2, $styles);
 	}
 
 
@@ -71,8 +70,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$collection->requireTree('path: '.__DIR__);
 
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
-		$this->assertEquals('sample-exclude.css', $styles[0]->getName());
-		$this->assertEquals('sample.css', $styles[1]->getName());
+		$this->assertCount(2, $styles);
 	}
 
 
