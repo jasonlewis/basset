@@ -5,6 +5,7 @@ use Basset\Collection;
 use Illuminate\Filesystem;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 
 class CompileCommand extends Command {
 
@@ -68,7 +69,7 @@ class CompileCommand extends Command {
 	{
 		$this->line('');
 
-		if ( ! is_null($collection = $this->input->getOption('collection')))
+		if ( ! is_null($collection = $this->input->getArgument('collection')))
 		{
 			if ( ! $this->basset->hasCollection($collection))
 			{
@@ -145,6 +146,18 @@ class CompileCommand extends Command {
 	}
 
 	/**
+	 * Get the console command arguments.
+	 *
+	 * @return array
+	 */
+	protected function getArguments()
+	{
+		return array(
+			array('collection', InputArgument::REQUIRED, 'The asset collection to compile'),
+		);
+	}
+
+	/**
 	 * Get the console command options.
 	 *
 	 * @return array
@@ -152,7 +165,6 @@ class CompileCommand extends Command {
 	protected function getOptions()
 	{
 		return array(
-			array('collection', 'c', InputOption::VALUE_REQUIRED, 'The asset collection to compile'),
 			array('force', 'f', InputOption::VALUE_NONE, 'Force a re-compile of collection')
 		);
 	}
