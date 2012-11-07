@@ -27,24 +27,6 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanGenerateRawHtml()
-	{
-		$asset = $this->generateTestFile();
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'handles' => 'assets'
-		));
-
-		$asset = new Asset($asset, 'path/to/directory', $files, $config);
-
-		set_app(new Illuminate\Foundation\Application);
-
-		$this->assertEquals('<link rel="stylesheet" href="'.path('assets').'">', $asset->rawHtml()->render());
-	}
-
-
 	public function testCanApplyFilter()
 	{
 		$asset = $this->generateTestFile();
@@ -66,6 +48,17 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertArrayHasKey('FooBar', $filters);
 		$this->assertEquals(array('option'), $filters['Test\Filter']);
+	}
+
+
+	public function testCanCompileAssets()
+	{
+		$files = m::mock('Illuminate\Filesystem');
+		$config = m::mock('Illuminate\Config\Repository');
+
+		$asset = new Asset(new SplFileInfo(__DIR__.'/fixtures/sample.css'), __DIR__.'/fixtures', $files, $config);
+
+		$this->assertEquals('html { background-color: #fff; }', $asset->compile());
 	}
 
 
