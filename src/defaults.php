@@ -93,9 +93,11 @@ return array(
 	| a development environment. Remember that filters will not be applied
 	| to the assets.
 	|
+	| Set to true to always serve static assets if available.
+	|
 	*/
 
-	'production_environment' => '',
+	'production_environment' => true,
 
 	/*
 	|--------------------------------------------------------------------------

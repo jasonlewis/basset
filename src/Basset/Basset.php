@@ -73,7 +73,7 @@ class Basset {
 
 			if ($collection->isCompiled($group))
 			{
-				if ($this->environment == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
+				if ($environment === true or $this->environment == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
 				{
 					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->config['basset.compiling_path']), '/');
 
