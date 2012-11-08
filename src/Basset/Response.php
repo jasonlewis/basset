@@ -59,7 +59,7 @@ class Response {
 	{
 		$handles = $this->config['basset.handles'];
 
-		return substr($this->request->getRequestUri(), 1, strlen($handles)) == $handles;
+		return str_is("{$handles}/*", trim($this->request->getRequestUri(), '/'));
 	}
 
 	/**
@@ -115,7 +115,9 @@ class Response {
 	{
 		$pieces = explode('/', $uri);
 
-		return array_pop($pieces);
+		unset($pieces[array_search($this->config['basset.handles'], $pieces)]);
+
+		return implode('/', array_filter($pieces));
 	}
 
 }
