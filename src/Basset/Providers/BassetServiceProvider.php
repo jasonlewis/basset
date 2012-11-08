@@ -17,7 +17,12 @@ class BassetServiceProvider extends ServiceProvider {
 	{
 		$app['basset'] = $app->share(function($app)
 		{
+			// Set the application and base paths in the configuration so that they're accessible within Basset.
 			$app['config']['path'] = array('app' => $app['path'], 'base' => $app['path.base']);
+
+			// A Basset configuration file can be used to overwrite the default configuration settings. The default
+			// settings use some acceptable defaults for most options.
+			$app['config']['basset'] = array_merge(require __DIR__.'/../../defaults.php', $app['config']->get('basset', array()));
 
 			return new Basset($app['files'], $app['config'], $app['env']);
 		});
@@ -44,6 +49,12 @@ class BassetServiceProvider extends ServiceProvider {
 		$app['events']->fire('basset.started', array($app['basset']));
 	}
 
+	/**
+	 * Register the routes that Basset responds to.
+	 * 
+	 * @param  Illuminate\Foundation\Application  $app
+	 * @return void
+	 */
 	public function registerRoutes($app)
 	{
 		$app['router']->before(function($request) use ($app)
