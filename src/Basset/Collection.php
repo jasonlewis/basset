@@ -264,7 +264,7 @@ class Collection {
 
 		foreach ($this->getAssets($group) as $asset)
 		{
-			$names[] = $asset->getRelativePath();
+			$names[] = $asset->getModified();
 		}
 
 		return md5(implode(PHP_EOL, $names));

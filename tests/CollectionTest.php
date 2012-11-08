@@ -87,8 +87,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 		$collection->add('sample.css');
 
-		$this->assertEquals(md5('sample.css'), $collection->getFingerprint('style'));
-		$this->assertEquals('foo-'.md5('sample.css').'.css', $collection->getCompiledName('style'));
+		$this->assertEquals(md5(filemtime(__DIR__.'/fixtures/sample.css')), $collection->getFingerprint('style'));
+		$this->assertEquals('foo-'.md5(filemtime(__DIR__.'/fixtures/sample.css')).'.css', $collection->getCompiledName('style'));
 	}
 
 
