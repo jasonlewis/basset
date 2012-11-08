@@ -46,6 +46,8 @@ class Basset {
 		$this->config = $config;
 		$this->files = $files;
 		$this->environment = $environment;
+
+		$this->registerCollections();
 	}
 
 	/**
@@ -134,6 +136,19 @@ class Basset {
 	public function getCollections()
 	{
 		return $this->collections;
+	}
+
+	/**
+	 * Register collections from the configuration array.
+	 * 
+	 * @return void
+	 */
+	public function registerCollections()
+	{
+		foreach ($this->config['basset.collections'] as $name => $callback)
+		{
+			$this->collection($name, $callback);
+		}
 	}
 
 }
