@@ -153,7 +153,7 @@ class CompileCommand extends Command {
 	protected function getArguments()
 	{
 		return array(
-			array('collection', InputArgument::REQUIRED, 'The asset collection to compile'),
+			array('collection', InputArgument::OPTIONAL, 'The asset collection to compile'),
 		);
 	}
 
