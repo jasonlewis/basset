@@ -165,7 +165,7 @@ class CompileCommand extends Command {
 	protected function getOptions()
 	{
 		return array(
-			array('force', 'f', InputOption::VALUE_NONE, 'Force a re-compile of collection')
+			array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-compile of the collection')
 		);
 	}
 
