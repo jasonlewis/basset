@@ -113,7 +113,7 @@ class Response {
 	 */
 	protected function getAssetFromUri($uri)
 	{
-		$pieces = explode('/', $uri);
+		$pieces = explode('/', str_replace($this->request->getBaseUrl(), '', $uri));
 
 		unset($pieces[array_search($this->config['basset.handles'], $pieces)]);
 
