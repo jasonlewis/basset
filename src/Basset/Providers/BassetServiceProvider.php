@@ -2,8 +2,11 @@
 
 use Basset\Basset;
 use Basset\Response;
+use Basset\Console\BassetCommand;
 use Basset\Console\CompileCommand;
 use Illuminate\Support\ServiceProvider;
+
+define('BASSET_VERSION', '3.0.0');
 
 class BassetServiceProvider extends ServiceProvider {
 
@@ -74,6 +77,11 @@ class BassetServiceProvider extends ServiceProvider {
 	 */
 	public function registerCommands($app)
 	{
+		$app['command.basset'] = $app->share(function($app)
+		{
+			return new BassetCommand;
+		});
+
 		$app['command.basset.compile'] = $app->share(function($app)
 		{
 			$compilePath = $app['path.base'] . '/' . $app['config']['basset.compiling_path'];
@@ -86,6 +94,7 @@ class BassetServiceProvider extends ServiceProvider {
 		$app['events']->listen('artisan.start', function($artisan)
 		{
 			$artisan->resolveCommands(array(
+				'command.basset',
 				'command.basset.compile'
 			));
 		});
