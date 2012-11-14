@@ -56,6 +56,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 		));
 
 		$request->shouldReceive('getRequestUri')->once()->andReturn('/assets/sample.css');
+		$request->shouldReceive('getBaseUrl')->once()->andReturn('');
 
 		$response = new Response($request, $files, $config);
 
