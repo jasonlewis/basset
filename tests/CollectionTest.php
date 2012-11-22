@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Collection;
 
 class CollectionTest extends PHPUnit_Framework_TestCase {
 
@@ -14,11 +13,10 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanCreateCollection()
 	{
-		$config = m::mock('Illuminate\Config\Repository');
-		$files = m::mock('Illuminate\Filesystem');
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = m::mock('Illuminate\Config\Repository');
+		$collection = new Basset\Collection('foo', $app);
 		$this->assertInstanceOf('Basset\Collection', $collection);
 		$this->assertEquals('foo', $collection->getName());
 	}
@@ -26,17 +24,13 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanAddAssetToCollection()
 	{
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
-		));
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
+		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
-
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
 		$this->assertEquals('sample.css', $styles[0]->getName());
 	}
@@ -44,17 +38,12 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanAddDirectoryToCollection()
 	{
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
-		));
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('directories' => array('foo' => 'path: '.__DIR__.'/fixtures')));
+		$collection = new Basset\Collection('foo', $app);
 		$collection->requireDirectory('foo');
-
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
 		$this->assertCount(2, $styles);
 	}
@@ -62,13 +51,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanAddDirectoryTreeToCollection()
 	{
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$collection = new Basset\Collection('foo', $app);
 		$collection->requireTree('path: '.__DIR__);
-
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
 		$this->assertCount(2, $styles);
 	}
@@ -76,17 +63,13 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanGetCompiledName()
 	{
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
-		));
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
+		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
-
 		$this->assertEquals(md5(filemtime(__DIR__.'/fixtures/sample.css')), $collection->getFingerprint('style'));
 		$this->assertEquals('foo-'.md5(filemtime(__DIR__.'/fixtures/sample.css')).'.css', $collection->getCompiledName('style'));
 	}
@@ -94,17 +77,13 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanCompileCollection()
 	{
-		$files = m::mock('Illuminate\Filesystem');
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
-		));
-
-		$collection = new Collection('foo', $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
+		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
-
 		$this->assertEquals('html { background-color: #fff; }', $collection->compile('style'));
 	}
 

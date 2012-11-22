@@ -1,8 +1,6 @@
 <?php namespace Basset\Console;
 
-use Basset\Basset;
 use Basset\Collection;
-use Illuminate\Filesystem;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,18 +22,11 @@ class CompileCommand extends Command {
 	protected $description = 'Compile asset collections';
 
 	/**
-	 * Basset instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Basset\Basset
+	 * @var Illuminate\Foundation\Application
 	 */
-	protected $basset;
-
-	/**
-	 * Illuminate filesystem instance.
-	 * 
-	 * @var Illuminate\Filesystem
-	 */
-	protected $files;
+	protected $app;
 
 	/**
 	 * Path where assets are published.
@@ -51,12 +42,11 @@ class CompileCommand extends Command {
 	 * @param  Illuminate\Filesystem  $files
 	 * @return void
 	 */
-	public function __construct(Basset $basset, Filesystem $files, $compilePath)
+	public function __construct($app, $compilePath)
 	{
 		parent::__construct();
 
-		$this->basset = $basset;
-		$this->files = $files;
+		$this->app = $app;
 		$this->compilePath = $compilePath;
 	}
 
@@ -71,7 +61,7 @@ class CompileCommand extends Command {
 
 		if ( ! is_null($collection = $this->input->getArgument('collection')))
 		{
-			if ( ! $this->basset->hasCollection($collection))
+			if ( ! $this->app['basset']->hasCollection($collection))
 			{
 				$this->error("Oops! Could not find collection: {$collection}");
 
@@ -80,13 +70,13 @@ class CompileCommand extends Command {
 
 			$this->info("Gathering assets for collection...");
 
-			$collections = array($this->basset->collection($collection));
+			$collections = array($this->app['basset']->collection($collection));
 		}
 		else
 		{
 			$this->info("Gathering collections to compile...");
 
-			$collections = $this->basset->getCollections();
+			$collections = $this->app['basset']->getCollections();
 		}
 
 		// Spin through and compile each of the collections.
@@ -95,7 +85,7 @@ class CompileCommand extends Command {
 			$this->compile($collection);
 		}
 
-		$this->output->writeln("\nDone!\n");
+		$this->line("\nDone!\n");
 	}
 
 	/**
@@ -107,9 +97,9 @@ class CompileCommand extends Command {
 	protected function compile(Collection $collection)
 	{
 		// If the compile path does not exist attempt to create it.
-		if ( ! $this->files->exists($this->compilePath))
+		if ( ! $this->app['files']->exists($this->compilePath))
 		{
-			$this->files->makeDirectory($this->compilePath);
+			$this->app['files']->makeDirectory($this->compilePath);
 		}
 
 		$groups = $collection->getAssets();
@@ -125,7 +115,7 @@ class CompileCommand extends Command {
 
 			// We only compile a collection if a compiled file doesn't exist yet or if a change to one of the assets
 			// in the collection is detected by comparing the last modified times.
-			if ($this->files->exists($path) and $this->files->lastModified($path) >= $collection->lastModified($group))
+			if ($this->app['files']->exists($path) and $this->app['files']->lastModified($path) >= $collection->lastModified($group))
 			{
 				// If the force flag has been set then we'll recompile, otherwise this collection does not need
 				// to be changed.
@@ -141,7 +131,7 @@ class CompileCommand extends Command {
 
 			$this->info("Successfully compiled {$collection->getCompiledName($group)}");
 
-			$this->files->put($path, $compiled);
+			$this->app['files']->put($path, $compiled);
 		}
 	}
 

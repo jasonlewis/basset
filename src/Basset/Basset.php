@@ -1,31 +1,15 @@
 <?php namespace Basset;
 
 use Closure;
-use Illuminate\Filesystem;
-use Illuminate\Config\Repository;
 
 class Basset {
 
 	/**
-	 * Config repository instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Illuminate\Config\Repository
+	 * @var Illuminate\Foundation\Application
 	 */
-	protected $config;
-
-	/**
-	 * Filesystem instance.
-	 * 
-	 * @var Illuminate\Filesystem
-	 */
-	protected $files;
-
-	/**
-	 * Illuminate environment.
-	 * 
-	 * @var string
-	 */
-	protected $environment;
+	protected $app;
 
 	/**
 	 * Array of asset collections.
@@ -37,15 +21,12 @@ class Basset {
 	/**
 	 * Create a new Basset instance.
 	 * 
-	 * @param  Illuminate\Filesystem  $files
-	 * @param  Illuminate\Config\Respository  $config
+	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct(Filesystem $files, Repository $config, $environment)
+	public function __construct($app)
 	{
-		$this->config = $config;
-		$this->files = $files;
-		$this->environment = $environment;
+		$this->app = $app;
 
 		$this->registerCollections();
 	}
@@ -69,13 +50,13 @@ class Basset {
 			// Determine what course of action will be taken depending on the applications environment.
 			// By default if within the production environment Basset will attempt to serve static assets.
 			// If, however, Basset is unable to locate the static assets it will default to raw HTML.
-			$environment = $this->config['basset.production_environment'];
+			$environment = $this->app['config']['basset::production_environment'];
 
 			if ($collection->isCompiled($group))
 			{
-				if ($environment === true or $this->environment == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
+				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
 				{
-					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->config['basset.compiling_path']), '/');
+					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->app['config']['basset::compiling_path']), '/');
 
 					return new Html($group, $extension, path($base.'/'.$collection->getCompiledName($group)));
 				}
@@ -86,7 +67,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->config['basset.handles'].'/'.$asset->getRelativePath()));
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->app['config']['basset::handles'].'/'.$asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
@@ -106,7 +87,7 @@ class Basset {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] =  new Collection($name, $this->files, $this->config);
+			$this->collections[$name] =  new Collection($name, $this->app);
 		}
 
 		if (is_callable($callback))
@@ -145,7 +126,7 @@ class Basset {
 	 */
 	public function registerCollections()
 	{
-		foreach ($this->config['basset.collections'] as $name => $callback)
+		foreach ($this->app['config']['basset::collections'] as $name => $callback)
 		{
 			$this->collection($name, $callback);
 		}

@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Response;
 
 class ResponseTest extends PHPUnit_Framework_TestCase {
 
@@ -14,58 +13,46 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
 	public function testCanCreateResponse()
 	{
-		$config = m::mock('Illuminate\Config\Repository');
-		$files = m::mock('Illuminate\Filesystem');
-		$request = m::mock('Illuminate\Http\Request');
-
-		$response = new Response($request, $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['config'] = m::mock('Illuminate\Config\Repository');
+		$app['request'] = m::mock('Illuminate\Http\Request');
+		$response = new Basset\Response($app);
 		$this->assertInstanceOf('Basset\Response', $response);
 	}
 
 
 	public function testCanVerifyRequest()
 	{
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\FileLoader'), 'production');
-		$files = m::mock('Illuminate\Filesystem');
-		$request = m::mock('Illuminate\Http\Request');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'handles' => 'assets'
-		));
-
-		$request->shouldReceive('getRequestUri')->once()->andReturn('/assets/example.css');
-
-		$response = new Response($request, $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['request'] = m::mock('Illuminate\Http\Request');
+		$app['request']->shouldReceive('path')->once()->andReturn('assets/example.css');
+		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'handles', 'basset')->andReturn('assets');
+		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$response = new Basset\Response($app);
 		$this->assertTrue($response->verifyRequest());
-		$request->shouldReceive('getRequestUri')->once()->andReturn('/something/example.css');
+		$app['request']->shouldReceive('path')->once()->andReturn('testing/example.css');
 		$this->assertFalse($response->verifyRequest());
 	}
 
 
 	public function testCanGetAssetResponse()
 	{
-		$config = new Illuminate\Config\Repository(m::mock('Illuminate\Config\FileLoader'), 'production');
-		$files = m::mock('Illuminate\Filesystem');
-		$request = m::mock('Illuminate\Http\Request');
-
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'basset', null)->andReturn(array(
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures'),
-			'handles' => 'assets'
-		));
-
-		$request->shouldReceive('getRequestUri')->once()->andReturn('/assets/sample.css');
-		$request->shouldReceive('getBaseUrl')->once()->andReturn('');
-
-		$response = new Response($request, $files, $config);
-
+		$app = new Illuminate\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['request'] = m::mock('Illuminate\Http\Request');
+		$app['request']->shouldReceive('path')->once()->andReturn('assets/sample.css');
+		$app['request']->shouldReceive('getBaseUrl')->once()->andReturn('');
+		$app['config'] = array(
+			'basset::handles' => 'assets',
+			'basset::directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
+		);
+		$response = new Basset\Response($app);
 		$response->prepare();
-
 		ob_start();
-
 		$response->getResponse()->sendContent();
-
 		$this->assertEquals('html { background-color: #fff; }', ob_get_clean());
 	}
 

@@ -1,35 +1,18 @@
 <?php namespace Basset;
 
-use Illuminate\Filesystem;
-use Illuminate\Http\Request;
-use Illuminate\Config\Repository;
 use Illuminate\Http\Response as HttpResponse;
 
 class Response {
 
 	/**
-	 * Filesystem instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Illuminate\Filesystem
+	 * @var Illuminate\Foundation\Application
 	 */
-	protected $files;
+	protected $app;
 
 	/**
-	 * Request instance.
-	 * 
-	 * @var Illuminate\Http\Request
-	 */
-	protected $request;
-
-	/**
-	 * Config repository instance.
-	 * 
-	 * @var Illuminate\Config\Repository
-	 */
-	protected $config;
-
-	/**
-	 * Response instance.
+	 * Illuminate response instance.
 	 * 
 	 * @var Illuminate\Http\Response
 	 */
@@ -38,16 +21,12 @@ class Response {
 	/**
 	 * Create a new response instance.
 	 * 
-	 * @param  Illuminate\Http\Request  $request
-	 * @param  Illuminate\Filesystem  $files
-	 * @param  Illuminate\Config\Repository  $config
+	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct(Request $request, Filesystem $files, Repository $config)
+	public function __construct($app)
 	{
-		$this->files = $files;
-		$this->request = $request;
-		$this->config = $config;
+		$this->app = $app;
 	}
 
 	/**
@@ -57,9 +36,9 @@ class Response {
 	 */
 	public function verifyRequest()
 	{
-		$handles = $this->config['basset.handles'];
+		$handles = $this->app['config']['basset::handles'];
 
-		return str_is("{$handles}/*", trim($this->request->getRequestUri(), '/'));
+		return str_is("{$handles}/*", trim($this->app['request']->path(), '/'));
 	}
 
 	/**
@@ -69,9 +48,9 @@ class Response {
 	 */
 	public function prepare()
 	{
-		$collection = new Collection(null, $this->files, $this->config);
+		$collection = new Collection(null, $this->app);
 
-		$asset = $this->getAssetFromUri($this->request->getRequestUri());
+		$asset = $this->getAssetFromUri($this->app['request']->path());
 
 		if ( ! $asset = $collection->add($asset))
 		{
@@ -113,9 +92,9 @@ class Response {
 	 */
 	protected function getAssetFromUri($uri)
 	{
-		$pieces = explode('/', str_replace($this->request->getBaseUrl(), '', $uri));
+		$pieces = explode('/', str_replace($this->app['request']->getBaseUrl(), '', $uri));
 
-		unset($pieces[array_search($this->config['basset.handles'], $pieces)]);
+		unset($pieces[array_search($this->app['config']['basset::handles'], $pieces)]);
 
 		return implode('/', array_filter($pieces));
 	}

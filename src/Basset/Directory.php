@@ -1,10 +1,8 @@
 <?php namespace Basset;
 
 use FilesystemIterator;
-use Illuminate\Filesystem;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Illuminate\Config\Repository;
 
 class Directory {
 
@@ -16,18 +14,11 @@ class Directory {
 	protected $path;
 
 	/**
-	 * Filesystem instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Illuminate\Filesystem
+	 * @var Illuminate\Foundation\Application  $app
 	 */
-	protected $files;
-
-	/**
-	 * Config repository instance.
-	 * 
-	 * @var Illuminate\Config\Repository
-	 */
-	protected $config;
+	protected $app;
 
 	/**
 	 * Pending array of assets.
@@ -40,15 +31,13 @@ class Directory {
 	 * Create a new directory instance.
 	 * 
 	 * @param  string  $path
-	 * @param  Illuminate\Filesystem  $config
-	 * @param  Illuminate\Config\Repository  $config
+	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct($path, Filesystem $files, Repository $config)
+	public function __construct($path, $app)
 	{
 		$this->path = $path;
-		$this->files = $files;
-		$this->config = $config;
+		$this->app = $app;
 	}
 
 	/**
@@ -74,7 +63,7 @@ class Directory {
 		{
 			if ($file->isDir()) continue;
 
-			$asset = new Asset($file, $this->getPath(), $this->files, $this->config);
+			$asset = new Asset($file, $this->getPath(), $this->app);
 
 			if ($asset->isValid())
 			{
@@ -96,7 +85,7 @@ class Directory {
 		// This allows assets to be excluded or included before being added as valid.
 		foreach (new FilesystemIterator($this->getPath()) as $file)
 		{
-			$asset = new Asset($file, $this->getPath(), $this->files, $this->config);
+			$asset = new Asset($file, $this->getPath(), $this->app);
 
 			if ($asset->isValid())
 			{

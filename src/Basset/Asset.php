@@ -44,18 +44,11 @@ class Asset {
 	protected $directory;
 
 	/**
-	 * Filesystem instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Illuminate\Filesystem
+	 * @var Illuminate\Foundation\Application
 	 */
-	protected $files;
-
-	/**
-	 * Config repository instance.
-	 * 
-	 * @var Illuminate\Config\Repository
-	 */
-	protected $config;
+	protected $app;
 
 	/**
 	 * Array of extension groups.
@@ -83,17 +76,13 @@ class Asset {
 	 * 
 	 * @param  SplFileInfo  $asset
 	 * @param  string  $directory
-	 * @param  Illuminate\Filesystem  $files
-	 * @param  Illuminate\Config\Repository  $config
+	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct(SplFileInfo $asset, $directory, Filesystem $files, Repository $config)
+	public function __construct(SplFileInfo $asset, $directory, $app)
 	{
 		$this->directory = realpath($directory);
-		$this->files = $files;
-		$this->config = $config;
-
-		// Using the SplFileInfo object we can set some required information about the asset.
+		$this->app = $app;
 		$this->name = $asset->getFilename();
 		$this->path = realpath($asset->getPathname());
 		$this->extension = $asset->getExtension();
@@ -215,9 +204,9 @@ class Asset {
 	 */
 	public function apply($filter, $options = array())
 	{
-		if (isset($this->config["basset.filters.{$filter}"]))
+		if (isset($this->app['config']["basset::filters.{$filter}"]))
 		{
-			$filter = $this->config["basset.filters.{$filter}"];
+			$filter = $this->app['config']["basset::filters.{$filter}"];
 
 			if (is_array($filter))
 			{

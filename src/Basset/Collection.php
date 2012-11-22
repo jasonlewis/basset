@@ -3,11 +3,9 @@
 use Closure;
 use RuntimeException;
 use FilesystemIterator;
-use Illuminate\Filesystem;
 use InvalidArgumentException;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Illuminate\Config\Repository;
 
 class Collection {
 
@@ -19,18 +17,11 @@ class Collection {
 	protected $name;
 
 	/**
-	 * Config repository instance.
+	 * Illuminate application instance.
 	 * 
-	 * @var Illuminate\Config\Repository
+	 * @var Illuminate\Foundation\Application  $app
 	 */
-	protected $config;
-
-	/**
-	 * Filesystem instance.
-	 * 
-	 * @var Illuminate\Filesystem
-	 */
-	protected $files;
+	protected $app;
 
 	/**
 	 * Collection directory.
@@ -71,15 +62,13 @@ class Collection {
 	 * Create a new Basset instance.
 	 * 
 	 * @param  string  $name
-	 * @param  Illuminate\Filesystem  $files
-	 * @param  Illuminate\Config\Respository  $config
+	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct($name, Filesystem $files, Repository $config)
+	public function __construct($name, $app)
 	{
 		$this->name = $name;
-		$this->config = $config;
-		$this->files = $files;
+		$this->app = $app;
 	}
 
 	/**
@@ -90,7 +79,7 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		foreach ($this->config['basset.directories'] as $directory => $path)
+		foreach ($this->app['config']['basset::directories'] as $directory => $path)
 		{
 			$directory = $this->parseDirectory($path);
 
@@ -102,7 +91,7 @@ class Collection {
 
 				if ($filename == $name)
 				{
-					$asset = new Asset($file, $directory->getPath(), $this->files, $this->config);
+					$asset = new Asset($file, $directory->getPath(), $this->app);
 
 					if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
 					{
@@ -249,7 +238,7 @@ class Collection {
 	 */
 	public function isCompiled($group)
 	{
-		return $this->files->exists($this->config['path.base'].'/'.$this->config['basset.compiling_path'].'/'.$this->getCompiledName($group));
+		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']['basset::compiling_path'].'/'.$this->getCompiledName($group));
 	}
 
 	/**
@@ -307,9 +296,9 @@ class Collection {
 		}
 		else
 		{
-			if ( isset($this->config["basset.directories.{$directory}"]))
+			if ( isset($this->app['config']["basset::basset.directories.{$directory}"]))
 			{
-				$directory = $this->config["basset.directories.{$directory}"];
+				$directory = $this->app['config']["basset::basset.directories.{$directory}"];
 			}
 
 			if (starts_with($directory, 'path: '))
@@ -318,11 +307,11 @@ class Collection {
 			}
 			else
 			{
-				$directory = $this->config['path.base'].'/'.$directory;
+				$directory = $this->app['path.base'].'/'.$directory;
 			}
 		}
 
-		return new Directory($directory, $this->files, $this->config);
+		return new Directory($directory, $this->app);
 	}
 
 	/**
