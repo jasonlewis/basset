@@ -1,9 +1,5 @@
-<?php namespace Basset\Providers;
+<?php namespace Basset;
 
-use Basset\Basset;
-use Basset\Response;
-use Basset\Console\BassetCommand;
-use Basset\Console\CompileCommand;
 use Illuminate\Support\ServiceProvider;
 
 define('BASSET_VERSION', '3.0.0');
@@ -20,22 +16,18 @@ class BassetServiceProvider extends ServiceProvider {
 	{
 		$app['basset'] = $app->share(function($app)
 		{
-			// Set the application and base paths in the configuration so that they're accessible within Basset.
-			$app['config']['path'] = array('app' => $app['path'], 'base' => $app['path.base']);
-
-			// A Basset configuration file can be used to overwrite the default configuration settings. The default
-			// settings use some acceptable defaults for most options.
-			$app['config']['basset'] = array_merge(require __DIR__.'/../../defaults.php', $app['config']->get('basset', array()));
-
-			return new Basset($app['files'], $app['config'], $app['env']);
+			return new Basset($app);
 		});
 
 		$app['basset.response'] = $app->share(function($app)
 		{
-			return new Response($app['request'], $app['files'], $app['config']);
+			return new Response($app);
 		});
 
-		require __DIR__.'/../../facades.php';
+		// Register the package configuration with the loader.
+		$app['config']->package('jasonlewis/basset', __DIR__.'/../');
+
+		require __DIR__.'/../facades.php';
 
 		// Basset collections can be compiled via Artisan. We need to register the Artisan commands with
 		// the console so that commands can be run.
@@ -44,10 +36,6 @@ class BassetServiceProvider extends ServiceProvider {
 		// Basset responds to routes for assets that are not within the public directory. This is especially
 		// useful when developing an application and static assets are not ideal.
 		$this->registerRoutes($app);
-
-		// Basset is built upon asset collections. Load in the collections file where any collections
-		// are defined.
-		require __DIR__.'/../../collections.php';
 
 		$app['events']->fire('basset.started', array($app['basset']));
 	}
@@ -79,14 +67,14 @@ class BassetServiceProvider extends ServiceProvider {
 	{
 		$app['command.basset'] = $app->share(function($app)
 		{
-			return new BassetCommand;
+			return new Console\BassetCommand;
 		});
 
 		$app['command.basset.compile'] = $app->share(function($app)
 		{
-			$compilePath = $app['path.base'] . '/' . $app['config']['basset.compiling_path'];
+			$compilePath = $app['path.base'] . '/' . $app['config']['basset::compiling_path'];
 
-			return new CompileCommand($app['basset'], $app['files'], $compilePath);
+			return new Console\CompileCommand($app, $compilePath);
 		});
 
 		// Listen for the Artisan starting event, from here we can resolve the commands related
