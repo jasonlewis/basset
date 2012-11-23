@@ -2,9 +2,7 @@
 
 use SplFileInfo;
 use ReflectionClass;
-use Illuminate\Filesystem;
 use Assetic\Asset\FileAsset;
-use Illuminate\Config\Repository;
 
 class Asset {
 
@@ -204,9 +202,9 @@ class Asset {
 	 */
 	public function apply($filter, $options = array())
 	{
-		if (isset($this->app['config']["basset::filters.{$filter}"]))
+		if (isset($this->app['config']["basset::basset.filters.{$filter}"]))
 		{
-			$filter = $this->app['config']["basset::filters.{$filter}"];
+			$filter = $this->app['config']["basset::basset.filters.{$filter}"];
 
 			if (is_array($filter))
 			{

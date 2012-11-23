@@ -27,8 +27,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
-		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('directories' => array('foo' => 'path: '.__DIR__.'/fixtures')));
+		//$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
@@ -66,8 +66,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
-		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('directories' => array('foo' => 'path: '.__DIR__.'/fixtures')));
+		//$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
 		$this->assertEquals(md5(filemtime(__DIR__.'/fixtures/sample.css')), $collection->getFingerprint('style'));
@@ -80,8 +80,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('foo' => 'path: '.__DIR__.'/fixtures'));
-		$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('directories' => array('foo' => 'path: '.__DIR__.'/fixtures')));
+		//$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
 		$this->assertEquals('html { background-color: #fff; }', $collection->compile('style'));

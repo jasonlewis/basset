@@ -79,7 +79,7 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		foreach ($this->app['config']['basset::directories'] as $directory => $path)
+		foreach ($this->app['config']['basset::basset.directories'] as $directory => $path)
 		{
 			$directory = $this->parseDirectory($path);
 
@@ -238,7 +238,7 @@ class Collection {
 	 */
 	public function isCompiled($group)
 	{
-		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']['basset::compiling_path'].'/'.$this->getCompiledName($group));
+		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']['basset::basset.compiling_path'].'/'.$this->getCompiledName($group));
 	}
 
 	/**

@@ -36,7 +36,7 @@ class Response {
 	 */
 	public function verifyRequest()
 	{
-		$handles = $this->app['config']['basset::handles'];
+		$handles = $this->app['config']['basset::basset.handles'];
 
 		return str_is("{$handles}/*", trim($this->app['request']->path(), '/'));
 	}
@@ -94,7 +94,7 @@ class Response {
 	{
 		$pieces = explode('/', str_replace($this->app['request']->getBaseUrl(), '', $uri));
 
-		unset($pieces[array_search($this->app['config']['basset::handles'], $pieces)]);
+		unset($pieces[array_search($this->app['config']['basset::basset.handles'], $pieces)]);
 
 		return implode('/', array_filter($pieces));
 	}
