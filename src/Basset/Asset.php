@@ -2,7 +2,7 @@
 
 use SplFileInfo;
 use ReflectionClass;
-use Assetic\Asset\FileAsset;
+use Assetic\Asset\StringAsset;
 
 class Asset {
 
@@ -49,6 +49,13 @@ class Asset {
 	protected $app;
 
 	/**
+	 * Asset files contents.
+	 * 
+	 * @var string
+	 */
+	protected $contents;
+
+	/**
 	 * Array of extension groups.
 	 * 
 	 * @var array
@@ -79,10 +86,21 @@ class Asset {
 	public function __construct($path, $app)
 	{
 		$this->name = basename($path);
-		$this->extension = $app['files']->extension($path);
 		$this->path = $path;
+		$this->contents = $app['files']->get($path);
+		$this->extension = $app['files']->extension($path);
 		$this->modified = $app['files']->lastModified($path);
 		$this->app = $app;
+	}
+
+	/**
+	 * Get the contents of the asset.
+	 * 
+	 * @return string
+	 */
+	public function getContents()
+	{
+		return $this->contents;
 	}
 
 	/**
@@ -120,7 +138,7 @@ class Asset {
 	 * 
 	 * @return int
 	 */
-	public function getModified()
+	public function getLastModified()
 	{
 		return $this->modified;
 	}
@@ -172,7 +190,7 @@ class Asset {
 	 */
 	public function compile()
 	{
-		$asset = new FileAsset($this->getPath());
+		$filters = array();
 		
 		foreach ($this->filters as $name => $arguments)
 		{
@@ -180,9 +198,11 @@ class Asset {
 			{
 				$reflection = new ReflectionClass($filter);
 
-				$asset->ensureFilter($reflection->newInstanceArgs((array) $arguments));
+				$filters[] = $reflection->newInstanceArgs((array) $arguments);
 			}
 		}
+
+		$asset = new StringAsset($this->contents, $filters, $this->path, $this->name);
 
 		return $asset->dump();
 	}

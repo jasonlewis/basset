@@ -59,7 +59,7 @@ class Collection {
 	protected $filters = array();
 
 	/**
-	 * Create a new Basset instance.
+	 * Create a new Basset\Collection instance.
 	 * 
 	 * @param  string  $name
 	 * @param  Illuminate\Foundation\Application  $app
@@ -80,18 +80,18 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		$path = null;
+		$assetPath = null;
 
 		// Add an asset by using the full path to its location.
 		if (starts_with($name, 'path: '))
 		{
-			$path = substr($name, 6);
+			$assetPath = substr($name, 6);
 		}
 
 		// Add an asset that's located within the public directory.
 		else if ($this->app['files']->exists($this->app['path.public'].'/'.$name))
 		{
-			$path = $this->app['path.public'].'/'.$name;	
+			$assetPath = $this->app['path.public'].'/'.$name;	
 		}
 
 		// Add an asset that's within one of the configured directories.
@@ -101,26 +101,32 @@ class Collection {
 			{
 				$directory = $this->parseDirectory($path);
 
-				foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory->getPath())) as $file)
+				foreach ($directory->recursivelyIterateDirectory() as $file)
 				{
 					// Once we find the first occurance of the file we'll add it to the array of assets if it
 					// does not already exist. This is called cascading file loading.
-					$filename = trim(str_replace(array(realpath($directory->getPath()), '\\'), array('', '/'), $file->getRealPath()), '/');
+					$directoryPath = $directory->getPath();
+
+					if (realpath($directoryPath))
+					{
+						$directoryPath = realpath($directoryPath);
+					}
+
+					$filename = trim(str_replace(array($directoryPath, '\\'), array('', '/'), $file->getRealPath()), '/');
 
 					if ($filename == $name)
 					{
-						$path = $file->getPathname();
+						$assetPath = $file->getPathname();
 
 						break 2;
 					}
 				}
 			}
 		}
-
 		
 		// Create a new Asset instance and validate it, if it's not already in the array of assets or pending assets
 		// we can go ahead and add it.
-		$asset = new Asset($path, $this->app);
+		$asset = new Asset($assetPath, $this->app);
 
 		if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
 		{
@@ -211,9 +217,9 @@ class Collection {
 
 		foreach ($this->assets[$group] as $asset)
 		{
-			if($asset->getModified() > $lastModified)
+			if($asset->getLastModified() > $lastModified)
 			{
-				$lastModified = $asset->getModified();
+				$lastModified = $asset->getLastModified();
 			}
 		}
 
@@ -279,7 +285,7 @@ class Collection {
 
 		foreach ($this->getAssets($group) as $asset)
 		{
-			$names[] = $asset->getModified();
+			$names[] = $asset->getLastModified();
 		}
 
 		return md5(implode(PHP_EOL, $names));
@@ -370,6 +376,28 @@ class Collection {
 		}
 
 		return implode(PHP_EOL, $return);
+	}
+
+	/**
+	 * Apply a filter to an entire collection.
+	 * 
+	 * @param  string  $filter
+	 * @param  array  $options
+	 * @return Basset\Collection
+	 */
+	public function apply($filter, $options = array())
+	{
+		foreach ($this->getAssets('style') as $key => $asset)
+		{
+			$this->assets['style'][$key]->apply($filter, $options);
+		}
+
+		foreach ($this->getAssets('script') as $key => $asset)
+		{
+			$this->assets['script'][$key]->apply($filter, $options);
+		}
+
+		return $this;
 	}
 
 }
