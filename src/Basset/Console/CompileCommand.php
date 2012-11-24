@@ -29,7 +29,7 @@ class CompileCommand extends Command {
 	protected $app;
 
 	/**
-	 * Path where assets are published.
+	 * Path where assets are compiled.
 	 * 
 	 * @var string
 	 */

@@ -79,7 +79,7 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		foreach ($this->app['config']['basset::basset.directories'] as $directory => $path)
+		foreach ($this->app['config']->get('basset::directories') as $directory => $path)
 		{
 			$directory = $this->parseDirectory($path);
 
@@ -238,7 +238,7 @@ class Collection {
 	 */
 	public function isCompiled($group)
 	{
-		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']['basset::basset.compiling_path'].'/'.$this->getCompiledName($group));
+		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']->get('basset::compiling_path').'/'.$this->getCompiledName($group));
 	}
 
 	/**
@@ -296,9 +296,9 @@ class Collection {
 		}
 		else
 		{
-			if ( isset($this->app['config']["basset::basset.directories.{$directory}"]))
+			if ($this->app['config']->has("basset::directories.{$directory}"))
 			{
-				$directory = $this->app['config']["basset::basset.directories.{$directory}"];
+				$directory = $this->app['config']->get("basset::directories.{$directory}");
 			}
 
 			if (starts_with($directory, 'path: '))

@@ -202,9 +202,9 @@ class Asset {
 	 */
 	public function apply($filter, $options = array())
 	{
-		if (isset($this->app['config']["basset::basset.filters.{$filter}"]))
+		if ($this->app['config']->has("basset::filters.{$filter}"))
 		{
-			$filter = $this->app['config']["basset::basset.filters.{$filter}"];
+			$filter = $this->app['config']->get("basset::filters.{$filter}");
 
 			if (is_array($filter))
 			{

@@ -29,8 +29,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/example.css');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('handles' => 'assets'));
-		//$app['config']->getLoader()->shouldReceive('exists')->once()->andReturn(true);
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'handles', 'basset')->andReturn('assets');
 		$response = new Basset\Response($app);
 		$this->assertTrue($response->verifyRequest());
 		$app['request']->shouldReceive('path')->once()->andReturn('testing/example.css');
@@ -46,7 +45,13 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/sample.css');
 		$app['request']->shouldReceive('getBaseUrl')->once()->andReturn('');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('handles' => 'assets', 'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')));
+		$app['config']->getLoader()->shouldReceive('addNamespace')->with('basset', __DIR__);
+		$app['config']->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $name, $items) { return $items; });
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array(
+			'handles' => 'assets',
+			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
+		));
+		$app['config']->package('foo/basset', __DIR__);
 		$response = new Basset\Response($app);
 		$response->prepare();
 		ob_start();

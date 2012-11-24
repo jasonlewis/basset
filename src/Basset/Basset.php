@@ -50,13 +50,13 @@ class Basset {
 			// Determine what course of action will be taken depending on the applications environment.
 			// By default if within the production environment Basset will attempt to serve static assets.
 			// If, however, Basset is unable to locate the static assets it will default to raw HTML.
-			$environment = $this->app['config']['basset::production_environment'];
+			$environment = $this->app['config']->get('basset::production_environment');
 
 			if ($collection->isCompiled($group))
 			{
 				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
 				{
-					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->app['config']['basset::compiling_path']), '/');
+					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->app['config']->get('basset::compiling_path')), '/');
 
 					return new Html($group, $extension, path($base.'/'.$collection->getCompiledName($group)));
 				}
@@ -67,7 +67,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->app['config']['basset::handles'].'/'.$asset->getRelativePath()));
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->app['config']->get('basset::handles').'/'.$asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
@@ -126,7 +126,7 @@ class Basset {
 	 */
 	public function registerCollections()
 	{
-		foreach ($this->app['config']['basset::collections'] as $name => $callback)
+		foreach ($this->app['config']->get('basset::collections') as $name => $callback)
 		{
 			$this->collection($name, $callback);
 		}

@@ -29,7 +29,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('filters' => array('bar' => 'FooBar')));
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'filters', 'basset')->andReturn(array('bar' => 'FooBar'));
 		$asset = new Basset\Asset($this->generateTestFile(), 'path/to/directory', $app);
 		$asset->apply('bar');
 		$asset->apply('Test\Filter', array('option'));

@@ -16,7 +16,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array('filters' => array()));
+		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'filters', 'basset')->andReturn(array());
 		$directory = new Basset\Directory(__DIR__.'/fixtures', $app);
 		$directory->requireDirectory();
 		$directory->apply('FooFilter', array('option', 'option'));
