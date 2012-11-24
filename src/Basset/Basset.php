@@ -67,7 +67,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($this->app['config']->get('basset::handles').'/'.$asset->getRelativePath()));
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
@@ -96,6 +96,20 @@ class Basset {
 		}
 
 		return $this->collections[$name];
+	}
+
+	/**
+	 * Add a directory to the array of directories.
+	 * 
+	 * @param  string  $name
+	 * @param  string  $path
+	 * @return Basset\Basset
+	 */
+	public function addDirectory($name, $path)
+	{
+		$this->app['config']->set("basset::directories.{$name}", $path);
+
+		return $this;
 	}
 
 	/**
