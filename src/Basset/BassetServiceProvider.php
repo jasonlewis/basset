@@ -14,15 +14,11 @@ class BassetServiceProvider extends ServiceProvider {
 	 */
 	public function register($app)
 	{
-		$app['basset'] = $app->share(function($app)
-		{
-			return new Basset($app);
-		});
+		// Because Laravel doesn't actually set a public path here we'll define out own. This may become
+		// a limitation and hopefully will change at a later date.
+		$app['path.public'] = realpath($app['path.base'].'/public');
 
-		$app['basset.response'] = $app->share(function($app)
-		{
-			return new Response($app);
-		});
+		$this->registerBindings($app);
 
 		// Register the package configuration with the loader.
 		$app['config']->package('jasonlewis/basset', __DIR__.'/../');
@@ -38,6 +34,25 @@ class BassetServiceProvider extends ServiceProvider {
 		$this->registerRoutes($app);
 
 		$app['events']->fire('basset.started', array($app['basset']));
+	}
+
+	/**
+	 * Register the application bindings.
+	 * 
+	 * @param  Illuminate\Foundation\Application  $app
+	 * @return void
+	 */
+	public function registerBindings($app)
+	{
+		$app['basset'] = $app->share(function($app)
+		{
+			return new Basset($app);
+		});
+
+		$app['basset.response'] = $app->share(function($app)
+		{
+			return new Response($app);
+		});
 	}
 
 	/**
