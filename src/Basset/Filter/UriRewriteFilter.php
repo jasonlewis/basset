@@ -3,6 +3,16 @@
 use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
 
+/**
+ * UriRewriteFilter is a rewrite and port of the popular CssUriRewrite class written by Steve Clay.
+ * Original source can be found by following the links below.
+ * 
+ * @author    Steve Clay
+ * @link      <https://github.com/mrclay/minify>
+ * @license   <https://github.com/mrclay/minify/blob/master/LICENSE.txt>
+ * @package   Minify
+ * @copyright 2008 Steve Clay / Ryan Grove
+ */
 class UriRewriteFilter implements FilterInterface {
 
 	/**
