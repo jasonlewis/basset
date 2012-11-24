@@ -70,20 +70,27 @@ class BassetServiceProvider extends ServiceProvider {
 			return new Console\BassetCommand;
 		});
 
-		$app['command.basset.compile'] = $app->share(function($app)
-		{
-			$compilePath = $app['path.base'] . '/' . $app['config']['basset::compiling_path'];
+		// The compile and list commands both make use of the compile path, so we'll define
+		// it here and use it within the command closures.
+		$compilePath = $app['path.base'] . '/' . $app['config']->get('basset::compiling_path');
 
+		$app['command.basset.compile'] = $app->share(function($app) use ($compilePath)
+		{
 			return new Console\CompileCommand($app, $compilePath);
 		});
 
-		// Listen for the Artisan starting event, from here we can resolve the commands related
-		// to Basset.
+		$app['command.basset.list'] = $app->share(function($app) use ($compilePath)
+		{
+			return new Console\ListCommand($app, $compilePath);
+		});
+
+		// Listen for the artisan.start even so that the Basset console commands can be resolved.
 		$app['events']->listen('artisan.start', function($artisan)
 		{
 			$artisan->resolveCommands(array(
 				'command.basset',
-				'command.basset.compile'
+				'command.basset.compile',
+				'command.basset.list'
 			));
 		});
 	}
