@@ -63,7 +63,7 @@ class Directory {
 		{
 			if ($file->isDir()) continue;
 
-			$asset = new Asset($file, $this->getPath(), $this->app);
+			$asset = new Asset($file->getPathname(), $this->app);
 
 			if ($asset->isValid())
 			{
@@ -85,7 +85,7 @@ class Directory {
 		// This allows assets to be excluded or included before being added as valid.
 		foreach (new FilesystemIterator($this->getPath()) as $file)
 		{
-			$asset = new Asset($file, $this->getPath(), $this->app);
+			$asset = new Asset($file->getPathname(), $this->app);
 
 			if ($asset->isValid())
 			{
