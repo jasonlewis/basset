@@ -202,7 +202,7 @@ class Asset {
 			}
 		}
 
-		$asset = new StringAsset($this->contents, $filters, $this->path, $this->name);
+		$asset = new StringAsset($this->contents, $filters, dirname($this->path), $this->name);
 
 		return $asset->dump();
 	}
