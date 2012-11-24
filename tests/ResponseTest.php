@@ -40,7 +40,12 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 	public function testCanGetAssetResponse()
 	{
 		$app = new Illuminate\Container;
+		$app['path.public'] = 'path/to/public';
 		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['files']->shouldReceive('exists')->once()->andReturn(true);
+		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/sample.css');
 		$app['request']->shouldReceive('getBaseUrl')->once()->andReturn('');
@@ -49,7 +54,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 		$app['config']->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $name, $items) { return $items; });
 		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'basset', 'basset')->andReturn(array(
 			'handles' => 'assets',
-			'directories' => array('foo' => 'path: '.__DIR__.'/fixtures')
+			'directories' => array('foo' => 'path: '.__DIR__)
 		));
 		$app['config']->package('foo/basset', __DIR__);
 		$response = new Basset\Response($app);
