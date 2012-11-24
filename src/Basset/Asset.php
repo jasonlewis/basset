@@ -72,19 +72,17 @@ class Asset {
 	/**
 	 * Create a new asset instance.
 	 * 
-	 * @param  SplFileInfo  $asset
-	 * @param  string  $directory
+	 * @param  string  $path
 	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct(SplFileInfo $asset, $directory, $app)
+	public function __construct($path, $app)
 	{
-		$this->directory = realpath($directory);
+		$this->name = basename($path);
+		$this->extension = $app['files']->extension($path);
+		$this->path = $path;
+		$this->modified = $app['files']->lastModified($path);
 		$this->app = $app;
-		$this->name = $asset->getFilename();
-		$this->path = realpath($asset->getPathname());
-		$this->extension = $asset->getExtension();
-		$this->modified = $asset->getMTime();
 	}
 
 	/**
@@ -128,13 +126,13 @@ class Asset {
 	}
 
 	/**
-	 * Get the relative path of the asset.
+	 * Get the relative path of the asset to the public directory.
 	 * 
 	 * @return string
 	 */
 	public function getRelativePath()
 	{
-		return trim(str_replace(array($this->directory, '\\'), array('', '/'), $this->path), '/');
+		return trim(str_replace(array($this->app['path.public'], '\\'), array('', '/'), $this->path), '/');
 	}
 
 	/**
@@ -174,21 +172,17 @@ class Asset {
 	 */
 	public function compile()
 	{
-		// Before we compile the asset the registered filters need to be applied. Filters
-		// are applied with the help of Assetic's FileAsset class.
-		$filters = array();
-
-		foreach ($this->filters as $filter => $arguments)
+		$asset = new FileAsset($this->getPath());
+		
+		foreach ($this->filters as $name => $arguments)
 		{
-			if (class_exists($filter = "Assetic\\Filter\\{$filter}"))
+			if (class_exists($filter = "Assetic\\Filter\\{$name}") or class_exists($filter = "Basset\\Filter\\{$name}"))
 			{
 				$reflection = new ReflectionClass($filter);
 
-				$filters[] = $reflection->newInstanceArgs((array) $arguments);
+				$asset->ensureFilter($reflection->newInstanceArgs((array) $arguments));
 			}
 		}
-
-		$asset = new FileAsset($this->getPath(), $filters);
 
 		return $asset->dump();
 	}
