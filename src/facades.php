@@ -9,6 +9,6 @@ class Basset extends Facade {
 	 *
 	 * @return object
 	 */
-	protected static function getFacadeAccessor(){ return static::$app['basset']; }
+	protected static function getFacadeAccessor(){ return 'basset'; }
 
 }
