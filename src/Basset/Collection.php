@@ -63,6 +63,7 @@ class Collection {
 	 * 
 	 * @param  string  $name
 	 * @param  Illuminate\Foundation\Application  $app
+	 * @param  string  $publicPath
 	 * @return void
 	 */
 	public function __construct($name, $app)
@@ -79,31 +80,56 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		foreach ($this->app['config']->get('basset::directories') as $directory => $path)
+		$path = null;
+
+		// Add an asset by using the full path to its location.
+		if (starts_with($name, 'path: '))
 		{
-			$directory = $this->parseDirectory($path);
+			$path = substr($name, 6);
+		}
 
-			foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory->getPath())) as $file)
+		// Add an asset that's located within the public directory.
+		else if ($this->app['files']->exists($this->app['path.public'].'/'.$name))
+		{
+			$path = $this->app['path.public'].'/'.$name;	
+		}
+
+		// Add an asset that's within one of the configured directories.
+		else
+		{
+			foreach ($this->app['config']->get('basset::directories') as $directory => $path)
 			{
-				// Once we find the first occurance of the file we'll add it to the array of assets if it
-				// does not already exist. This is called cascading file loading.
-				$filename = trim(str_replace(array(realpath($directory->getPath()), '\\'), array('', '/'), $file->getRealPath()), '/');
+				$directory = $this->parseDirectory($path);
 
-				if ($filename == $name)
+				foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory->getPath())) as $file)
 				{
-					$asset = new Asset($file, $directory->getPath(), $this->app);
+					// Once we find the first occurance of the file we'll add it to the array of assets if it
+					// does not already exist. This is called cascading file loading.
+					$filename = trim(str_replace(array(realpath($directory->getPath()), '\\'), array('', '/'), $file->getRealPath()), '/');
 
-					if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
+					if ($filename == $name)
 					{
-						return $this->pending[] = $asset;
+						$path = $file->getPathname();
+
+						break 2;
 					}
 				}
 			}
 		}
+
+		
+		// Create a new Asset instance and validate it, if it's not already in the array of assets or pending assets
+		// we can go ahead and add it.
+		$asset = new Asset($path, $this->app);
+
+		if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
+		{
+			return $this->pending[] = $asset;
+		}
 	}
 
 	/**
-	 * Work within a directory.
+	 * Change the working directory.
 	 * 
 	 * @param  string  $directory
 	 * @param  Closure  $callback
@@ -290,17 +316,23 @@ class Collection {
 	 */
 	public function parseDirectory($directory)
 	{
+		// Directories can be given as a full path to the directory.
 		if (starts_with($directory, 'path: '))
 		{
 			$directory = substr($directory, 6);
 		}
-		else
+
+		// Directories can be given names and then easily aliased with these names.
+		elseif (starts_with($directory, 'name: '))
 		{
+			$directory = substr($directory, 6);
+
 			if ($this->app['config']->has("basset::directories.{$directory}"))
 			{
 				$directory = $this->app['config']->get("basset::directories.{$directory}");
 			}
 
+			// Named directories may also provide full paths to the directory.
 			if (starts_with($directory, 'path: '))
 			{
 				$directory = substr($directory, 6);
@@ -309,6 +341,12 @@ class Collection {
 			{
 				$directory = $this->app['path.base'].'/'.$directory;
 			}
+		}
+
+		// Default to looking for the directory within the public directory.
+		else
+		{
+			$directory = $this->app['path.public'].'/'.$directory;
 		}
 
 		return new Directory($directory, $this->app);
