@@ -51,6 +51,26 @@ class Directory {
 	}
 
 	/**
+	 * Recursively iterate through this directory.
+	 * 
+	 * @return RecursiveIteratorIterator
+	 */
+	public function recursivelyIterateDirectory()
+	{
+		return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->getPath()));
+	}
+
+	/**
+	 * Iterate through this directory.
+	 * 
+	 * @return FilesystemIterator
+	 */
+	public function iterateDirectory()
+	{
+		return new FilesystemIterator($this->getPath());	
+	}
+
+	/**
 	 * Recursively require the current directory tree.
 	 * 
 	 * @return Basset\Directory
@@ -59,7 +79,7 @@ class Directory {
 	{
 		// Spin through all the files within the directory and add them to the pending array of assets.
 		// This allows assets to be excluded or included before being added as valid.
-		foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->getPath())) as $file)
+		foreach ($this->recursivelyIterateDirectory() as $file)
 		{
 			if ($file->isDir()) continue;
 
@@ -83,7 +103,7 @@ class Directory {
 	{
 		// Spin through all the files within the directory and add them to the pending array of assets.
 		// This allows assets to be excluded or included before being added as valid.
-		foreach (new FilesystemIterator($this->getPath()) as $file)
+		foreach ($this->iterateDirectory() as $file)
 		{
 			$asset = new Asset($file->getPathname(), $this->app);
 
