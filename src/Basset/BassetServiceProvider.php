@@ -21,7 +21,7 @@ class BassetServiceProvider extends ServiceProvider {
 		$this->registerBindings($app);
 
 		// Register the package configuration with the loader.
-		$app['config']->package('jasonlewis/basset', __DIR__.'/../');
+		$app['config']->package('jasonlewis/basset', __DIR__.'/../config');
 
 		require __DIR__.'/../facades.php';
 
