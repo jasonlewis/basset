@@ -23,7 +23,7 @@ class BassetServiceProvider extends ServiceProvider {
 		// Register the package configuration with the loader.
 		$app['config']->package('jasonlewis/basset', __DIR__.'/../config');
 
-		require __DIR__.'/../facades.php';
+		require_once __DIR__.'/../facades.php';
 
 		// Basset collections can be compiled via Artisan. We need to register the Artisan commands with
 		// the console so that commands can be run.
