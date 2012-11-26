@@ -9,47 +9,45 @@ class BassetServiceProvider extends ServiceProvider {
 	/**
 	 * Register the service provider.
 	 *
-	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function register($app)
+	public function register()
 	{
 		// Because Laravel doesn't actually set a public path here we'll define out own. This may become
 		// a limitation and hopefully will change at a later date.
-		$app['path.public'] = realpath($app['path.base'].'/public');
+		$this->app['path.public'] = realpath($this->app['path.base'].'/public');
 
-		$this->registerBindings($app);
+		$this->registerBindings();
 
 		// Register the package configuration with the loader.
-		$app['config']->package('jasonlewis/basset', __DIR__.'/../config');
+		$this->app['config']->package('jasonlewis/basset', __DIR__.'/../config');
 
 		require_once __DIR__.'/../facades.php';
 
 		// Basset collections can be compiled via Artisan. We need to register the Artisan commands with
 		// the console so that commands can be run.
-		$this->registerCommands($app);
+		$this->registerCommands();
 
 		// Basset responds to routes for assets that are not within the public directory. This is especially
 		// useful when developing an application and static assets are not ideal.
-		$this->registerRoutes($app);
+		$this->registerRoutes();
 
-		$app['events']->fire('basset.started', array($app['basset']));
+		$this->app['events']->fire('basset.started', array($this->app['basset']));
 	}
 
 	/**
 	 * Register the application bindings.
 	 * 
-	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function registerBindings($app)
+	public function registerBindings()
 	{
-		$app['basset'] = $app->share(function($app)
+		$this->app['basset'] = $this->app->share(function($app)
 		{
 			return new Basset($app);
 		});
 
-		$app['basset.response'] = $app->share(function($app)
+		$this->app['basset.response'] = $this->app->share(function($app)
 		{
 			return new Response($app);
 		});
@@ -58,11 +56,12 @@ class BassetServiceProvider extends ServiceProvider {
 	/**
 	 * Register the routes that Basset responds to.
 	 * 
-	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function registerRoutes($app)
+	public function registerRoutes()
 	{
+		$app = $this->app;
+
 		$app['router']->before(function($request) use ($app)
 		{
 			if ($app['basset.response']->verifyRequest() and $app['basset.response']->prepare())
@@ -78,36 +77,28 @@ class BassetServiceProvider extends ServiceProvider {
 	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function registerCommands($app)
+	public function registerCommands()
 	{
-		$app['command.basset'] = $app->share(function($app)
+		$this->app['command.basset'] = $this->app->share(function($app)
 		{
 			return new Console\BassetCommand;
 		});
 
 		// The compile and list commands both make use of the compile path, so we'll define
 		// it here and use it within the command closures.
-		$compilePath = $app['path.base'] . '/' . $app['config']->get('basset::compiling_path');
+		$compilePath = $this->app['path.base'] . '/' . $this->app['config']->get('basset::compiling_path');
 
-		$app['command.basset.compile'] = $app->share(function($app) use ($compilePath)
+		$this->app['command.basset.compile'] = $this->app->share(function($app) use ($compilePath)
 		{
 			return new Console\CompileCommand($app, $compilePath);
 		});
 
-		$app['command.basset.list'] = $app->share(function($app) use ($compilePath)
+		$this->app['command.basset.list'] = $this->app->share(function($app) use ($compilePath)
 		{
 			return new Console\ListCommand($app, $compilePath);
 		});
 
-		// Listen for the artisan.start even so that the Basset console commands can be resolved.
-		$app['events']->listen('artisan.start', function($artisan)
-		{
-			$artisan->resolveCommands(array(
-				'command.basset',
-				'command.basset.compile',
-				'command.basset.list'
-			));
-		});
+		$this->commands('command.basset', 'command.basset.compile', 'command.basset.list');
 	}
 
 }
