@@ -62,9 +62,9 @@ class ListCommand extends Command {
 
 			$assets = $collection->getAssets();
 
-			$this->line('   Styles:  '.(isset($assets['style']) ? ($collection->isCompiled('style') ? '<info>Compiled</info>' : '<error>Uncompiled or needs re-compiling</error>') : 'None available'));
+			$this->line('   Styles:  '.(isset($assets['style']) ? ($collection->isCompiled('style') ? '<info>Compiled</info>' : '<comment>Uncompiled or needs re-compiling</comment>') : 'None available'));
 
-			$this->line('   Scripts: '.(isset($assets['script']) ? ($collection->isCompiled('script') ? '<info>Compiled</info>' : '<error>Uncompiled or needs re-compiling</error>') : 'None available'));
+			$this->line('   Scripts: '.(isset($assets['script']) ? ($collection->isCompiled('script') ? '<info>Compiled</info>' : '<comment>Uncompiled or needs re-compiling</comment>') : 'None available'));
 		}
 
 		$this->line('');
