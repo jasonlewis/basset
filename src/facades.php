@@ -1,4 +1,4 @@
-<?php
+<?php namespace Basset\Facades;
 
 use Illuminate\Support\Facade;
 
