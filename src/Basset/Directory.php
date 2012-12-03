@@ -83,7 +83,7 @@ class Directory {
 		{
 			if ($file->isDir()) continue;
 
-			$asset = new Asset($file->getPathname(), $this->app);
+			$asset = $this->createAsset($file->getPathname());
 
 			if ($asset->isValid())
 			{
@@ -105,7 +105,7 @@ class Directory {
 		// This allows assets to be excluded or included before being added as valid.
 		foreach ($this->iterateDirectory() as $file)
 		{
-			$asset = new Asset($file->getPathname(), $this->app);
+			$asset = $this->createAsset($file->getPathname());
 
 			if ($asset->isValid())
 			{
@@ -183,6 +183,17 @@ class Directory {
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Create a new asset.
+	 * 
+	 * @param  string  $path
+	 * @return Basset\Asset
+	 */
+	public function createAsset($path)
+	{
+		return new Asset($path, false, $this->app);
 	}
 
 }
