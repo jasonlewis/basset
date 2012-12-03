@@ -11,10 +11,10 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanCreateAsset()
+	public function testAssetIsCreated()
 	{
 		$app = $this->getApplication();
-		$asset = new Basset\Asset('path/to/foo', $app);
+		$asset = new Basset\Asset('path/to/foo', false, $app);
 		$this->assertInstanceOf('Basset\Asset', $asset);
 		$this->assertEquals('foo', $asset->getName());
 		$this->assertEquals('css', $asset->getExtension());
@@ -22,11 +22,13 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanApplyFilter()
+	public function testFiltersAreApplied()
 	{
 		$app = $this->getApplication();
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'filters', 'basset')->andReturn(array('bar' => 'FooBar'));
-		$asset = new Basset\Asset('path/to/foo', $app);
+		$app['config']->shouldReceive('has')->with('basset::filters.bar')->andReturn(true);
+		$app['config']->shouldReceive('has')->with('basset::filters.Test\Filter')->andReturn(false);
+		$app['config']->shouldReceive('get')->with('basset::filters.bar')->andReturn('FooBar');
+		$asset = new Basset\Asset('path/to/foo', false, $app);
 		$asset->apply('bar');
 		$asset->apply('Test\Filter', array('option'));
 		$filters = $asset->getFilters();
@@ -35,10 +37,10 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanCompileAssets()
+	public function testAssetsAreCompiled()
 	{
 		$app = $this->getApplication();
-		$asset = new Basset\Asset('path/to/foo', $app);
+		$asset = new Basset\Asset('path/to/foo', false, $app);
 		$this->assertEquals('html { background-color: #fff; }', $asset->compile());
 	}
 
@@ -49,8 +51,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
-		$app['files']->shouldReceive('get')->once()->with('path/to/foo')->andReturn('html { background-color: #fff; }');
-		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['files']->shouldReceive('getRemote')->once()->with('path/to/foo')->andReturn('html { background-color: #fff; }');
+		$app['config'] = m::mock('stdClass');
 
 		return $app;
 	}

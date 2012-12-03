@@ -11,7 +11,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanCreateCollection()
+	public function testCollectionIsCreated()
 	{
 		$app = $this->getApplication();
 		$collection = new Basset\Collection('foo', $app);
@@ -20,11 +20,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanAddBasicAssetToCollection()
+	public function testBasicAssetsAreAddedToCollection()
 	{
 		$app = $this->getApplication();
 		$app['files']->shouldReceive('exists')->once()->andReturn(true);
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$collection = new Basset\Collection('foo', $app);
@@ -35,10 +35,10 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanAddPathedAssetToCollection()
+	public function testPathedAssetsAreAddedToCollection()
 	{
 		$app = $this->getApplication();
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$collection = new Basset\Collection('foo', $app);
@@ -50,12 +50,12 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanAddAssetFromConfiguredDirectoryToCollection()
+	public function testAssetsFromConfiguredDirectoryAreAddedToCollection()
 	{
 		$app = $this->getApplication();
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'directories', 'basset')->andReturn(array('bar' => 'a/real/path'));
+		$app['config']->shouldReceive('get')->with('basset::directories')->andReturn(array('bar' => 'a/real/path'));
 		$app['files']->shouldReceive('exists')->once()->andReturn(false);
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$file = m::mock('stdClass');
@@ -74,7 +74,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanAddDirectoryToCollection()
+	public function testDirectoryIsAddedToCollection()
 	{
 		$app = $this->getApplication();
 		$asset = m::mock('Basset\Asset');
@@ -90,7 +90,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanAddDirectoryTreeToCollection()
+	public function testDirectoryTreeIsAddedToCollection()
 	{
 		$app = $this->getApplication();
 		$asset = m::mock('Basset\Asset');
@@ -110,7 +110,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	{
 		$app = $this->getApplication();
 		$app['files']->shouldReceive('exists')->once()->andReturn(true);
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$collection = new Basset\Collection('foo', $app);
@@ -120,11 +120,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanCompileCollection()
+	public function testCollectionIsCompiled()
 	{
 		$app = $this->getApplication();
 		$app['files']->shouldReceive('exists')->once()->andReturn(true);
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$collection = new Basset\Collection('foo', $app);
@@ -133,16 +133,17 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanApplyFilterToEntireCollection()
+	public function testFiltersAreAppliedToEntireCollection()
 	{
 		$app = $this->getApplication();
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'filters', 'basset')->andReturn(array());
-		$app['files']->shouldReceive('get')->twice()->andReturn('html { }', 'body { }');
+		$app['config']->shouldReceive('get')->with('basset::filters')->andReturn(array());
+		$app['config']->shouldReceive('has')->with('basset::filters.FooFilter')->andReturn(false);
+		$app['files']->shouldReceive('getRemote')->twice()->andReturn('html { }', 'body { }');
 		$app['files']->shouldReceive('lastModified')->twice()->andReturn(time());
 		$app['files']->shouldReceive('extension')->twice()->andReturn('css');
 		$assets = array(
-			new Basset\Asset('path/to/foo', $app),
-			new Basset\Asset('path/to/bar', $app)
+			new Basset\Asset('path/to/foo', false, $app),
+			new Basset\Asset('path/to/bar', false, $app)
 		);
 		$directory = m::mock('Basset\Directory');
 		$directory->shouldReceive('requireTree')->once()->andReturn($directory);
@@ -165,7 +166,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	{
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
-		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['config'] = m::mock('stdClass');
 		$app['path.public'] = 'path/to/public';
 
 		return $app;

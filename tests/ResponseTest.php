@@ -11,7 +11,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanCreateResponse()
+	public function testResponseIsCreated()
 	{
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
@@ -22,13 +22,13 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanVerifyRequest()
+	public function testRequestCanBeVerified()
 	{
 		$app = new Illuminate\Container;
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/example.css');
-		$app['config'] = m::mock('StdClass');
+		$app['config'] = m::mock('stdClass');
 		$app['config']->shouldReceive('get')->with('basset::handles')->andReturn('assets');
 		$response = new Basset\Response($app);
 		$this->assertTrue($response->verifyRequest());
@@ -37,19 +37,19 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanGetAssetResponse()
+	public function testAssetResponseIsReturned()
 	{
 		$app = new Illuminate\Container;
 		$app['path.public'] = 'path/to/public';
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['files']->shouldReceive('exists')->once()->andReturn(true);
-		$app['files']->shouldReceive('get')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/sample.css');
 		$app['request']->shouldReceive('getBaseUrl')->once()->andReturn('');
-		$app['config'] = m::mock('StdClass');
+		$app['config'] = m::mock('stdClass');
 		$app['config']->shouldReceive('get')->with('basset::directories')->andReturn(array('foo' => 'path: '.__DIR__));
 		$app['config']->shouldReceive('get')->with('basset::handles')->andReturn('assets');
 		$response = new Basset\Response($app);

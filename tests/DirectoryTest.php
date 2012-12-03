@@ -11,10 +11,11 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanApplyFiltersToDirectory()
+	public function testFiltersAreAppliedToDirectory()
 	{
 		$app = $this->getApplication();
-		$app['config']->getLoader()->shouldReceive('load')->once()->with('production', 'filters', 'basset')->andReturn(array());
+		$app['config']->shouldReceive('get')->with('basset::filters')->andReturn(array());
+		$app['config']->shouldReceive('has')->with('basset::filters.FooFilter')->andReturn(false);
 		$file = m::mock('stdClass');
 		$file->shouldReceive('getPathname')->once()->andReturn('path/to/some/style.css');
 		$directory = m::mock('Basset\Directory[iterateDirectory]');
@@ -28,7 +29,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanExcludeAssets()
+	public function testAssetsAreExcluded()
 	{
 		$app = $this->getApplication();
 		$files = array(
@@ -53,7 +54,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanOnlyShowAssets()
+	public function testAssetsAreIncluded()
 	{
 		$app = $this->getApplication();
 		$files = array(
@@ -84,8 +85,8 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 		$app['files'] = m::mock('Illuminate\Filesystem');
 		$app['files']->shouldReceive('extension')->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->andReturn(time());
-		$app['files']->shouldReceive('get')->andReturn('html { background-color: #fff; }');
-		$app['config'] = new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'), 'production');
+		$app['files']->shouldReceive('getRemote')->andReturn('html { background-color: #fff; }');
+		$app['config'] = m::mock('stdClass');
 		$app['path.public'] = 'path/to/public';
 
 		return $app;
