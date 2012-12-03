@@ -54,7 +54,7 @@ class Basset {
 
 			if ($collection->isCompiled($group))
 			{
-				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($environment, array('prod', 'production')))
+				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($this->app['env'], array('prod', 'production')))
 				{
 					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->app['config']->get('basset::compiling_path')), '/');
 
@@ -67,7 +67,9 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($asset->getRelativePath()));
+				$path = $asset->isRemote() ? $asset->getPath() : path($asset->getRelativePath());
+
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), $path);
 			}
 
 			return implode(PHP_EOL, $response);

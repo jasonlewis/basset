@@ -34,6 +34,13 @@ class Asset {
 	protected $modified;
 
 	/**
+	 * Asset is remotely hosted.
+	 * 
+	 * @var bool
+	 */
+	protected $remote;
+
+	/**
 	 * Base directory of asset.
 	 * 
 	 * @var string
@@ -90,6 +97,7 @@ class Asset {
 		$this->path = $path;
 		$this->contents = $app['files']->getRemote($path);
 		$this->extension = $app['files']->extension($path);
+		$this->remote = $remoteAsset;
 
 		if ( ! $remoteAsset)
 		{
@@ -175,6 +183,16 @@ class Asset {
 	public function getFilters()
 	{
 		return $this->filters;
+	}
+
+	/**
+	 * Determine if asset is remotely hosted.
+	 * 
+	 * @return string
+	 */
+	public function isRemote()
+	{
+		return $this->remote;
 	}
 
 	/**
