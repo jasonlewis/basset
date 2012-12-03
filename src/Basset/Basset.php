@@ -67,9 +67,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$path = $asset->isRemote() ? $asset->getPath() : path($asset->getRelativePath());
-
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), $path);
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
