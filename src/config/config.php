@@ -16,6 +16,19 @@ return array(
 
 	/*
 	|--------------------------------------------------------------------------
+	| Relative Public Path
+	|--------------------------------------------------------------------------
+	|
+	| This is a relative path to your public directory from the application's
+	| base directory. For a default Laravel installation this is normally
+	| just public.
+	|
+	*/
+
+	'public' => 'public',
+
+	/*
+	|--------------------------------------------------------------------------
 	| Asset Directories
 	|--------------------------------------------------------------------------
 	|
@@ -56,6 +69,7 @@ return array(
 	| This collection is now available at Basset::show('website.css')
 	|
 	*/
+
 	'collections' => array(),
 
 	/*

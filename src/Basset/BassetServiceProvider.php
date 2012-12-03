@@ -13,26 +13,28 @@ class BassetServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		// Because Laravel doesn't actually set a public path here we'll define out own. This may become
-		// a limitation and hopefully will change at a later date.
-		$this->app['path.public'] = realpath($this->app['path.base'].'/public');
-
-		$this->registerBindings();
-
 		// Register the package configuration with the loader.
 		$this->app['config']->package('jasonlewis/basset', __DIR__.'/../config');
 
-		require_once __DIR__.'/../facades.php';
+		// Because Laravel doesn't actually set a public path here we'll define out own. This may become
+		// a limitation and hopefully will change at a later date.
+		$this->app['path.public'] = realpath($this->app['path.base'].'/'.$this->app['config']->get('basset::public'));
 
-		// Basset collections can be compiled via Artisan. We need to register the Artisan commands with
-		// the console so that commands can be run.
+		$this->registerBindings();
+
 		$this->registerCommands();
 
-		// Basset responds to routes for assets that are not within the public directory. This is especially
-		// useful when developing an application and static assets are not ideal.
-		$this->registerRoutes();
-
 		$this->app['events']->fire('basset.started', array($this->app['basset']));
+	}
+
+	/**
+	 * Boot the service provider.
+	 * 
+	 * @return void
+	 */
+	public function boot()
+	{
+		$this->registerRoutes();
 	}
 
 	/**
