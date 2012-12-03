@@ -54,9 +54,14 @@ class ListCommand extends Command {
 	 */
 	public function fire()
 	{
-		$this->line('');
+		$collections = $this->app['basset']->getCollections();
 
-		foreach ($collections = $this->app['basset']->getCollections() as $collection)
+		if ( ! empty($collections))
+		{
+			$this->line('');
+		}
+
+		foreach ($collections as $collection)
 		{
 			$this->comment($collection->getName().':');
 
