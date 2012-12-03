@@ -35,6 +35,19 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testRemoteAssetsAreAddedToCollection()
+	{
+		$app = $this->getApplication();
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$collection = new Basset\Collection('foo', $app);
+		$collection->add('http://example.com/foo.css');
+		$this->assertNotEmpty($styles = $collection->getAssets('style'));
+		$asset = array_pop($styles);
+		$this->assertEquals('foo.css', $asset->getName());
+	}
+
+
 	public function testPathedAssetsAreAddedToCollection()
 	{
 		$app = $this->getApplication();
