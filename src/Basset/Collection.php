@@ -2,10 +2,6 @@
 
 use Closure;
 use RuntimeException;
-use FilesystemIterator;
-use InvalidArgumentException;
-use RecursiveIteratorIterator;
-use RecursiveDirectoryIterator;
 
 class Collection {
 
@@ -80,45 +76,55 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		$assetPath = null;
+		$assetPath = $remoteAsset = null;
 
-		// Add an asset by using the full path to its location.
-		if (starts_with($name, 'path: '))
+		// Check if the asset is a remotely hosted asset such as jQuery.
+		if (parse_url($name, PHP_URL_SCHEME))
 		{
-			$assetPath = substr($name, 6);
-		}
+			$assetPath = $name;
 
-		// Add an asset that's located within the public directory.
-		else if ($this->app['files']->exists($this->app['path.public'].'/'.$name))
-		{
-			$assetPath = $this->app['path.public'].'/'.$name;	
+			$remoteAsset = true;
 		}
-
-		// Add an asset that's within one of the configured directories.
 		else
 		{
-			foreach ($this->app['config']->get('basset::directories') as $directory => $path)
+			// Add an asset by using the full path to its location.
+			if (starts_with($name, 'path: '))
 			{
-				$directory = $this->parseDirectory($path);
+				$assetPath = substr($name, 6);
+			}
 
-				foreach ($directory->recursivelyIterateDirectory() as $file)
+			// Add an asset that's located within the public directory.
+			elseif ($this->app['files']->exists($this->app['path.public'].'/'.$name))
+			{
+				$assetPath = $this->app['path.public'].'/'.$name;	
+			}
+
+			// Add an asset that's within one of the configured directories.
+			else
+			{
+				foreach ($this->app['config']->get('basset::directories') as $directory => $path)
 				{
-					// Once we find the first occurance of the file we'll add it to the array of assets if it
-					// does not already exist. This is called cascading file loading.
-					$directoryPath = $directory->getPath();
+					$directory = $this->parseDirectory($path);
 
-					if (realpath($directoryPath))
+					foreach ($directory->recursivelyIterateDirectory() as $file)
 					{
-						$directoryPath = realpath($directoryPath);
-					}
+						// Once we find the first occurance of the file we'll add it to the array of assets if it
+						// does not already exist. This is called cascading file loading.
+						$directoryPath = $directory->getPath();
 
-					$filename = trim(str_replace(array($directoryPath, '\\'), array('', '/'), $file->getRealPath()), '/');
+						if (realpath($directoryPath))
+						{
+							$directoryPath = realpath($directoryPath);
+						}
 
-					if ($filename == $name)
-					{
-						$assetPath = $file->getPathname();
+						$filename = trim(str_replace(array($directoryPath, '\\'), array('', '/'), $file->getRealPath()), '/');
 
-						break 2;
+						if ($filename == $name)
+						{
+							$assetPath = $file->getPathname();
+
+							break 2;
+						}
 					}
 				}
 			}
@@ -126,7 +132,7 @@ class Collection {
 		
 		// Create a new Asset instance and validate it, if it's not already in the array of assets or pending assets
 		// we can go ahead and add it.
-		$asset = new Asset($assetPath, $this->app);
+		$asset = new Asset($assetPath, $remoteAsset, $this->app);
 
 		if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
 		{

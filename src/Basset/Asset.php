@@ -1,6 +1,5 @@
 <?php namespace Basset;
 
-use SplFileInfo;
 use ReflectionClass;
 use Assetic\Asset\StringAsset;
 
@@ -80,17 +79,22 @@ class Asset {
 	 * Create a new asset instance.
 	 * 
 	 * @param  string  $path
+	 * @param  bool  $remoteAsset
 	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct($path, $app)
+	public function __construct($path, $remoteAsset, $app)
 	{
+		$this->app = $app;
 		$this->name = basename($path);
 		$this->path = $path;
-		$this->contents = $app['files']->get($path);
+		$this->contents = $app['files']->getRemote($path);
 		$this->extension = $app['files']->extension($path);
-		$this->modified = $app['files']->lastModified($path);
-		$this->app = $app;
+
+		if ( ! $remoteAsset)
+		{
+			$this->modified = $app['files']->lastModified($path);
+		}
 	}
 
 	/**
