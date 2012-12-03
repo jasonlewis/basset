@@ -78,53 +78,51 @@ class Collection {
 	{
 		$assetPath = $remoteAsset = null;
 
+		// Add an asset by using the full path to its location.
+		if (starts_with($name, 'path: '))
+		{
+			$assetPath = substr($name, 6);
+		}
+
 		// Check if the asset is a remotely hosted asset such as jQuery.
-		if (parse_url($name, PHP_URL_SCHEME))
+		elseif (parse_url($name, PHP_URL_SCHEME))
 		{
 			$assetPath = $name;
 
 			$remoteAsset = true;
 		}
+
+		// Add an asset that's located within the public directory.
+		elseif ($this->app['files']->exists($this->app['path.public'].'/'.$name))
+		{
+			$assetPath = $this->app['path.public'].'/'.$name;	
+		}
+
+		// Add an asset that's within one of the configured directories.
 		else
 		{
-			// Add an asset by using the full path to its location.
-			if (starts_with($name, 'path: '))
+			foreach ($this->app['config']->get('basset::directories') as $directory => $path)
 			{
-				$assetPath = substr($name, 6);
-			}
+				$directory = $this->parseDirectory($path);
 
-			// Add an asset that's located within the public directory.
-			elseif ($this->app['files']->exists($this->app['path.public'].'/'.$name))
-			{
-				$assetPath = $this->app['path.public'].'/'.$name;	
-			}
-
-			// Add an asset that's within one of the configured directories.
-			else
-			{
-				foreach ($this->app['config']->get('basset::directories') as $directory => $path)
+				foreach ($directory->recursivelyIterateDirectory() as $file)
 				{
-					$directory = $this->parseDirectory($path);
+					// Once we find the first occurance of the file we'll add it to the array of assets if it
+					// does not already exist. This is called cascading file loading.
+					$directoryPath = $directory->getPath();
 
-					foreach ($directory->recursivelyIterateDirectory() as $file)
+					if (realpath($directoryPath))
 					{
-						// Once we find the first occurance of the file we'll add it to the array of assets if it
-						// does not already exist. This is called cascading file loading.
-						$directoryPath = $directory->getPath();
+						$directoryPath = realpath($directoryPath);
+					}
 
-						if (realpath($directoryPath))
-						{
-							$directoryPath = realpath($directoryPath);
-						}
+					$filename = trim(str_replace(array($directoryPath, '\\'), array('', '/'), $file->getRealPath()), '/');
 
-						$filename = trim(str_replace(array($directoryPath, '\\'), array('', '/'), $file->getRealPath()), '/');
+					if ($filename == $name)
+					{
+						$assetPath = $file->getPathname();
 
-						if ($filename == $name)
-						{
-							$assetPath = $file->getPathname();
-
-							break 2;
-						}
+						break 2;
 					}
 				}
 			}
