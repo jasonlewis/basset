@@ -1,6 +1,6 @@
 <?php namespace Basset\Facades;
 
-use Illuminate\Support\Facade;
+use Illuminate\Support\Facades\Facade;
 
 class Basset extends Facade {
 
