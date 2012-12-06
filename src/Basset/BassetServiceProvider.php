@@ -23,8 +23,6 @@ class BassetServiceProvider extends ServiceProvider {
 		$this->registerBindings();
 
 		$this->registerCommands();
-
-		$this->app['events']->fire('basset.started', array($this->app['basset']));
 	}
 
 	/**
