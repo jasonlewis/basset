@@ -56,9 +56,9 @@ class Basset {
 			{
 				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($this->app['env'], array('prod', 'production')))
 				{
-					$base = trim(str_replace(array('public', 'public_html', 'htdocs'), '', $this->app['config']->get('basset::compiling_path')), '/');
+					$url = $this->app['config']->get('basset::compiling_path').'/'.$collection->getCompiledName($group);
 
-					return new Html($group, $extension, path($base.'/'.$collection->getCompiledName($group)));
+					return new Html($group, $extension, $this->app['url']->asset($url));
 				}
 			}
 
@@ -67,7 +67,7 @@ class Basset {
 
 			foreach ($collection->getAssets($group) as $asset)
 			{
-				$response[] = new Html($asset->getGroup(), $asset->getExtension(), path($asset->getRelativePath()));
+				$response[] = new Html($asset->getGroup(), $asset->getExtension(), $this->app['url']->asset($asset->getRelativePath()));
 			}
 
 			return implode(PHP_EOL, $response);
@@ -87,7 +87,7 @@ class Basset {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] =  new Collection($name, $this->app);
+			$this->collections[$name] = new Collection($name, $this->app);
 		}
 
 		if (is_callable($callback))
