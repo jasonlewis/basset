@@ -86,7 +86,7 @@ class BassetServiceProvider extends ServiceProvider {
 
 		// The compile and list commands both make use of the compile path, so we'll define
 		// it here and use it within the command closures.
-		$compilePath = $this->app['path.base'] . '/' . $this->app['config']->get('basset::compiling_path');
+		$compilePath = $this->app['path.base'].'/'.$this->app['config']->get('basset::public').'/'.$this->app['config']->get('basset::compiling_path');
 
 		$this->app['command.basset.compile'] = $this->app->share(function($app) use ($compilePath)
 		{
