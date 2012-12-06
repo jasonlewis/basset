@@ -274,7 +274,7 @@ class Collection {
 	 */
 	public function isCompiled($group)
 	{
-		return $this->app['files']->exists($this->app['path.base'].'/'.$this->app['config']->get('basset::compiling_path').'/'.$this->getCompiledName($group));
+		return $this->app['files']->exists($this->getCompilingPath().'/'.$this->getCompiledName($group));
 	}
 
 	/**
@@ -306,6 +306,16 @@ class Collection {
 		$extension = ($group == 'style' ? 'css' : 'js');
 
 		return "{$this->name}-{$this->getFingerprint($group)}.{$extension}";
+	}
+
+	/**
+	 * Get the path to the compiling directory.
+	 * 
+	 * @return string
+	 */
+	public function getCompilingPath()
+	{
+		return $this->app['path.base'].'/'.$this->app['config']->get('basset::public').'/'.$this->app['config']->get('basset::compiling_path');
 	}
 
 	/**

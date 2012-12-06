@@ -29,6 +29,21 @@ return array(
 
 	/*
 	|--------------------------------------------------------------------------
+	| Compiling Path
+	|--------------------------------------------------------------------------
+	|
+	| When assets are statically compiled via the command line the generated
+	| files will be stored in this directory. The path is relative to the public
+	| directory you specified above.
+	|
+	| If the directory does not exist, Basset will attempt to create it.
+	|
+	*/
+
+	'compiling_path' => 'assets',
+
+	/*
+	|--------------------------------------------------------------------------
 	| Asset Directories
 	|--------------------------------------------------------------------------
 	|
@@ -71,22 +86,6 @@ return array(
 	*/
 
 	'collections' => array(),
-
-	/*
-	|--------------------------------------------------------------------------
-	| Compiling Path
-	|--------------------------------------------------------------------------
-	|
-	| When assets are statically compiled via the command line the generated
-	| files will be stored in this directory. The path is relative to the root
-	| of your application, so remember to compile them to the public directory
-	| somewhere.
-	|
-	| If the directory does not exist, Basset will attempt to create it.
-	|
-	*/
-
-	'compiling_path' => 'public/assets',
 
 	/*
 	|--------------------------------------------------------------------------
