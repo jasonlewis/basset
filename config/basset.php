@@ -1,89 +1,113 @@
 <?php
 
 return array(
-	'compression' => array(
-		/**
-		 * Compression
-		 *
-		 * Globally enable compression for all assets, this is only recommended once an application
-		 * is live and when used in conjunction with caching.
-		 */
-		'enabled' => false,
 
-		/**
-		 * Preserve Lines
-		 *
-		 * When compressing CSS files you may experience problems with extremely large files. You can
-		 * enable preserving of lines to maintain the occasional line break to split the file up
-		 * instead of one long continuous line.
-		 */
-		'preserve_lines' => false
+	/*
+	|--------------------------------------------------------------------------
+	| Compiling Path
+	|--------------------------------------------------------------------------
+	|
+	| When assets are statically compiled via the command line the generated
+	| files will be stored in this directory. The path is relative to the public
+	| directory you specified above.
+	|
+	| If the directory does not exist, Basset will attempt to create it.
+	|
+	*/
+
+	'compiling_path' => 'assets',
+
+	/*
+	|--------------------------------------------------------------------------
+	| Asset Directories
+	|--------------------------------------------------------------------------
+	|
+	| These named directories are used for quick reference as well as when
+	| searching for an asset. Assets are located by cascading through the array
+	| of directories until an asset with the matching name is found.
+	|
+	| Directories are relative from the root of your application.
+	|
+	| You can specifiy an absolute path to a directory by prefixing it with
+	| 'path: '.
+	|
+	| array(
+	| 	 'css' => 'path: /path/to/your/directory'
+	| )
+	|
+	*/
+
+	'directories' => array(
+		'css' => 'app/assets/css',
+		'js' => 'app/assets/js'
 	),
 
-	'caching' => array(
-		/**
-		 * Caching
-		 *
-		 * Globally enable caching for all assets, this is only recommended once an application
-		 * is live.
-		 */
-		'enabled' => false,
+	/*
+	|--------------------------------------------------------------------------
+	| Asset Collections
+	|--------------------------------------------------------------------------
+	|
+	| Define your collections in an array like so.
+	|
+	| array(
+	| 	'website' => function($collection)
+	|	{
+	|		$collection->add('example.css');
+	|	}
+	| )
+	|
+	| This collection is now available at Basset::show('website.css')
+	|
+	*/
 
-		/**
-		 * Time
-		 *
-		 * The time in minutes to cache the assets for. By default it is set to one month, or 44640
-		 * minutes.
-		 */
-		'time' => 44640,
-	),
+	'collections' => array(),
 
-	'less' => array(
-		/**
-		 * LessPHP Compiler
-		 *
-		 * Use the LessPHP compiler to compile .less files, handy if you do not have LESS installed
-		 * on your server and you still want the LESS functionality.
-		 */
-		'php' => false
-	),
+	/*
+	|--------------------------------------------------------------------------
+	| Production Environment
+	|--------------------------------------------------------------------------
+	|
+	| Basset will attempt to detect your production environment and serve
+	| static assets. You can help Basset out in a number of ways to speed it up
+	| a bit.
+	|
+	| Set your actual production environment here and Basset will compare
+	| environments and serve the appropriate assets.
+	|
+	| Set to null or an empty string and Basset will try and detect your
+	| environment, this may deliver unexpected results.
+	|
+	| Set to false and Basset will always serve individual assets as it does in
+	| a development environment. Remember that filters will not be applied
+	| to the assets.
+	|
+	| Set to true to always serve static assets if available.
+	|
+	*/
 
-	'compiling' => array(
-		/**
-		 * Compiled Directory
-		 * 
-		 * The directory to save the compiled Basset files, ensure this directory is writeable.
-		 */
-		'directory' => Bundle::path('basset') . 'compiled',
+	'production_environment' => '',
 
-		/**
-		 * Recompile
-		 * 
-		 * Sometimes you may wish to have assets recompiled every time, setting this option to true will
-		 * allow this. Don't forget to set it to false on a live website for maximum performance.
-		 */
-		'recompile' => false
-	),
+	/*
+	|--------------------------------------------------------------------------
+	| Named Filters
+	|--------------------------------------------------------------------------
+	|
+	| A named filter can be used to quickly apply a filter to a collection of
+	| assets.
+	| 
+	|	'YuiCss' => 'Yui\CssCompressorFilter'
+	|
+	| If you'd like to specify options for a named filter you can define the
+	| filter as an array.
+	|
+	|	'YuiCss' => array(
+	|		'Yui\CssCompressorFilter' => array('/path/to/yuicompressor.jar')
+	|	)
+	|
+	| The filter can then be referenced by its name when applying filters.
+	|
+	*/
 
-	/**
-	 * Document Root
-	 *
-	 * The document root of the website in which the CSS files reside. If no document root is provided
-	 * then Basset uses $_SERVER['DOCUMENT_ROOT']
-	 */
-	'document_root' => '',
+	'filters' => array()
 
-	/**
-	 * Symlinks
-	 *
-	 * An array of user specified symlinks. If the CSS files are stored in symlink'd directories provide
-	 * an array of link paths to target paths, where the link paths are within the document root. Because
-	 * paths need to be normalized for this to work you may use "//" to substitute the document root
-	 * in the link paths.
-	 *
-	 * Example:
-	 *
-	 * array('//symlink' => '/path/to/target')
-	 */
-	'symlinks' => array()
 );
