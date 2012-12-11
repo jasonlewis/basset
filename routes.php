@@ -2,37 +2,19 @@
 
 /*
 |--------------------------------------------------------------------------
-| Basset Routes
+| Load Basset On Verified Requests
 |--------------------------------------------------------------------------
 |
-| Registering routes with Basset is a piece of cake. Simply tell Basset
-| what you would like to use (scripts or styles) and begin registering your
-| assets.
-|
-| Let's register styles that respond to http://localhost/basset/website.css
-|
-| 		Basset::styles('website', function($basset)
-|		{
-|			$basset->add('theme', 'theme.css');
-|		});
-|
-| The extension and the bundles handler is added automatically for you, all
-| you need to do is supply a name.
-|
-| If you'd like to register scripts, simply swap 'styles' with 'scripts'
-| and begin adding your assets.
+| Hook Basset in to the request cycle by attaching a closure to the before
+| event for Basset requests only. This allows Basset to serve non-static
+| assets when needed.
 |
 */
 
-/*
-|--------------------------------------------------------------------------
-| Keep This Bad Boy
-|--------------------------------------------------------------------------
-|
-| Please leave this route alone, Basset needs it!
-|
-*/
 Route::get('(:bundle)/(:all)', function()
 {
-	return Basset::compiled();
+	/*if (Basset\Response::prepare())
+	{
+		return Basset\Response::getResponse();
+	}*/
 });
