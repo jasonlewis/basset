@@ -1,68 +1,42 @@
 <?php
 
-/**
- * Register the core libraries and vendor libraries that Basset uses with the autoloader.
- */
-Autoloader::map(array(
-	'Basset'			  		  => __DIR__ . DS . 'libraries' . DS . 'core' . DS . 'basset.php',
-	'Basset\\Asset'				  => __DIR__ . DS . 'libraries' . DS . 'core' . DS . 'asset.php',
-	'Basset\\Cache'				  => __DIR__ . DS . 'libraries' . DS . 'core' . DS . 'cache.php',
-	'Basset\\Config'			  => __DIR__ . DS . 'libraries' . DS . 'core' . DS . 'config.php',
-	'Basset\\Container'			  => __DIR__ . DS . 'libraries' . DS . 'core' . DS . 'container.php',
-	'Basset\\Vendor\\CSSCompress' => __DIR__ . DS . 'libraries' . DS . 'vendor' . DS . 'csscompress.php',
-	'Basset\\Vendor\\JSMin'		  => __DIR__ . DS . 'libraries' . DS . 'vendor' . DS . 'jsmin.php',
-	'Basset\\Vendor\\URIRewriter' => __DIR__ . DS . 'libraries' . DS . 'vendor' . DS . 'urirewriter.php',
-	'Basset\\Vendor\\lessc'		  => __DIR__ . DS . 'libraries' . DS . 'vendor' . DS . 'less.php'
+/*
+|--------------------------------------------------------------------------
+| Register PSR-0 Autoloading
+|--------------------------------------------------------------------------
+|
+| Basset uses PSR-0 autoloading to lazily load the required files when
+| requested. Here we'll provide the namespaces and their corrosponding
+| locations.
+|
+*/
+
+Autoloader::namespaces(array(
+	'Assetic' => __DIR__.'/vendor/assetic/src/Assetic',
+	'Basset' => __DIR__.'/classes'
 ));
 
-if(starts_with(URI::current(), Bundle::option('basset', 'handles')))
-{
-	/**
-	 * In this before filter we'll grab the compiled assets for this route and return them here.
-	 * This is what makes it possible for Basset routes to be adjusted prior to them being displayed.
-	 */
-	$handler = Bundle::handles(URI::current());
+/*
+|--------------------------------------------------------------------------
+| Basset Facade Alias
+|--------------------------------------------------------------------------
+|
+| Alias Basset to the Basset Facade so that we can use a terser static
+| syntax to access methods. Lovely.
+|
+*/
 
-	Route::filter("{$handler}::before", function()
-	{
-		Config::set('session.driver', '');
-	});
+Autoloader::alias('Basset\Facades\Basset', 'Basset');
 
-	/**
-	 * After the Basset route is run we'll adjust the response object setting the appropriate content
-	 * type for the assets.
-	 */
-	Route::filter("{$handler}::after", function($response)
-	{
-		$types = array(
-			'less'  => 'text/css',
-			'sass'  => 'text/css',
-			'scss'  => 'text/css',
-			'css' 	=> 'text/css',
-			'js'	=> 'application/javascript'
-		);
+/*
+|--------------------------------------------------------------------------
+| Register Basset with the IoC
+|--------------------------------------------------------------------------
+|
+| Basset is registered within the IoC container so that everything is
+| somewhat testable. We'll use a facade to provide a terser static
+| interface.
+|
+*/
 
-		$extension = File::extension(Request::uri());
-
-		if(array_key_exists($extension, $types))
-		{
-			$response->header('Content-Type', $types[$extension]);
-		}
-
-		// To prevent any further output being added to any Basset routes we'll clear any events listening
-		// for the laravel.done event.
-		Event::clear('laravel.done');
-	});
-}
-
-/**
- * If the current URI is not being handled by Basset then all registered Basset routes will be
- * compiled once Laravel has finished doing its thing.
- */
-else
-{
-	Event::listen('laravel.done', function()
-	{
-		Basset::compile();
-	});
-}
+IoC::instance('basset', new Basset\Basset);
