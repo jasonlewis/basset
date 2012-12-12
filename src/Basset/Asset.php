@@ -96,7 +96,7 @@ class Asset {
 		$this->name = basename($path);
 		$this->contents = $app['files']->getRemote($path);
 		$this->extension = $app['files']->extension($path);
-		$this->remote = parse_url($this->name, PHP_URL_SCHEME);
+		$this->remote = parse_url($path, PHP_URL_SCHEME);
 
 		if ( ! $this->remote)
 		{
