@@ -80,7 +80,7 @@ class Basset {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] = new Collection($name, $this->app);
+			$this->collections[$name] = new Collection($name);
 		}
 
 		if (is_callable($callback))
