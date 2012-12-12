@@ -132,7 +132,7 @@ class Collection {
 		// we can go ahead and add it.
 		$asset = new Asset($assetPath, $remoteAsset, $this->app);
 
-		if ($asset->isValid() and ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending))
+		if (( ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending)) and $asset->isValid())
 		{
 			return $this->pending[] = $asset;
 		}
