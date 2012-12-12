@@ -86,20 +86,19 @@ class Asset {
 	 * Create a new asset instance.
 	 * 
 	 * @param  string  $path
-	 * @param  bool  $remoteAsset
 	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function __construct($path, $remoteAsset, $app)
+	public function __construct($path, $app)
 	{
 		$this->app = $app;
-		$this->name = basename($path);
 		$this->path = $path;
+		$this->name = basename($path);
 		$this->contents = $app['files']->getRemote($path);
 		$this->extension = $app['files']->extension($path);
-		$this->remote = $remoteAsset;
+		$this->remote = parse_url($this->name, PHP_URL_SCHEME);
 
-		if ( ! $remoteAsset)
+		if ( ! $this->remote)
 		{
 			$this->modified = $app['files']->lastModified($path);
 		}

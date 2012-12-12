@@ -193,7 +193,7 @@ class Directory {
 	 */
 	public function createAsset($path)
 	{
-		return new Asset($path, false, $this->app);
+		return new Asset($path, $this->app);
 	}
 
 }

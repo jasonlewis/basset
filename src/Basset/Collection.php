@@ -76,7 +76,7 @@ class Collection {
 	 */
 	public function add($name)
 	{
-		$assetPath = $remoteAsset = null;
+		$assetPath = null;
 
 		// Add an asset by using the full path to its location.
 		if (starts_with($name, 'path: '))
@@ -88,8 +88,6 @@ class Collection {
 		elseif (parse_url($name, PHP_URL_SCHEME))
 		{
 			$assetPath = $name;
-
-			$remoteAsset = true;
 		}
 
 		// Add an asset that's located within the public directory.
@@ -130,7 +128,7 @@ class Collection {
 		
 		// Create a new Asset instance and validate it, if it's not already in the array of assets or pending assets
 		// we can go ahead and add it.
-		$asset = new Asset($assetPath, $remoteAsset, $this->app);
+		$asset = new Asset($assetPath, $this->app);
 
 		if (( ! in_array($asset, $this->assets) or ! in_array($asset, $this->pending)) and $asset->isValid())
 		{
