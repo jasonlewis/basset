@@ -13,8 +13,10 @@
 
 Route::get('(:bundle)/(:all)', function()
 {
-	/*if (Basset\Response::prepare())
+	$response = new Basset\Response;
+
+	if ($response->prepare())
 	{
-		return Basset\Response::getResponse();
-	}*/
+		return $response->getResponse();
+	}
 });
