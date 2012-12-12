@@ -62,10 +62,7 @@ return array(
 	|
 	*/
 
-	'directories' => array(
-		'css' => 'app/assets/css',
-		'js' => 'app/assets/js'
-	),
+	'directories' => array(),
 
 	/*
 	|--------------------------------------------------------------------------
