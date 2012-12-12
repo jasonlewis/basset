@@ -155,8 +155,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('lastModified')->twice()->andReturn(time());
 		$app['files']->shouldReceive('extension')->twice()->andReturn('css');
 		$assets = array(
-			new Basset\Asset('path/to/foo', false, $app),
-			new Basset\Asset('path/to/bar', false, $app)
+			new Basset\Asset('path/to/foo', $app),
+			new Basset\Asset('path/to/bar', $app)
 		);
 		$directory = m::mock('Basset\Directory');
 		$directory->shouldReceive('requireTree')->once()->andReturn($directory);

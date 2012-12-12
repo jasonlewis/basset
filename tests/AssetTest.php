@@ -14,7 +14,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	public function testAssetIsCreated()
 	{
 		$app = $this->getApplication();
-		$asset = new Basset\Asset('path/to/foo', false, $app);
+		$asset = new Basset\Asset('path/to/foo', $app);
 		$this->assertInstanceOf('Basset\Asset', $asset);
 		$this->assertEquals('foo', $asset->getName());
 		$this->assertEquals('css', $asset->getExtension());
@@ -28,7 +28,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 		$app['config']->shouldReceive('has')->with('basset::filters.bar')->andReturn(true);
 		$app['config']->shouldReceive('has')->with('basset::filters.Test\Filter')->andReturn(false);
 		$app['config']->shouldReceive('get')->with('basset::filters.bar')->andReturn('FooBar');
-		$asset = new Basset\Asset('path/to/foo', false, $app);
+		$asset = new Basset\Asset('path/to/foo', $app);
 		$asset->apply('bar');
 		$asset->apply('Test\Filter', array('option'));
 		$filters = $asset->getFilters();
@@ -40,7 +40,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 	public function testAssetsAreCompiled()
 	{
 		$app = $this->getApplication();
-		$asset = new Basset\Asset('path/to/foo', false, $app);
+		$asset = new Basset\Asset('path/to/foo', $app);
 		$this->assertEquals('html { background-color: #fff; }', $asset->compile());
 	}
 
