@@ -9,7 +9,7 @@ return array(
 	|
 	| When assets are statically compiled via the command line the generated
 	| files will be stored in this directory. The path is relative to the public
-	| directory you specified above.
+	| directory.
 	|
 	| If the directory does not exist, Basset will attempt to create it.
 	|
@@ -37,10 +37,7 @@ return array(
 	|
 	*/
 
-	'directories' => array(
-		'css' => 'app/assets/css',
-		'js' => 'app/assets/js'
-	),
+	'directories' => array(),
 
 	/*
 	|--------------------------------------------------------------------------
