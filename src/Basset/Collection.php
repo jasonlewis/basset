@@ -134,6 +134,8 @@ class Collection {
 		{
 			return $this->pending[] = $asset;
 		}
+
+		throw new RuntimeException("Could not find asset [{$name}]");
 	}
 
 	/**
