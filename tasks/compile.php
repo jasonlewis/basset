@@ -6,7 +6,7 @@ class Basset_Compile_Task {
 
 	/**
 	 * The path to compile assets to.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $compilePath;
@@ -61,7 +61,7 @@ class Basset_Compile_Task {
 
 	/**
 	 * Compile an asset collection.
-	 * 
+	 *
 	 * @param  Basset\Collection  $collection
 	 * @return void
 	 */
@@ -70,9 +70,9 @@ class Basset_Compile_Task {
 		$force = isset($_SERVER['CLI']['FORCE']);
 
 		// If the compile path does not exist attempt to create it.
-		if ( ! File::exists($compilePath))
+		if ( ! File::exists($this->compilePath))
 		{
-			File::mkdir($compilePath);
+			File::mkdir($this->compilePath);
 		}
 
 		$groups = $collection->getAssets();
@@ -84,7 +84,7 @@ class Basset_Compile_Task {
 
 		foreach ($groups as $group => $assets)
 		{
-			$path = $compilePath.'/'.$collection->getCompiledName($group);
+			$path = $this->compilePath.'/'.$collection->getCompiledName($group);
 
 			// We only compile a collection if a compiled file doesn't exist yet or if a change to one of the assets
 			// in the collection is detected by comparing the last modified times.
@@ -95,7 +95,7 @@ class Basset_Compile_Task {
 				if ( ! $force)
 				{
 					echo "The {$group}s for the collection '{$collection->getName()}' do not need to be compiled.\n";
-				
+
 					continue;
 				}
 			}
