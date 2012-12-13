@@ -290,6 +290,11 @@ class Collection {
 		foreach ($this->getAssets($group) as $asset)
 		{
 			$names[] = $asset->getLastModified();
+
+			foreach ($asset->getFilters() as $filter => $options)
+			{
+				$names[] = $filter;
+			}
 		}
 
 		return md5(implode(PHP_EOL, $names));

@@ -133,6 +133,24 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testCompiledNameChangesWithFilters()
+	{
+		$app = $this->getApplication();
+		$app['files']->shouldReceive('exists')->once()->andReturn(true);
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::filters.SomeFilter')->andReturn(false);
+		$collection = new Basset\Collection('foo', $app);
+		$asset = $collection->add('sample.css');
+		$this->assertEquals(md5($asset->getLastModified()), $collection->getFingerprint('style'));
+		$this->assertEquals('foo-'.md5($asset->getLastModified()).'.css', $collection->getCompiledName('style'));
+		$collection->apply('SomeFilter');
+		$this->assertEquals(md5($asset->getLastModified().PHP_EOL.'SomeFilter'), $collection->getFingerprint('style'));
+		$this->assertEquals('foo-'.md5($asset->getLastModified().PHP_EOL.'SomeFilter').'.css', $collection->getCompiledName('style'));
+	}
+
+
 	public function testCollectionIsCompiled()
 	{
 		$app = $this->getApplication();
