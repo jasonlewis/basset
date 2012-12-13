@@ -52,6 +52,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 		$app['config'] = m::mock('stdClass');
 		$app['config']->shouldReceive('get')->with('basset::directories')->andReturn(array('foo' => 'path: '.__DIR__));
 		$app['config']->shouldReceive('get')->with('basset::handles')->andReturn('assets');
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$response = new Basset\Response($app);
 		$response->prepare();
 		ob_start();

@@ -27,6 +27,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
@@ -40,6 +41,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app = $this->getApplication();
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.http://example.com/foo.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('http://example.com/foo.css');
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
@@ -54,6 +56,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.path: full/path/to/sample.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('path: full/path/to/sample.css');
 		$this->assertNotEmpty($styles = $collection->getAssets('style'));
@@ -71,6 +74,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$file = m::mock('stdClass');
 		$file->shouldReceive('getRealPath')->once()->andReturn('a/real/path/to/sample.css');
 		$file->shouldReceive('getPathname')->once()->andReturn('path/to/sample.css');
@@ -126,6 +130,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$asset = $collection->add('sample.css');
 		$this->assertEquals(md5($asset->getLastModified()), $collection->getFingerprint('style'));
@@ -141,6 +146,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$app['config']->shouldReceive('has')->once()->with('basset::filters.SomeFilter')->andReturn(false);
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$asset = $collection->add('sample.css');
 		$this->assertEquals(md5($asset->getLastModified()), $collection->getFingerprint('style'));
@@ -158,6 +164,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$collection = new Basset\Collection('foo', $app);
 		$collection->add('sample.css');
 		$this->assertEquals('html { background-color: #fff; }', $collection->compile('style'));

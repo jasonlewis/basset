@@ -113,6 +113,20 @@ class Basset {
 	}
 
 	/**
+	 * Alias an asset by giving it a shorter name.
+	 * 
+	 * @param  string  $name
+	 * @param  string  $path
+	 * @return Basset\Basset
+	 */
+	public function aliasAsset($name, $path)
+	{
+		$this->app['config']->set("basset::assets.{$name}", $path);
+
+		return $this;
+	}
+
+	/**
 	 * Determine if a collection exists.
 	 * 
 	 * @param  string  $name

@@ -31,6 +31,8 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 		$app['files']->shouldReceive('exists')->once()->with('path/to/public/assets/foo-'.md5($lastModified.PHP_EOL.$lastModified).'.css')->andReturn(false);
 		$app['url']->shouldReceive('asset')->once()->with('sample.css')->andReturn('www.example.com/sample.css');
 		$app['url']->shouldReceive('asset')->once()->with('nested/sample.css')->andReturn('www.example.com/nested/sample.css');
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.nested/sample.css')->andReturn(false);
 		$basset = new Basset($app);
 		$collection = $basset->collection('foo');
 		$collection->add('sample.css');
@@ -58,6 +60,8 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 		$app['config']->shouldReceive('get')->once()->with('basset::public')->andReturn('public');
 		$app['files']->shouldReceive('exists')->once()->with('path/to/public/assets/foo-'.md5($lastModified.PHP_EOL.$lastModified).'.css')->andReturn(true);
 		$app['url']->shouldReceive('asset')->once()->with('assets/foo-'.md5($lastModified.PHP_EOL.$lastModified).'.css')->andReturn('www.example.com/assets/foo-'.md5($lastModified.PHP_EOL.$lastModified).'.css');
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.nested/sample.css')->andReturn(false);
 		$basset = new Basset($app);
 		$collection = $basset->collection('foo');
 		$collection->add('sample.css');
@@ -90,6 +94,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 		$app['config']->shouldReceive('get')->once()->with('basset::public')->andReturn('public');
 		$app['files']->shouldReceive('exists')->once()->with('path/to/public/assets/foo-'.md5($lastModified).'.css')->andReturn(false);
 		$app['url']->shouldReceive('asset')->once()->with('sample.css')->andReturn('www.example.com/sample.css');
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample.css')->andReturn(false);
 		$app['config']->shouldReceive('get')->once()->with('basset::collections')->andReturn(array('foo' => function($collection)
 		{
 			$collection->add('sample.css');

@@ -66,6 +66,24 @@ return array(
 
 	/*
 	|--------------------------------------------------------------------------
+	| Asset Aliases
+	|--------------------------------------------------------------------------
+	|
+	| Similar to directories you can define names for assets that may be used
+	| in a number of collections.
+	|
+	| array(
+	| 	 'layout' => 'css/layout.css'
+	| )
+	|
+	| Aliased assets are checked first when adding an asset.
+	|
+	*/
+
+	'assets' => array(),
+
+	/*
+	|--------------------------------------------------------------------------
 	| Asset Collections
 	|--------------------------------------------------------------------------
 	|

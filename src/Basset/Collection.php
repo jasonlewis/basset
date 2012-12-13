@@ -78,6 +78,13 @@ class Collection {
 	{
 		$assetPath = null;
 
+		// Check to see if the asset has been aliased, if it has then we'll use its value as the
+		// asset name as aliased assets may make use of remote assets or path prefixed assets.
+		if ($this->app['config']->has("basset::assets.{$name}"))
+		{
+			$name = $this->app['config']->get("basset::assets.{$name}");
+		}
+
 		// Add an asset by using the full path to its location.
 		if (starts_with($name, 'path: '))
 		{
