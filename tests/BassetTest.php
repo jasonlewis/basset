@@ -81,6 +81,16 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testAssetAliasesCanBeAddedAtRuntime()
+	{
+		$app = $this->getApplication();
+		$app['config']->shouldReceive('get')->once()->with('basset::collections')->andReturn(array());
+		$app['config']->shouldReceive('set')->once()->with('basset::assets.example', 'path/to/example');
+		$basset = new Basset($app);
+		$basset->aliasAsset('example', 'path/to/example');
+	}
+
+
 	public function testCollectionsAreRegisteredFromConfigurationArray()
 	{
 		$app = $this->getApplication();

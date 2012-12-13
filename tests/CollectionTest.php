@@ -91,6 +91,23 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testAliasedAssetsAreAddedToCollection()
+	{
+		$app = $this->getApplication();
+		$app['files']->shouldReceive('exists')->once()->andReturn(true);
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.sample')->andReturn(true);
+		$app['config']->shouldReceive('get')->once()->with('basset::assets.sample')->andReturn('path/to/sample.css');
+		$collection = new Basset\Collection('foo', $app);
+		$collection->add('sample');
+		$this->assertNotEmpty($styles = $collection->getAssets('style'));
+		$asset = array_pop($styles);
+		$this->assertEquals('sample.css', $asset->getName());
+	}
+
+
 	public function testDirectoryIsAddedToCollection()
 	{
 		$app = $this->getApplication();
