@@ -87,7 +87,7 @@ class Asset {
 	{
 		$this->path = $path;
 		$this->name = basename($path);
-		$this->contents = File::get($path);
+		$this->contents = file_get_contents($path);
 		$this->extension = File::extension($path);
 		$this->remote = parse_url($path, PHP_URL_SCHEME);
 
