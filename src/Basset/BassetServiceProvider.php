@@ -14,7 +14,7 @@ class BassetServiceProvider extends ServiceProvider {
 	public function register()
 	{
 		// Register the package configuration with the loader.
-		$this->app['config']->package('jasonlewis/basset', __DIR__.'/../config');
+		$this->app['config']->package('jasonlewis/basset', __DIR__.'/../../config');
 
 		// Because Laravel doesn't actually set a public path here we'll define out own. This may become
 		// a limitation and hopefully will change at a later date.
