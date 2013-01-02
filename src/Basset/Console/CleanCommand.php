@@ -1,6 +1,7 @@
 <?php namespace Basset\Console;
 
 use Illuminate\Console\Command;
+use Symfony\Component\Console\Input\InputOption;
 
 class CleanCommand extends Command {
 
@@ -64,6 +65,7 @@ class CleanCommand extends Command {
         {
             // Nothing to clean
             $this->line("\nNo files to clean");
+            return;
         }
 
         foreach ($compiledFiles as $index => $path)
@@ -72,28 +74,38 @@ class CleanCommand extends Command {
         }
 
         // Get the active files
-        $this->info('Gathering active collections...');
-
-        $activeFiles = array();
-        $collections = $this->app['basset']->getCollections();
-
-        foreach ($collections as $collection)
+        if (!$this->input->getOption('remove-all'))
         {
-            $assets = $collection->getAssets();
+            $this->info('Gathering active collections...');
 
-            foreach (array('style', 'script') as $type)
+            $activeFiles = array();
+            $collections = $this->app['basset']->getCollections();
+
+            foreach ($collections as $collection)
             {
-                if (isset($assets[$type]))
+                $assets = $collection->getAssets();
+
+                foreach (array('style', 'script') as $type)
                 {
-                    $activeFiles[] = $collection->getCompiledName($type);
+                    if (isset($assets[$type]))
+                    {
+                        $activeFiles[] = $collection->getCompiledName($type);
+                    }
                 }
             }
         }
 
         // Remove old compiled files
-        $this->line("\nCleaning up files:");
+        if (!$this->input->getOption('remove-all'))
+        {
+            $this->line("\nCleaning up files:");
+        }
+        else
+        {
+            $this->line("\nRemoving all files:");
+        }
 
-        $removeFiles = array_diff($compiledFiles, $activeFiles);
+        $removeFiles = (!$this->input->getOption('remove-all')) ? array_diff($compiledFiles, $activeFiles) : $compiledFiles;
 
         if (empty($removeFiles))
         {
@@ -111,5 +123,17 @@ class CleanCommand extends Command {
         }
 
         $this->line("\nTotal files cleaned: ".count($removeFiles));
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return array(
+            array('remove-all', null, InputOption::VALUE_NONE, 'Deletes all compiled files')
+        );
     }
 }
