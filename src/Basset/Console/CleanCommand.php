@@ -33,10 +33,10 @@ class CleanCommand extends Command {
     protected $compilePath;
 
     /**
-     * Create a new basset compile command instance.
+     * Create a new basset clean command instance.
      *
-     * @param  Basset\Basset  $basset
-     * @param  Illuminate\Filesystem  $files
+     * @param  Basset\Basset          $basset
+     * @param  Illuminate\Filesystem  $compilePath
      * @return void
      */
     public function __construct($app, $compilePath)
