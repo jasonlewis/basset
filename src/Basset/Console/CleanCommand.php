@@ -56,7 +56,7 @@ class CleanCommand extends Command {
     {
         $this->info("\nAttempting to clean up compiled collections...");
 
-        // Get all files in the compile paths
+        // Get all files in the compile path
         $this->info('Gathering all compiled collections...');
         $compiledFiles = $this->app['files']->files($this->compilePath);
 
