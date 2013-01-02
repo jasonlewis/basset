@@ -118,11 +118,22 @@ class CleanCommand extends Command {
             foreach ($removeFiles as $file)
             {
                 $this->line('   Cleaned: <comment>'.$file.'</comment>');
-                $this->app['files']->delete($this->compilePath.'/'.$file);
+
+                if (!$this->input->getOption('pretend'))
+                {
+                    $this->app['files']->delete($this->compilePath.'/'.$file);
+                }
             }
         }
 
-        $this->line("\nTotal files cleaned: ".count($removeFiles));
+        if (!$this->input->getOption('pretend'))
+        {
+            $this->line("\nTotal files cleaned: ".count($removeFiles));
+        }
+        else
+        {
+            $this->line("\nPretending, no files removed");
+        }
     }
 
     /**
@@ -133,7 +144,8 @@ class CleanCommand extends Command {
     protected function getOptions()
     {
         return array(
-            array('remove-all', null, InputOption::VALUE_NONE, 'Deletes all compiled files')
+            array('remove-all', null, InputOption::VALUE_NONE, 'Deletes all compiled files'),
+            array('pretend', null, InputOption::VALUE_NONE, 'Output which files would be removed without deleting'),
         );
     }
 }
