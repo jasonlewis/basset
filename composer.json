@@ -2,7 +2,7 @@
     "name": "jasonlewis/basset",
     "description": "A Better Asset Management package for Laravel.",
     "keywords": ["asset", "basset"],
-    "license": "BSD",
+    "license": "BSD-2-Clause",
     "authors": [
         {
             "name": "Jason Lewis",
