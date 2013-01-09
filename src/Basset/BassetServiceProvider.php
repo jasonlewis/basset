@@ -51,6 +51,13 @@ class BassetServiceProvider extends ServiceProvider {
 		{
 			return new Response($app);
 		});
+
+		$this->app['basset.compiler'] = $this->app->share(function($app)
+		{
+			$compilePath = $app['path.base'].'/'.$app['config']->get('basset::public').'/'.$app['config']->get('basset::compiling_path');
+
+			return new CollectionCompiler($app['files'], $app['basset'], $compilePath);
+		});
 	}
 
 	/**
@@ -84,17 +91,15 @@ class BassetServiceProvider extends ServiceProvider {
 			return new Console\BassetCommand;
 		});
 
-		// The compile and list commands both make use of the compile path, so we'll define
-		// it here and use it within the command closures.
-		$compilePath = $this->app['path.base'].'/'.$this->app['config']->get('basset::public').'/'.$this->app['config']->get('basset::compiling_path');
-
-		$this->app['command.basset.compile'] = $this->app->share(function($app) use ($compilePath)
+		$this->app['command.basset.compile'] = $this->app->share(function($app)
 		{
-			return new Console\CompileCommand($app, $compilePath);
+			return new Console\CompileCommand($app['basset'], $app['basset.compiler']);
 		});
 
-		$this->app['command.basset.list'] = $this->app->share(function($app) use ($compilePath)
+		$this->app['command.basset.list'] = $this->app->share(function($app)
 		{
+			$compilePath = $app['path.base'].'/'.$app['config']->get('basset::public').'/'.$app['config']->get('basset::compiling_path');
+
 			return new Console\ListCommand($app, $compilePath);
 		});
 
