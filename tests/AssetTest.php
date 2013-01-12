@@ -47,8 +47,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
 	protected function getApplication()
 	{
-		$app = new Illuminate\Container;
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app = new Illuminate\Container\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
 		$app['files']->shouldReceive('getRemote')->once()->with('path/to/foo')->andReturn('html { background-color: #fff; }');

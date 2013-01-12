@@ -219,8 +219,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	protected function getApplication()
 	{
-		$app = new Illuminate\Container;
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app = new Illuminate\Container\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['config'] = m::mock('stdClass');
 		$app['path.public'] = 'path/to/public';
 		return $app;

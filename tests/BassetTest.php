@@ -118,7 +118,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
 	protected function getApplication()
 	{
 		$app = array();
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['config'] = m::mock('stdClass');
 		$app['url'] = m::mock('stdClass');
 		$app['path.public'] = 'path/to/public';

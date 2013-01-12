@@ -1,6 +1,6 @@
 <?php namespace Basset;
 
-use Illuminate\Filesystem;
+use Illuminate\Filesystem\Filesystem;
 
 class CollectionCompiler {
 

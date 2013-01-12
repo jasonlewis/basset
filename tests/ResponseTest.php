@@ -13,8 +13,8 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
 	public function testResponseIsCreated()
 	{
-		$app = new Illuminate\Container;
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app = new Illuminate\Container\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['config'] = m::mock('Illuminate\Config\Repository');
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$response = new Basset\Response($app);
@@ -24,8 +24,8 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
 	public function testRequestCanBeVerified()
 	{
-		$app = new Illuminate\Container;
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app = new Illuminate\Container\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('path')->once()->andReturn('assets/example.css');
 		$app['config'] = m::mock('stdClass');
@@ -39,9 +39,9 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
 	public function testAssetResponseIsReturned()
 	{
-		$app = new Illuminate\Container;
+		$app = new Illuminate\Container\Container;
 		$app['path.public'] = 'path/to/public';
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['files']->shouldReceive('exists')->once()->andReturn(true);
 		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
 		$app['files']->shouldReceive('extension')->once()->andReturn('css');

@@ -81,8 +81,8 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
 	protected function getApplication()
 	{
-		$app = new Illuminate\Container;
-		$app['files'] = m::mock('Illuminate\Filesystem');
+		$app = new Illuminate\Container\Container;
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 		$app['files']->shouldReceive('extension')->andReturn('css');
 		$app['files']->shouldReceive('lastModified')->andReturn(time());
 		$app['files']->shouldReceive('getRemote')->andReturn('html { background-color: #fff; }');
