@@ -250,6 +250,10 @@ class Collection {
 			// the pending assets of the directory and add them.
 			if ($pending instanceof Directory)
 			{
+				if (!is_array($pending->getPending())) {
+					return;
+				}
+
 				foreach ($pending->getPending() as $asset)
 				{
 					$this->assets[$asset->getGroup()][] = $asset;
