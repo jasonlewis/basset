@@ -10,6 +10,13 @@ class Basset {
 	 * @var Illuminate\Foundation\Application
 	 */
 	protected $app;
+	
+	/**
+	 * Collection compiler instance.
+	 * 
+	 * @var Basset\CollectionCompiler
+	 */
+	protected $compiler;
 
 	/**
 	 * Array of asset collections.
@@ -30,6 +37,22 @@ class Basset {
 
 		$this->registerCollections();
 	}
+	
+	/**
+	 * Create the compiler if needed, and return the Basset\CollectionCompiler instance
+	 * 
+	 * @return Basset\CollectionCompiler
+	 */
+        public function compiler(){
+            if($this->compiler == null)
+            {
+                $compilePath = $this->app['path.base'].'/'.$this->app['config']->get('basset::public').'/'.$this->app['config']->get('basset::compiling_path');
+
+		$this->compiler =  new CollectionCompiler($this->app['files'], $this, $compilePath);
+            }
+            
+            return $this->compiler;
+        }
 
 	/**
 	 * Show the assets for a given collection.
@@ -49,17 +72,24 @@ class Basset {
 
 			// Determine what course of action will be taken depending on the applications environment.
 			// By default if within the production environment Basset will attempt to serve static assets.
-			// If, however, Basset is unable to locate the static assets it will default to raw HTML.
+			// If Basset is unable to locate the static assets it will try to compile them.
 			$environment = $this->app['config']->get('basset::production_environment');
 
-			if ($collection->isCompiled($group))
-			{
-				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($this->app['env'], array('prod', 'production')))
-				{
-					$url = $this->app['config']->get('basset::compiling_path').'/'.$collection->getCompiledName($group);
-					return new Html($group, $extension, $this->app['url']->asset($url));
-				}
-			}
+			if($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($this->app['env'], array('prod', 'production')))
+                        {
+                            $isCompiled = $collection->isCompiled($group);
+                            
+                            if(!$isCompiled)
+                            {
+                                $this->compiler()->compile($collection);
+                                $isCompiled = $collection->isCompiled($group);
+                            }
+                            
+                            if($isCompiled){
+                                $url = $this->app['config']->get('basset::compiling_path').'/'.$collection->getCompiledName($group);
+                                return new Html($group, $extension, $this->app['url']->asset($url));
+                            }
+                        }
 
 			// Spin through each of the assets for the particular group and store the raw HTML response.
 			$response = array();
