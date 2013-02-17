@@ -54,7 +54,7 @@ class Basset {
 
 			if ($collection->isCompiled($group))
 			{
-				if ($environment === true or $this->app['env'] == $environment or is_null($environment) and in_array($this->app['env'], array('prod', 'production')))
+				if ($environment === true or $this->app['env'] == $environment or is_null($environment) or $environment == '' and in_array($this->app['env'], array('prod', 'production')))
 				{
 					$url = $this->app['config']->get('basset::compiling_path').'/'.$collection->getCompiledName($group);
 					return new Html($group, $extension, $this->app['url']->asset($url));
