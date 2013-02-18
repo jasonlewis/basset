@@ -12,6 +12,16 @@ class BassetServiceProvider extends ServiceProvider {
 	protected $defer = false;
 
 	/**
+	 * Bootstrap the application events.
+	 *
+	 * @return void
+	 */
+	public function boot()
+	{
+		$this->package('jasonlewis/basset');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -20,7 +30,7 @@ class BassetServiceProvider extends ServiceProvider {
 	{
 		$this->app['basset'] = $this->app->share(function($app)
 		{
-			return new Factory($app['files'], $app['config'], $app['url']);
+			return new Factory($app['files'], $app['config'], $app['url'], $app['path.public']);
 		});
 	}
 
