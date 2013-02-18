@@ -83,7 +83,7 @@ class Factory {
 			call_user_func($callback, $this->collections[$name]);
 		}
 
-		return $this;
+		return $this->collections[$name];
 	}
 
 }
