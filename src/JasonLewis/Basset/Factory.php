@@ -36,11 +36,11 @@ class Factory {
 	protected $url;
 
 	/**
-	 * Path to public directory.
+	 * Basset asset manager instance.
 	 * 
-	 * @var string
+	 * @var JasonLewis\Basset\AssetManager
 	 */
-	protected $publicPath;
+	protected $manager;
 
 	/**
 	 * Create a new factory instance.
@@ -48,15 +48,15 @@ class Factory {
 	 * @param  Illuminate\Filesystem\Filesystem  $files
 	 * @param  Illuminate\Config\Repository  $config
 	 * @param  Illuminate\Routing\UrlGenerator  $url
-	 * @param  string  $publicPath
+	 * @param  JasonLewis\Basset\AssetManager  $manager
 	 * @return void
 	 */
-	public function __construct(Filesystem $files, Repository $config, UrlGenerator $url, $publicPath)
+	public function __construct(Filesystem $files, Repository $config, UrlGenerator $url, AssetManager $manager)
 	{
 		$this->files = $files;
 		$this->config = $config;
 		$this->url = $url;
-		$this->publicPath = $publicPath;
+		$this->manager = $manager;
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Factory {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] = new Collection($name, $this->files, $this->config, $this->publicPath);
+			$this->collections[$name] = new Collection($name, $this->files, $this->config, $this->manager);
 		}
 
 		// If the collection was given a callable function where assets can be
@@ -93,16 +93,6 @@ class Factory {
 		}
 
 		return $this->collections[$name];
-	}
-
-	/**
-	 * Get the path the public directory.
-	 * 
-	 * @return string
-	 */
-	public function getPublicPath()
-	{
-		return $this->publicPath;
 	}
 
 }

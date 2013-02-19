@@ -33,6 +33,13 @@ class Filter {
 	protected $filter;
 
 	/**
+	 * Resource being filtered.
+	 * 
+	 * @var JasonLewis\Basset\FilterableInterface
+	 */
+	protected $resource;
+
+	/**
 	 * Array of environments to apply filter on.
 	 * 
 	 * @var array
@@ -40,11 +47,11 @@ class Filter {
 	protected $environments = array();
 
 	/**
-	 * Group to apply filter to.
+	 * Group to restrict the filter to.
 	 * 
 	 * @var string
 	 */
-	protected $group;
+	protected $groupRestriction;
 
 	/**
 	 * Create a new filter instance.
@@ -52,9 +59,10 @@ class Filter {
 	 * @param  string  $filter
 	 * @return void
 	 */
-	public function __construct($filter)
+	public function __construct($filter, FilterableInterface $resource)
 	{
 		$this->filter = $filter;
+		$this->resource = $resource;
 	}
 
 	/**
@@ -132,7 +140,7 @@ class Filter {
 	 */
 	public function onlyStyles()
 	{
-		$this->group = 'styles';
+		$this->groupRestriction = 'styles';
 
 		return $this;
 	}
@@ -144,9 +152,33 @@ class Filter {
 	 */
 	public function onlyScripts()
 	{
-		$this->group = 'scripts';
+		$this->groupRestriction = 'scripts';
 
 		return $this;
+	}
+
+	/**
+	 * Dynamically chain filters to the parent resource.
+	 * 
+	 * @param  string  $filter
+	 * @param  Closure  $callback
+	 * @return JasonLewis\Basset\Filter
+	 */
+	public function apply($filter, Closure $callback = null)
+	{
+		// Using the resource instance we can apply another filter straight away. Doing this will return a new
+		// Filter instance and makes the chained methods read and look better.
+		return $this->resource->apply($filter, $callback);
+	}
+
+	/**
+	 * Get the parent resource.
+	 * 
+	 * @return mixed
+	 */
+	public function getResource()
+	{
+		return $this->resource;
 	}
 
 }

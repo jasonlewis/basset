@@ -28,9 +28,14 @@ class BassetServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
+		$this->app['basset.manager'] = $this->app->share(function($app)
+		{
+			return new AssetManager($app['files'], $app['path.public']);
+		});
+
 		$this->app['basset'] = $this->app->share(function($app)
 		{
-			return new Factory($app['files'], $app['config'], $app['url'], $app['path.public']);
+			return new Factory($app['files'], $app['config'], $app['url'], $app['basset.manager']);
 		});
 	}
 

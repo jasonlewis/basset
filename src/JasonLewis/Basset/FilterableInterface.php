@@ -8,8 +8,9 @@ interface FilterableInterface {
 	 * Apply a filter.
 	 * 
 	 * @param  string  $filter
+	 * @param  Closure  $callback
 	 * @return mixed
 	 */
-	public function apply($filter);
+	public function apply($filter, Closure $callback = null);
 
 }
