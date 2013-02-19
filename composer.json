@@ -17,6 +17,9 @@
     "require-dev": {
         "mockery/mockery": ">=0.7.2"
     },
+    "suggest": {
+        "aws/aws-sdk-php": "Deploy static assets directly to your S3 buckets."
+    },
     "autoload": {
         "psr-0": {
             "JasonLewis\\Basset": "src/"
