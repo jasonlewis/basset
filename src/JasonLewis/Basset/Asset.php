@@ -1,6 +1,16 @@
 <?php namespace JasonLewis\Basset;
 
+use Assetic\Asset\StringAsset;
+use Illuminate\Filesystem\Filesystem;
+
 class Asset implements FilterableInterface {
+
+	/**
+	 * Illuminate filesystem instance.
+	 * 
+	 * @var Illuminate\Filesystem\Filesystem
+	 */
+	protected $files;
 
 	/**
 	 * Absolute path to the asset.
@@ -15,6 +25,13 @@ class Asset implements FilterableInterface {
 	 * @var string
 	 */
 	protected $relativePath;
+
+	/**
+	 * Application working environment.
+	 * 
+	 * @var string
+	 */
+	protected $environment;
 
 	/**
 	 * Array of filters.
@@ -33,14 +50,18 @@ class Asset implements FilterableInterface {
 	/**
 	 * Create a new asset instance.
 	 * 
+	 * @param  Illuminate\Filesystem\Filesystem  $files
 	 * @param  string  $absolutePath
 	 * @param  string  $relativePath
+	 * @param  string  $environment
 	 * @return void
 	 */
-	public function __construct($absolutePath, $relativePath)
+	public function __construct(Filesystem $files, $absolutePath, $relativePath, $environment)
 	{
+		$this->files = $files;
 		$this->absolutePath = $absolutePath;
 		$this->relativePath = $relativePath;
+		$this->environment = $environment;
 	}
 
 	/**
@@ -90,7 +111,7 @@ class Asset implements FilterableInterface {
 	 */
 	public function isRemote()
 	{
-		return parse_url($this->absolutePath, PHP_URL_SCHEME);
+		return filter_var($this->absolutePath, FILTER_VALIDATE_URL);
 	}
 
 	/**
@@ -116,14 +137,50 @@ class Asset implements FilterableInterface {
 	}
 
 	/**
+	 * Prepare the assets filters by removing those that have been restricted.
+	 * 
+	 * @return void
+	 */
+	public function prepareFilters()
+	{
+		foreach ($this->filters as $key => $filter)
+		{
+			// If there is a group restriction on the filter and the assets group is not that being
+			// restricted then we'll remove the filter from the asset.
+			$groupRestriction = $filter->getGroupRestriction();
+
+			if ($groupRestriction and ! $this->{'is'.ucfirst(str_singular($groupRestriction))}())
+			{
+				unset($this->filters[$key]);
+			}
+
+			// If the filter is being restricted to certain environments we'll make sure the application
+			// is running within one of the specified environments.
+			$possibleEnvironments = $filter->getEnvironments();
+
+			if ($possibleEnvironments and ! in_array($this->environment, $possibleEnvironments))
+			{
+				unset($this->filters[$key]);
+			}
+		}
+	}
+
+	/**
 	 * Apply a filter to the asset.
 	 * 
-	 * @param  string  $filter
+	 * @param  string|Filter  $filter
 	 * @param  Closure  $callback
 	 * @return JasonLewis\Basset\Filter
 	 */
 	public function apply($filter, Closure $callback = null)
 	{
+		// If the supplied filter is already a Filter instance then we'll set the filter
+		// directly on the asset.
+		if ($filter instanceof Filter)
+		{
+			return $this->filters[$filter->getFilter()] = $filter;
+		}
+
 		$filter = new Filter($filter, $this);
 
 		if (is_callable($callback))
@@ -131,7 +188,28 @@ class Asset implements FilterableInterface {
 			call_user_func($callback, $filter);
 		}
 
-		return $this->filters[] = $filter;
+		return $this->filters[$filter->getFilter()] = $filter;
+	}
+
+	public function compile()
+	{
+		$filters = array();
+
+		foreach ($this->filters as $filter)
+		{
+			// Attempt to instantiate each filter. If we can get an instance we'll add the filter
+			// to the array of filters.
+			if ($filter = $filter->instantiate())
+			{
+				$filters[] = $filter;
+			}
+		}
+
+		$contents = $this->files->getRemote($this->absolutePath);
+
+		$asset = new StringAsset($contents, $filters, dirname($this->absolutePath), basename($this->absolutePath));
+
+		return $asset->dump();
 	}
 
 }

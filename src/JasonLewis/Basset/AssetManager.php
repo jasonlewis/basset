@@ -19,16 +19,25 @@ class AssetManager {
 	protected $publicPath;
 
 	/**
+	 * Application working environment.
+	 * 
+	 * @var string
+	 */
+	protected $environment;
+
+	/**
 	 * Create a new asset manager instance.
 	 * 
 	 * @param  Illuminate\Filesystem\Filesystem  $files
 	 * @param  string  $publicPath
+	 * @param  string  $environment
 	 * @return void
 	 */
-	public function __construct(Filesystem $files, $publicPath)
+	public function __construct(Filesystem $files, $publicPath, $environment)
 	{
 		$this->files = $files;
 		$this->publicPath = $publicPath;
+		$this->environment = $environment;
 	}
 
 	/**
@@ -39,11 +48,13 @@ class AssetManager {
 	 */
 	public function make($path)
 	{
-		$absolutePath = realpath($path);
+		// If the path to the asset is a valid URL then we'll assume the asset is being
+		// remotely hosted and so the absolute path will be the URL to the asset.
+		$absolutePath = filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
 
 		$relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
 
-		return new Asset($absolutePath, $relativePath);
+		return new Asset($this->files, $absolutePath, $relativePath, $this->environment);
 	}
 
 	/**

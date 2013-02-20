@@ -45,16 +45,16 @@ class Directory implements FilterableInterface {
 	/**
 	 * Create a new directory instance.
 	 * 
-	 * @param  string  $path
 	 * @param  Illuminate\Filesystem\Filesystem  $files
 	 * @param  JasonLewis\Basset\AssetManager  $manager
+	 * @param  string  $path
 	 * @return void
 	 */
-	public function __construct($path, Filesystem $files, AssetManager $manager)
+	public function __construct(Filesystem $files, AssetManager $manager, $path)
 	{
-		$this->path = $path;
 		$this->files = $files;
 		$this->manager = $manager;
+		$this->path = $path;
 	}
 
 	/**
@@ -86,7 +86,10 @@ class Directory implements FilterableInterface {
 	{
 		foreach ($this->iterateDirectory() as $file)
 		{
-			$this->assets[] = $this->manager->make($file->getPathname());
+			if ($file->isFile())
+			{
+				$this->assets[] = $this->manager->make($file->getPathname());
+			}
 		}
 
 		return $this;
@@ -101,7 +104,10 @@ class Directory implements FilterableInterface {
 	{
 		foreach ($this->recursivelyIterateDirectory() as $file)
 		{
-			$this->assets[] = $this->manager->make($file->getPathname());
+			if ($file->isFile())
+			{
+				$this->assets[] = $this->manager->make($file->getPathname());
+			}
 		}
 
 		return $this;
@@ -156,6 +162,41 @@ class Directory implements FilterableInterface {
 	}
 
 	/**
+	 * Get the array of assets.
+	 * 
+	 * @return array
+	 */
+	public function getAssets()
+	{
+		return $this->assets;
+	}
+
+	/**
+	 * Process the directory assets by applying any filters on the directory to each asset.
+	 * 
+	 * @return array
+	 */
+	public function processAssets()
+	{
+		$assets = array();
+
+		foreach ($this->assets as $asset)
+		{
+			foreach ($this->filters as $filter)
+			{
+				$asset->apply($filter);
+			}
+
+			$assets[] = $asset;
+		}
+
+		// After applying all the filters to all the assets we'll reset the filters array.
+		$this->filters = array();
+
+		return $assets;
+	}
+
+	/**
 	 * Apply a filter to an entire directory.
 	 * 
 	 * @param  string  $filter
@@ -171,7 +212,7 @@ class Directory implements FilterableInterface {
 			call_user_func($callback, $filter);
 		}
 
-		return $this->filters[] = $filter;
+		return $this->filters[$filter->getFilter()] = $filter;
 	}
 
 }

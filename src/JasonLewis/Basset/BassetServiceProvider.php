@@ -30,7 +30,7 @@ class BassetServiceProvider extends ServiceProvider {
 	{
 		$this->app['basset.manager'] = $this->app->share(function($app)
 		{
-			return new AssetManager($app['files'], $app['path.public']);
+			return new AssetManager($app['files'], $app['path.public'], $app['env']);
 		});
 
 		$this->app['basset'] = $this->app->share(function($app)

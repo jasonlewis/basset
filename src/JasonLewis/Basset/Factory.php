@@ -82,7 +82,7 @@ class Factory {
 	{
 		if ( ! isset($this->collections[$name]))
 		{
-			$this->collections[$name] = new Collection($name, $this->files, $this->config, $this->manager);
+			$this->collections[$name] = new Collection($this->files, $this->config, $this->manager, $name);
 		}
 
 		// If the collection was given a callable function where assets can be

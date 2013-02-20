@@ -1,6 +1,7 @@
 <?php namespace JasonLewis\Basset;
 
 use Closure;
+use ReflectionClass;
 
 class Filter {
 
@@ -26,7 +27,7 @@ class Filter {
 	protected $after = array();
 
 	/**
-	 * Fully qualified filter name.
+	 * Filter name.
 	 * 
 	 * @var string
 	 */
@@ -158,20 +159,6 @@ class Filter {
 	}
 
 	/**
-	 * Dynamically chain filters to the parent resource.
-	 * 
-	 * @param  string  $filter
-	 * @param  Closure  $callback
-	 * @return JasonLewis\Basset\Filter
-	 */
-	public function apply($filter, Closure $callback = null)
-	{
-		// Using the resource instance we can apply another filter straight away. Doing this will return a new
-		// Filter instance and makes the chained methods read and look better.
-		return $this->resource->apply($filter, $callback);
-	}
-
-	/**
 	 * Get the parent resource.
 	 * 
 	 * @return mixed
@@ -179,6 +166,63 @@ class Filter {
 	public function getResource()
 	{
 		return $this->resource;
+	}
+
+	/**
+	 * Get the filter name.
+	 * 
+	 * @return string
+	 */
+	public function getFilter()
+	{
+		return $this->filter;
+	}
+
+	/**
+	 * Get the filters group restriction.
+	 * 
+	 * @return string
+	 */
+	public function getGroupRestriction()
+	{
+		return $this->groupRestriction;
+	}
+
+	/**
+	 * Get the array of environments.
+	 * 
+	 * @return array
+	 */
+	public function getEnvironments()
+	{
+		return $this->environments;
+	}
+
+	/**
+	 * Attempt to instantiate the filter if it exists.
+	 * 
+	 * @return mixed
+	 */
+	public function instantiate()
+	{
+		if (class_exists($filter = "Assetic\\Filter\\{$this->filter}") or class_exists($filter = "JasonLewis\\Basset\\Filter\\{$this->filter}"))
+		{
+			$reflection = new ReflectionClass($filter);
+
+			return $reflection->newInstanceArgs($this->arguments);
+		}
+	}
+
+	/**
+	 * Dynamically chain uncallable methods to the parent resource.
+	 * 
+	 * @param  string  $method
+	 * @param  array  $parameters
+	 * @return mixed
+	 */
+	public function __call($method, $parameters)
+	{
+		return call_user_func_array(array($this->resource, $method), $parameters);
 	}
 
 }

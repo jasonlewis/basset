@@ -43,6 +43,13 @@ class Collection implements FilterableInterface {
 	protected $assets = array();
 
 	/**
+	 * Array of directories that have been required.
+	 * 
+	 * @var array
+	 */
+	protected $directories = array();
+
+	/**
 	 * Array of filters.
 	 * 
 	 * @var array
@@ -59,18 +66,18 @@ class Collection implements FilterableInterface {
 	/**
 	 * Create a new collection instance.
 	 * 
-	 * @param  string  $name
 	 * @param  Illuminate\Filesystem\Filesystem  $files
 	 * @param  Illuminate\Config\Repository  $config
 	 * @param  JasonLewis\Basset\AssetManager  $manager
+	 * @param  string  $name
 	 * @return void
 	 */
-	public function __construct($name, Filesystem $files, Repository $config, AssetManager $manager)
+	public function __construct(Filesystem $files, Repository $config, AssetManager $manager, $name)
 	{
-		$this->name = $name;
 		$this->files = $files;
 		$this->config = $config;
 		$this->manager = $manager;
+		$this->name = $name;
 	}
 
 	/**
@@ -100,9 +107,9 @@ class Collection implements FilterableInterface {
 			$name = $this->config->get("basset::assets.{$name}");
 		}
 
-		// Determine if the asset is a remotely hosted asset. We can check that by detecting if
-		// the name contains a URL scheme.
-		if (parse_url($name, PHP_URL_SCHEME))
+		// Determine if the asset is a remotely hosted asset. We can check that by filtering
+		// the variable as a valid URL.
+		if (filter_var($name, FILTER_VALIDATE_URL))
 		{
 			$assetPath = $name;
 		}
@@ -154,9 +161,15 @@ class Collection implements FilterableInterface {
 			}
 		}
 
-		if ( ! is_null($assetPath) and $this->files->exists($assetPath))
+		if ( ! is_null($assetPath))
 		{
 			$asset = $this->manager->make($assetPath);
+
+			// If the asset is not being remotely hosted and it does not exist then we'll return nothing.
+			if ( ! $asset->isRemote() and ! $this->files->exists($assetPath))
+			{
+				return;
+			}
 
 			return $this->assets[] = $asset;
 		}
@@ -183,7 +196,39 @@ class Collection implements FilterableInterface {
 		return $this;
 	}
 
+	/**
+	 * Require all assets within a directory.
+	 * 
+	 * @param  string  $path
+	 * @return JasonLewis\Basset\Directory
+	 */
 	public function requireDirectory($path = null)
+	{
+		$directory = $this->parseRequirePath($path);
+
+		return $this->directories[] = $directory->requireDirectory();
+	}
+
+	/**
+	 * Require all assets within a directory tree.
+	 * 
+	 * @param  string  $path
+	 * @return JasonLewis\Basset\Directory
+	 */
+	public function requireTree($path = null)
+	{
+		$directory = $this->parseRequirePath($path);
+
+		return $this->directories[] = $directory->requireTree();
+	}
+
+	/**
+	 * Parse a require directory or tree path and return a directory instance.
+	 * 
+	 * @param  string  $path
+	 * @return JasonLewis\Basset\Directory
+	 */
+	protected function parseRequirePath($path)
 	{
 		// If no path was given then we'll check if we're working within a directory. If not then the
 		// method is not being used correctly.
@@ -195,7 +240,7 @@ class Collection implements FilterableInterface {
 			}
 			else
 			{
-				throw new RuntimeException('Basset is not within a working directory, please supply a path to Basset\Collection::requireDirectory().');
+				throw new RuntimeException('Basset is not within a working directory and no path was supplied.');
 			}
 		}
 		else
@@ -203,7 +248,7 @@ class Collection implements FilterableInterface {
 			$directory = $this->parseDirectoryPath($path);
 		}
 
-		return $this->assets[] = $directory->requireDirectory();
+		return $directory;
 	}
 
 	/**
@@ -241,7 +286,37 @@ class Collection implements FilterableInterface {
 
 		if ($this->files->exists($path))
 		{
-			return new Directory($path, $this->files, $this->manager);
+			return new Directory($this->files, $this->manager, $path);
+		}
+	}
+
+	/**
+	 * Process the collection by retrieving all assets for each directory and then applying
+	 * any collection filters to every asset.
+	 * 
+	 * @return void
+	 */
+	protected function processCollection()
+	{
+		foreach ($this->directories as $directory)
+		{
+			$assets = $directory->processAssets();
+
+			$this->assets = array_merge($this->assets, $assets);
+		}
+
+		if ( ! empty($this->filters))
+		{
+			foreach ($this->assets as $key => $asset)
+			{
+				foreach ($this->filters as $filter)
+				{
+					$this->assets[$key]->apply($filter);
+				}
+			}
+
+			// After applying all the filters to all the assets we'll reset the filters array.
+			$this->filters = array();
 		}
 	}
 
@@ -272,7 +347,63 @@ class Collection implements FilterableInterface {
 			call_user_func($callback, $filter);
 		}
 
-		return $this->filters[] = $filter;
+		return $this->filters[$filter->getFilter()] = $filter;
+	}
+
+	/**
+	 * Get an array of assets filtered by a group, scripts or styles.
+	 * 
+	 * @param  string  $group
+	 * @return array
+	 */
+	public function getAssets($group = null)
+	{
+		$assets = array();
+
+		foreach ($this->assets as $asset)
+		{
+			// If no group was supplied or the asset is part of the group being requested
+			// then we'll prepare the assets filters and add it to the array.
+			if ( ! $group or $asset->{'is'.ucfirst(str_singular($group))}())
+			{
+				$asset->prepareFilters();
+
+				$assets[] = $asset;
+			}
+		}
+
+		return $assets;
+	}
+
+	/**
+	 * Compile a given group on the collection.
+	 * 
+	 * @param  string  $group
+	 * @return string
+	 */
+	public function compile($group)
+	{
+		$this->processCollection();
+
+		$assets = $this->getAssets($group);
+
+		// We'll store each of the assets compiled response in an array so that we can join each
+		// response by a new line with implode.
+		$response = array();
+
+		foreach ($assets as $asset)
+		{
+			// If remote assets are not to be compiled and the asset is remote or the asset is being
+			// ignored then it won't be included.
+			if ( ! $this->config->get('basset::compile_remotes', false) and $asset->isRemote() or $asset->isIgnored())
+			{
+				continue;
+			}
+
+			$response[] = $asset->compile();
+		}
+
+		return implode(PHP_EOL, $response);
 	}
 
 }
