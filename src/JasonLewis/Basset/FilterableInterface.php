@@ -13,4 +13,11 @@ interface FilterableInterface {
 	 */
 	public function apply($filter, Closure $callback = null);
 
+	/**
+	 * Get the applied filters.
+	 * 
+	 * @return array
+	 */
+	public function getFilters();
+
 }
