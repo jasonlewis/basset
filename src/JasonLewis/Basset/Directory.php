@@ -1,5 +1,6 @@
 <?php namespace JasonLewis\Basset;
 
+use Closure;
 use FilesystemIterator;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
@@ -213,6 +214,16 @@ class Directory implements FilterableInterface {
 		}
 
 		return $this->filters[$filter->getFilter()] = $filter;
+	}
+
+	/**
+	 * Get the applied filters.
+	 * 
+	 * @return array
+	 */
+	public function getFilters()
+	{
+		return $this->filters;
 	}
 
 }

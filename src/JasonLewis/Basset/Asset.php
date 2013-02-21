@@ -1,6 +1,7 @@
 <?php namespace JasonLewis\Basset;
 
 use Assetic\Asset\StringAsset;
+use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 
 class Asset implements FilterableInterface {
@@ -111,7 +112,7 @@ class Asset implements FilterableInterface {
 	 */
 	public function isRemote()
 	{
-		return filter_var($this->absolutePath, FILTER_VALIDATE_URL);
+		return (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL);
 	}
 
 	/**
@@ -191,15 +192,26 @@ class Asset implements FilterableInterface {
 		return $this->filters[$filter->getFilter()] = $filter;
 	}
 
+	/**
+	 * Compile the asset.
+	 * 
+	 * @return string
+	 */
 	public function compile()
 	{
+		// Before we begin to compile we'll prepare the filters by removing those that are not
+		// to be applied to this asset.
+		$this->prepareFilters();
+
 		$filters = array();
 
 		foreach ($this->filters as $filter)
 		{
 			// Attempt to instantiate each filter. If we can get an instance we'll add the filter
 			// to the array of filters.
-			if ($filter = $filter->instantiate())
+			$filter = $filter->instantiate();
+
+			if ($filter instanceof FilterInterface)
 			{
 				$filters[] = $filter;
 			}
@@ -210,6 +222,16 @@ class Asset implements FilterableInterface {
 		$asset = new StringAsset($contents, $filters, dirname($this->absolutePath), basename($this->absolutePath));
 
 		return $asset->dump();
+	}
+
+	/**
+	 * Get the applied filters.
+	 * 
+	 * @return array
+	 */
+	public function getFilters()
+	{
+		return $this->filters;
 	}
 
 }
