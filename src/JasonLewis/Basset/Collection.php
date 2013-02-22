@@ -150,7 +150,7 @@ class Collection implements FilterableInterface {
 				// Recursively spin through each directory. We're simply looking for a file that has
 				// the same ending as the name of the file. Once we've found it we'll bail out of
 				// both loops.
-				foreach ($directory->recursivelyIterateDirectory() as $file)
+				foreach ($directory->recursivelyIterateDirectory($directory->getPath()) as $file)
 				{
 					$filePath = $file->getRealPath();
 
@@ -303,9 +303,9 @@ class Collection implements FilterableInterface {
 	{
 		foreach ($this->directories as $directory)
 		{
-			$assets = $directory->processAssets();
+			$directory->processFilters();
 
-			$this->assets = array_merge($this->assets, $assets);
+			$this->assets = array_merge($this->assets, $directory->getAssets());
 		}
 
 		// If there are filters applied to the collection then these filters must be applied tp
@@ -345,6 +345,13 @@ class Collection implements FilterableInterface {
 	 */
 	public function apply($filter, Closure $callback = null)
 	{
+		// If the supplied filter is already a Filter instance then we'll set the filter
+		// directly on the asset.
+		if ($filter instanceof Filter)
+		{
+			return $this->filters[$filter->getFilter()] = $filter;
+		}
+
 		$filter = new Filter($filter, $this);
 
 		if (is_callable($callback))

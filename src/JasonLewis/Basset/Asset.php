@@ -193,6 +193,16 @@ class Asset implements FilterableInterface {
 	}
 
 	/**
+	 * Get the asset contents.
+	 * 
+	 * @return string
+	 */
+	public function getContent()
+	{
+		return $this->files->getRemote($this->absolutePath);
+	}
+
+	/**
 	 * Compile the asset.
 	 * 
 	 * @return string
@@ -203,23 +213,23 @@ class Asset implements FilterableInterface {
 		// to be applied to this asset.
 		$this->prepareFilters();
 
-		$filters = array();
+		$appliedFilters = array();
 
 		foreach ($this->filters as $filter)
 		{
 			// Attempt to instantiate each filter. If we can get an instance we'll add the filter
 			// to the array of filters.
-			$filter = $filter->instantiate();
+			$filterInstance = $filter->instantiate();
 
-			if ($filter instanceof FilterInterface)
+			if ($filterInstance instanceof FilterInterface)
 			{
-				$filters[] = $filter;
+				$appliedFilters[] = $filterInstance;
 			}
 		}
 
-		$contents = $this->files->getRemote($this->absolutePath);
+		$contents = $this->getContent();
 
-		$asset = new StringAsset($contents, $filters, dirname($this->absolutePath), basename($this->absolutePath));
+		$asset = new StringAsset($contents, $appliedFilters, dirname($this->absolutePath), basename($this->absolutePath));
 
 		return $asset->dump();
 	}

@@ -13,20 +13,6 @@ class Filter {
 	protected $arguments = array();
 
 	/**
-	 * Array of events to fire before filtering.
-	 * 
-	 * @var array
-	 */
-	protected $before = array();
-
-	/**
-	 * Array of events to fire after filtering.
-	 * 
-	 * @var array
-	 */
-	protected $after = array();
-
-	/**
 	 * Filter name.
 	 * 
 	 * @var string
@@ -69,43 +55,13 @@ class Filter {
 	/**
 	 * Set the filters instantiation arguments
 	 * 
-	 * @param  mixed  $argument
 	 * @return JasonLewis\Basset\Filter
 	 */
-	public function setArguments($arguments)
+	public function setArguments()
 	{
-		if ( ! is_array($arguments))
-		{
-			$arguments = array($arguments);
-		}
-
-		$this->arguments[] = $arguments;
+		$this->arguments = array_merge($this->arguments, func_get_args());
 
 		return $this;
-	}
-
-	/**
-	 * Add a before filtering event.
-	 * 
-	 * @param  Closure  $callback
-	 * @return JasonLewis\Basset\Filter
-	 */
-	public function beforeFiltering(Closure $callback)
-	{
-		$this->before[] = $callback;
-
-		return $this;
-	}
-
-	/**
-	 * Add an after filtering event.
-	 * 
-	 * @param  Closure  $callback
-	 * @return JasonLewis\Basset\Filter
-	 */
-	public function afterFiltering(Closure $callback)
-	{
-		$this->after[] = $callback;
 	}
 
 	/**
@@ -124,12 +80,11 @@ class Filter {
 	/**
 	 * Add an array of environments to apply the filter on.
 	 * 
-	 * @param  array  $environments
 	 * @return JasonLewis\Basset\Filter
 	 */
-	public function onEnvironments(array $environments)
+	public function onEnvironments()
 	{
-		$this->environments = array_merge($this->environments, $environments);
+		$this->environments = array_merge($this->environments, func_get_args());
 
 		return $this;
 	}
@@ -199,15 +154,44 @@ class Filter {
 	}
 
 	/**
+	 * Get the filters instantiation arguments.
+	 * 
+	 * @return array
+	 */
+	public function getArguments()
+	{
+		return $this->arguments;
+	}
+
+	/**
+	 * Check if the filter exists.
+	 * 
+	 * @return string|bool
+	 */
+	public function exists()
+	{
+		if (class_exists("Assetic\\Filter\\{$this->filter}"))
+		{
+			return "Assetic\\Filter\\{$this->filter}";
+		}
+		elseif (class_exists("JasonLewis\\Basset\\Filter\\{$this->filter}"))
+		{
+			return "JasonLewis\\Basset\\Filter\\{$this->filter}";
+		}
+
+		return false;
+	}
+
+	/**
 	 * Attempt to instantiate the filter if it exists.
 	 * 
 	 * @return mixed
 	 */
 	public function instantiate()
 	{
-		if (class_exists($filter = "Assetic\\Filter\\{$this->filter}") or class_exists($filter = "JasonLewis\\Basset\\Filter\\{$this->filter}"))
+		if ($className = $this->exists())
 		{
-			$reflection = new ReflectionClass($filter);
+			$reflection = new ReflectionClass($className);
 
 			return $reflection->newInstanceArgs($this->arguments);
 		}

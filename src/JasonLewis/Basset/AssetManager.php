@@ -50,7 +50,7 @@ class AssetManager {
 	{
 		// If the path to the asset is a valid URL then we'll assume the asset is being
 		// remotely hosted and so the absolute path will be the URL to the asset.
-		$absolutePath = filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
+		$absolutePath = $this->getAbsolutePath($path);
 
 		$relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
 
@@ -77,6 +77,17 @@ class AssetManager {
 	public function path($path)
 	{
 		return $this->publicPath.'/'.$path;
+	}
+
+	/**
+	 * Get the absolute path to an asset.
+	 * 
+	 * @param  string  $path
+	 * @return string
+	 */
+	public function getAbsolutePath($path)
+	{
+		return filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
 	}
 
 }

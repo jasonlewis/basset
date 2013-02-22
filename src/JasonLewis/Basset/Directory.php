@@ -61,21 +61,23 @@ class Directory implements FilterableInterface {
 	/**
 	 * Recursively iterate through the directory.
 	 * 
+	 * @param  string  $path
 	 * @return RecursiveIteratorIterator
 	 */
-	public function recursivelyIterateDirectory()
+	public function recursivelyIterateDirectory($path)
 	{
-		return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->path));
+		return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
 	}
 
 	/**
 	 * Iterate through the directory.
 	 * 
+	 * @param  string  $path
 	 * @return FilesystemIterator
 	 */
-	public function iterateDirectory()
+	public function iterateDirectory($path)
 	{
-		return new FilesystemIterator($this->path);	
+		return new FilesystemIterator($path);	
 	}
 
 	/**
@@ -85,7 +87,7 @@ class Directory implements FilterableInterface {
 	 */
 	public function requireDirectory()
 	{
-		foreach ($this->iterateDirectory() as $file)
+		foreach ($this->iterateDirectory($this->path) as $file)
 		{
 			if ($file->isFile())
 			{
@@ -103,7 +105,7 @@ class Directory implements FilterableInterface {
 	 */
 	public function requireTree()
 	{
-		foreach ($this->recursivelyIterateDirectory() as $file)
+		foreach ($this->recursivelyIterateDirectory($this->path) as $file)
 		{
 			if ($file->isFile())
 			{
@@ -173,28 +175,22 @@ class Directory implements FilterableInterface {
 	}
 
 	/**
-	 * Process the directory assets by applying any filters on the directory to each asset.
+	 * Process the filters by applying each filter to every asset.
 	 * 
-	 * @return array
+	 * @return void
 	 */
-	public function processAssets()
+	public function processFilters()
 	{
-		$assets = array();
-
-		foreach ($this->assets as $asset)
+		foreach ($this->assets as $key => $asset)
 		{
 			foreach ($this->filters as $filter)
 			{
-				$asset->apply($filter);
+				$this->assets[$key]->apply($filter);
 			}
-
-			$assets[] = $asset;
 		}
 
 		// After applying all the filters to all the assets we'll reset the filters array.
 		$this->filters = array();
-
-		return $assets;
 	}
 
 	/**
@@ -206,6 +202,13 @@ class Directory implements FilterableInterface {
 	 */
 	public function apply($filter, Closure $callback = null)
 	{
+		// If the supplied filter is already a Filter instance then we'll set the filter
+		// directly on the asset.
+		if ($filter instanceof Filter)
+		{
+			return $this->filters[$filter->getFilter()] = $filter;
+		}
+
 		$filter = new Filter($filter, $this);
 
 		if (is_callable($callback))

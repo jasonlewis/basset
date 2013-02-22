@@ -5,10 +5,9 @@ use Mockery as m;
 class AssetTest extends PHPUnit_Framework_TestCase {
 
 
-	public function testAssetInstanceIsCreated()
+	public function tearDown()
 	{
-		$asset = $this->getAssetInstance();
-		$this->assertInstanceOf('JasonLewis\Basset\Asset', $asset);
+		m::close();
 	}
 
 

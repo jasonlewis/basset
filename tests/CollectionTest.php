@@ -5,10 +5,15 @@ use Mockery as m;
 class CollectionTest extends PHPUnit_Framework_TestCase {
 
 
-	public function testCollectionInstanceIsCreated()
+	public function tearDown()
+	{
+		m::close();
+	}
+	
+
+	public function testCanGetCollectionName()
 	{
 		$collection = $this->getStandardCollectionInstance();
-		$this->assertInstanceOf('JasonLewis\Basset\Collection', $collection);
 		$this->assertEquals('foo', $collection->getName());
 	}
 
@@ -16,7 +21,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	public function testCanAddBasicAsset()
 	{
 		$files = $this->getFiles();
-		$files->shouldReceive('exists')->once()->with('path/to/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
 		$config = $this->getConfig();
 		$config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
 		$manager = new JasonLewis\Basset\AssetManager($files, 'path/to', 'local');
@@ -31,7 +36,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	public function testCanAddAliasedAsset()
 	{
 		$files = $this->getFiles();
-		$files->shouldReceive('exists')->once()->with('path/to/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
 		$config = $this->getConfig();
 		$config->shouldReceive('has')->once()->with('basset::assets.foo')->andReturn(true);
 		$config->shouldReceive('get')->once()->with('basset::assets.foo')->andReturn('bar.css');
@@ -70,8 +75,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$manager = new JasonLewis\Basset\AssetManager($files, 'path/to', 'local');
 		$file = m::mock('SplFileInfo');
 		$file->shouldReceive('getRealPath')->once()->andReturn('path/to/nested/bar.css');
-		$directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]');
-		$directory->shouldReceive('recursivelyIterateDirectory')->once()->andReturn(array($file));
+		$directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]', array($files, $manager, 'path/to/nested'));
+		$directory->shouldReceive('recursivelyIterateDirectory')->once()->with('path/to/nested')->andReturn(array($file));
 		$collection = m::mock('JasonLewis\Basset\Collection[parseDirectoryPath]');
 		$collection->shouldReceive('parseDirectoryPath')->with('path/to/nested')->andReturn($directory);
 		$collection->__construct($files, $config, $manager, 'foo');
@@ -85,13 +90,12 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	public function testCanAddAssetFromWithinWorkingDirectory()
 	{
 		$files = $this->getFiles();
-		$files->shouldReceive('exists')->once()->with('path/to/bar.css')->andReturn(false);
-		$files->shouldReceive('exists')->once()->with('path/to/nested/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/nested/bar.css')->andReturn(true);
 		$config = $this->getConfig();
 		$config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
 		$manager = new JasonLewis\Basset\AssetManager($files, 'path/to', 'local');
 		$directory = m::mock('JasonLewis\Basset\Directory');
-		$directory->shouldReceive('getPath')->once()->andReturn('path/to/nested');
+		$directory->shouldReceive('getPath')->twice()->andReturn('path/to/nested');
 		$collection = m::mock('JasonLewis\Basset\Collection[parseDirectoryPath]');
 		$collection->shouldReceive('parseDirectoryPath')->with('path/to/nested')->andReturn($directory);
 		$collection->__construct($files, $config, $manager, 'foo');
@@ -107,10 +111,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
 	public function testFiltersAreAppliedToCollection()
 	{
-		$collection = $this->getStandardCollectionInstance();
-
 		$files = $this->getFiles();
-		$files->shouldReceive('exists')->once()->with('path/to/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
 		$config = $this->getConfig();
 		$config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
 		$manager = new JasonLewis\Basset\AssetManager($files, 'path/to', 'local');
@@ -124,6 +126,42 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$assets = $collection->getAssets();
 		$this->assertCount(0, $collection->getFilters());
 		$this->assertCount(1, $assets[0]->getFilters());
+	}
+
+
+	public function testCollectionIsCompiledCorrectly()
+	{
+		$files = $this->getFiles();
+		$files->shouldReceive('exists')->twice()->with('path/to/css/example.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/js/example.js')->andReturn(true);
+		$files->shouldReceive('getRemote')->once()->with('path/to/css/example.css')->andReturn('html { background-color: #fff; }');
+		$files->shouldReceive('getRemote')->once()->with('path/to/js/example.js')->andReturn('alert("hello world")');
+		$config = $this->getConfig();
+		$config->shouldReceive('get')->twice()->with('basset::compile_remotes', '')->andReturn(false);
+		$config->shouldReceive('has')->once()->with('basset::assets.css/example.css')->andReturn(false);
+		$config->shouldReceive('has')->once()->with('basset::assets.js/example.js')->andReturn(false);
+		$manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to', 'local'));
+		$manager->shouldReceive('getAbsolutePath')->with('path/to/css/example.css')->andReturn('path/to/css/example.css');
+		$manager->shouldReceive('getAbsolutePath')->with('path/to/js/example.js')->andReturn('path/to/js/example.js');
+		$instantiatedFilter = m::mock('Assetic\Filter\FilterInterface');
+		$instantiatedFilter->shouldReceive('filterLoad')->once()->andReturn(null);
+		$instantiatedFilter->shouldReceive('filterDump')->once()->andReturnUsing(function($asset)
+		{
+			$asset->setContent(str_replace('html', 'body', $asset->getContent()));
+		});
+		$filter = m::mock('JasonLewis\Basset\Filter');
+		$filter->shouldReceive('getFilter')->times(3)->andReturn('BodyFilter');
+		$filter->shouldReceive('getGroupRestriction')->twice()->andReturn('styles');
+		$filter->shouldReceive('getEnvironments')->twice()->andReturn(array());
+		$filter->shouldReceive('instantiate')->once()->andReturn($instantiatedFilter);
+		$collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
+		$collection->add('css/example.css');
+		$collection->add('js/example.js');
+		$collection->apply($filter);
+		$compiledCss = $collection->compile('styles');
+		$compiledJs = $collection->compile('scripts');
+		$this->assertEquals('body { background-color: #fff; }', $compiledCss);
+		$this->assertEquals('alert("hello world")', $compiledJs);
 	}
 
 
