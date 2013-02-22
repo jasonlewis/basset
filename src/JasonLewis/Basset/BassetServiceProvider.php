@@ -2,6 +2,8 @@
 
 use Illuminate\Support\ServiceProvider;
 
+define('BASSET_VERSION', '4.0.0');
+
 class BassetServiceProvider extends ServiceProvider {
 
 	/**
