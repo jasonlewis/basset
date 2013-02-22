@@ -97,11 +97,21 @@ class CompileCommand extends Command {
 
 		$this->compiler->setOutputPath($this->outputPath);
 
+		// Spin through each of the collections and compile both the scripts and styles. Each is broken into
+		// a separate try/catch block so that we can catch any exceptions thrown when attempting to compile.
+		// We'll also handle the compiling of development assets here as well.
 		foreach ($collections as $collection)
 		{
 			try
 			{
-				$this->compiler->compileStyles($collection);
+				if ($this->input->getOption('dev'))
+				{
+					$this->compiler->compileDevelopment($collection, 'styles');
+				}
+				else
+				{
+					$this->compiler->compileStyles($collection);
+				}
 
 				$this->line("<info>Styles successfully compiled for collection:</info> {$collection->getName()}");
 			}
@@ -116,7 +126,14 @@ class CompileCommand extends Command {
 
 			try
 			{
-				$this->compiler->compileScripts($collection);
+				if ($this->input->getOption('dev'))
+				{
+					$this->compiler->compileDevelopment($collection, 'scripts');
+				}
+				else
+				{
+					$this->compiler->compileScripts($collection);
+				}
 
 				$this->line("<info>Scripts successfully compiled for collection:</info> {$collection->getName()}");
 			}
@@ -151,7 +168,8 @@ class CompileCommand extends Command {
 	protected function getOptions()
 	{
 		return array(
-			array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-compile of the collection')
+			array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-compile of the collection'),
+			array('dev', InputOption::VALUE_NONE, 'Compile assets individually for development'),
 		);
 	}
 

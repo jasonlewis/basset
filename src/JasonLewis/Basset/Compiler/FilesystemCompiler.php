@@ -29,6 +29,10 @@ class FilesystemCompiler extends StringCompiler {
 	{
 		$response = parent::compile($collection, $group);
 
+		// The response will be an array. We'll implode the items joining them with a new
+		// line.
+		$response = implode(PHP_EOL, $response);
+
 		// If the output path does not exist then we'll attempt to create it.
 		if ( ! $this->files->exists($this->outputPath))
 		{
@@ -54,6 +58,44 @@ class FilesystemCompiler extends StringCompiler {
 		$this->files->put($outputFilePath, $response);
 
 		return $outputFilePath;
+	}
+
+	/**
+	 * Compiles the assets of a collection to individual files for development.
+	 * 
+	 * @return void
+	 */
+	public function compileDevelopment(Collection $collection, $group)
+	{
+		$responses = parent::compile($collection, $group);
+
+		// The output path will be the supplied output path plus the name of the collection.
+		// This helps to organise assets for each collection during development.
+		$outputPath = "{$this->outputPath}/{$collection->getName()}";
+
+		if ( ! $this->files->exists($outputPath))
+		{
+			$this->files->makeDirectory($outputPath);
+		}
+
+		$extension = $this->determineExtension($group);
+
+		// Spin through each of the responses and create the relevant directories and files for
+		// each of them.
+		foreach ($responses as $file => $contents)
+		{
+			$pathInfo = pathinfo($file);
+
+			$outputFilePath = "{$outputPath}/{$pathInfo['dirname']}";
+
+			// If the output path does not exist then we'll attempt to create it.
+			if ( ! $this->files->exists($outputFilePath))
+			{
+				$this->files->makeDirectory($outputFilePath);
+			}
+
+			$this->files->put("{$outputFilePath}/{$pathInfo['filename']}.{$extension}", $contents);
+		}
 	}
 
 	/**
