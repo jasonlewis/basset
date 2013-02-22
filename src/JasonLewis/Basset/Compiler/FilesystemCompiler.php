@@ -125,11 +125,12 @@ class FilesystemCompiler extends StringCompiler {
 	/**
 	 * Set the compiling to be forced.
 	 * 
+	 * @param  bool  $force
 	 * @return JasonLewis\Basset\Compiler\FilesystemCompiler
 	 */
-	public function force()
+	public function setForce($force)
 	{
-		$this->force = true;
+		$this->force = $force;
 
 		return $this;
 	}

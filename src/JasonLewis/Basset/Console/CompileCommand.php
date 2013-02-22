@@ -92,7 +92,7 @@ class CompileCommand extends Command {
 		// are to be forcefully compiled.
 		if ($this->input->getOption('force'))
 		{
-			$this->compiler->force();
+			$this->compiler->setForce(true);
 		}
 
 		$this->compiler->setOutputPath($this->outputPath);
