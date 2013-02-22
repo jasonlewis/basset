@@ -17,7 +17,7 @@ class StringCompiler extends Compiler {
 
 		// We'll store each of the assets compiled response in an array so that we can join each
 		// response by a new line with implode.
-		$response = array();
+		$responses = array();
 
 		foreach ($collection->getAssets($group) as $asset)
 		{
@@ -28,16 +28,16 @@ class StringCompiler extends Compiler {
 				continue;
 			}
 
-			$response[$asset->getRelativePath()] = $asset->compile();
+			$responses[$asset->getRelativePath()] = $asset->compile();
 		}
 
 		// If no assets were compiled then we'll throw an exception.
-		if (empty($response))
+		if (empty($responses))
 		{
 			throw new NoAssetsCompiledException("No [{$group}] assets compiled for collection [{$collection->getName()}]");
 		}
 
-		return $response;
+		return $responses;
 	}
 
 }
