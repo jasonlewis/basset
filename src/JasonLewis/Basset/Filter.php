@@ -213,7 +213,16 @@ class Filter {
 		{
 			$reflection = new ReflectionClass($className);
 
-			$reflectionInstance = $reflection->newInstanceArgs($this->arguments);
+			// If no constructor is available on the filters class then we'll instantiate
+			// the filter without passing in any arguments.
+			if ( ! $reflection->getConstructor())
+			{
+				$reflectionInstance = $reflection->newInstance();
+			}
+			else
+			{
+				$reflectionInstance = $reflection->newInstanceArgs($this->arguments);
+			}
 
 			// Spin through each of the before filtering callbacks and fire each one. We'll
 			// pass in an instance of the filter to the callback.
