@@ -1,4 +1,4 @@
-<?php namespace Basset\Filter;
+<?php namespace JasonLewis\Basset\Filter;
 
 use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
@@ -89,7 +89,7 @@ class UriRewriteFilter implements FilterInterface {
 		$content = $this->trimUrls($content);
 
 		$content = preg_replace_callback('/@import\\s+([\'"])(.*?)[\'"]/', array($this, 'processUriCallback'), $content);
-		
+
 		$content = preg_replace_callback('/url\\(\\s*([^\\)\\s]+)\\s*\\)/', array($this, 'processUriCallback'), $content);
 
 		$asset->setContent($content);
