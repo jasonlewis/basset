@@ -13,6 +13,13 @@ class Filter {
 	protected $arguments = array();
 
 	/**
+	 * Array of before filtering callbacks.
+	 * 
+	 * @var array
+	 */
+	protected $before = array();
+
+	/**
 	 * Filter name.
 	 * 
 	 * @var string
@@ -50,6 +57,19 @@ class Filter {
 	{
 		$this->filter = $filter;
 		$this->resource = $resource;
+	}
+
+	/**
+	 * Add a before filtering callback.
+	 * 
+	 * @param  Closure  $callback
+	 * @return JasonLewis\Basset\Filter
+	 */
+	public function beforeFiltering(Closure $callback)
+	{
+		$this->before[] = $callback;
+
+		return $this;
 	}
 
 	/**
@@ -193,7 +213,19 @@ class Filter {
 		{
 			$reflection = new ReflectionClass($className);
 
-			return $reflection->newInstanceArgs($this->arguments);
+			$reflectionInstance = $reflection->newInstanceArgs($this->arguments);
+
+			// Spin through each of the before filtering callbacks and fire each one. We'll
+			// pass in an instance of the filter to the callback.
+			foreach ($this->before as $callback)
+			{
+				if (is_callable($callback))
+				{
+					call_user_func($callback, $reflectionInstance);
+				}
+			}
+
+			return $reflectionInstance;
 		}
 	}
 

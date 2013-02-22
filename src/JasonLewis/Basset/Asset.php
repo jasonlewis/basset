@@ -1,5 +1,6 @@
 <?php namespace JasonLewis\Basset;
 
+use Closure;
 use Assetic\Asset\StringAsset;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
@@ -227,9 +228,7 @@ class Asset implements FilterableInterface {
 			}
 		}
 
-		$contents = $this->getContent();
-
-		$asset = new StringAsset($contents, $appliedFilters, dirname($this->absolutePath), basename($this->absolutePath));
+		$asset = new StringAsset($this->getContent(), $appliedFilters, dirname($this->absolutePath), basename($this->absolutePath));
 
 		return $asset->dump();
 	}
