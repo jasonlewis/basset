@@ -27,7 +27,7 @@ class BassetServiceProvider extends ServiceProvider {
 
 	/**
 	 * Boot the service provider.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function boot()
@@ -37,7 +37,7 @@ class BassetServiceProvider extends ServiceProvider {
 
 	/**
 	 * Register the application bindings.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function registerBindings()
@@ -62,7 +62,7 @@ class BassetServiceProvider extends ServiceProvider {
 
 	/**
 	 * Register the routes that Basset responds to.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function registerRoutes()
@@ -75,12 +75,12 @@ class BassetServiceProvider extends ServiceProvider {
 			{
 				return $app['basset.response']->getResponse();
 			}
-		});		
+		});
 	}
 
 	/**
 	 * Register the artisan commands.
-	 * 
+	 *
 	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
@@ -103,7 +103,12 @@ class BassetServiceProvider extends ServiceProvider {
 			return new Console\ListCommand($app, $compilePath);
 		});
 
-		$this->commands('command.basset', 'command.basset.compile', 'command.basset.list');
+		$this->app['command.basset.clean'] = $this->app->share(function($app) use ($compilePath)
+		{
+			return new Console\CleanCommand($app, $compilePath);
+		});
+
+		$this->commands('command.basset', 'command.basset.compile', 'command.basset.list', 'command.basset.clean');
 	}
 
 }
