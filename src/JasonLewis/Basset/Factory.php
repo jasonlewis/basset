@@ -95,4 +95,25 @@ class Factory {
 		return $this->collections[$name];
 	}
 
+	/**
+	 * Get all collections.
+	 * 
+	 * @return array
+	 */
+	public function getCollections()
+	{
+		return $this->collections;
+	}
+
+	/**
+	 * Determine if a collection exists.
+	 * 
+	 * @param  string  $name
+	 * @return bool
+	 */
+	public function hasCollection($name)
+	{
+		return isset($this->collections[$name]);
+	}
+
 }

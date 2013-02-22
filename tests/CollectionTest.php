@@ -158,8 +158,9 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$collection->add('css/example.css');
 		$collection->add('js/example.js');
 		$collection->apply($filter);
-		$compiledCss = $collection->compile('styles');
-		$compiledJs = $collection->compile('scripts');
+		$compiler = new JasonLewis\Basset\Compiler\StringCompiler($files, $config);
+		$compiledCss = $compiler->compileStyles($collection);
+		$compiledJs = $compiler->compileScripts($collection);
 		$this->assertEquals('body { background-color: #fff; }', $compiledCss);
 		$this->assertEquals('alert("hello world")', $compiledJs);
 	}

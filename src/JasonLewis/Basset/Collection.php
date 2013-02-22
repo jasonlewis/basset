@@ -4,6 +4,7 @@ use Closure;
 use RuntimeException;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
+use JasonLewis\Basset\Compiler\StringCompiler;
 
 class Collection implements FilterableInterface {
 
@@ -393,37 +394,6 @@ class Collection implements FilterableInterface {
 	public function getFilters()
 	{
 		return $this->filters;
-	}
-
-	/**
-	 * Compile a given group on the collection.
-	 * 
-	 * @param  string  $group
-	 * @return string
-	 */
-	public function compile($group)
-	{
-		$this->processCollection();
-
-		$assets = $this->getAssets($group);
-
-		// We'll store each of the assets compiled response in an array so that we can join each
-		// response by a new line with implode.
-		$response = array();
-
-		foreach ($assets as $asset)
-		{
-			// If remote assets are not to be compiled and the asset is remote or the asset is being
-			// ignored then it won't be included.
-			if ( ! $this->config->get('basset::compile_remotes', false) and $asset->isRemote() or $asset->isIgnored())
-			{
-				continue;
-			}
-
-			$response[] = $asset->compile();
-		}
-
-		return implode(PHP_EOL, $response);
 	}
 
 }
