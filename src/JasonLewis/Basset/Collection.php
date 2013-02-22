@@ -188,7 +188,14 @@ class Collection implements FilterableInterface {
 	 */
 	public function directory($path, Closure $callback)
 	{
-		$this->workingDirectory = $this->parseDirectoryPath($path);
+		try
+		{
+			$this->workingDirectory = $this->parseDirectoryPath($path);
+		}
+		catch (RuntimeException $error)
+		{
+			return $this;
+		}
 
 		// Once we've set the working directory we'll fire the callback so that any added assets
 		// are relative to the working directory. After the callback we can revert the working
@@ -208,7 +215,14 @@ class Collection implements FilterableInterface {
 	 */
 	public function requireDirectory($path = null)
 	{
-		$directory = $this->parseRequirePath($path);
+		try
+		{
+			$directory = $this->parseRequirePath($path);
+		}
+		catch (RuntimeException $error)
+		{
+			return new Directory($this->files, $this->manager, null);
+		}
 
 		return $this->directories[] = $directory->requireDirectory();
 	}
@@ -221,7 +235,14 @@ class Collection implements FilterableInterface {
 	 */
 	public function requireTree($path = null)
 	{
-		$directory = $this->parseRequirePath($path);
+		try
+		{
+			$directory = $this->parseRequirePath($path);
+		}
+		catch (RuntimeException $error)
+		{
+			return new Directory($this->files, $this->manager, null);
+		}
 
 		return $this->directories[] = $directory->requireTree();
 	}
@@ -236,20 +257,23 @@ class Collection implements FilterableInterface {
 	{
 		// If no path was given then we'll check if we're working within a directory. If not then the
 		// method is not being used correctly.
+		$directory = null;
+
 		if (is_null($path))
 		{
 			if ($this->workingDirectory instanceof Directory)
 			{
 				$directory = $this->workingDirectory;
 			}
-			else
-			{
-				throw new RuntimeException('Basset is not within a working directory and no path was supplied.');
-			}
 		}
 		else
 		{
 			$directory = $this->parseDirectoryPath($path);
+		}
+
+		if ( ! $directory instanceof Directory)
+		{
+			throw new RuntimeException("Invalid path or working directory supplied.");
 		}
 
 		return $directory;
