@@ -1,5 +1,6 @@
 <?php namespace JasonLewis\Basset\Console;
 
+use RuntimeException;
 use JasonLewis\Basset\Factory;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
@@ -169,7 +170,7 @@ class CompileCommand extends Command {
 	{
 		return array(
 			array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-compile of the collection'),
-			array('dev', InputOption::VALUE_NONE, 'Compile assets individually for development'),
+			array('dev', null, InputOption::VALUE_NONE, 'Compile assets individually for development'),
 		);
 	}
 
