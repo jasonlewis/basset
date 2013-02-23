@@ -30,7 +30,7 @@ class FilesystemCompiler extends StringCompiler {
      * Compile the assets of a collection.
      *
      * @param  JasonLewis\Basset\Collection  $collection
-     * @return string
+     * @return void
      */
     public function compile(Collection $collection, $group)
     {
@@ -63,8 +63,6 @@ class FilesystemCompiler extends StringCompiler {
         }
 
         $this->files->put($outputFilePath, $response);
-
-        return $outputFilePath;
     }
 
     /**
@@ -93,7 +91,12 @@ class FilesystemCompiler extends StringCompiler {
         {
             $pathInfo = pathinfo($relativePath);
 
-            $compileFilePath = "{$compilePath}/{$pathInfo['dirname']}";
+            $compileFilePath = $compilePath;
+
+            if (in_array($pathInfo['dirname'], array('.', '..')))
+            {
+                $compileFilePath .= "/{$pathInfo['dirname']}";
+            }
 
             if ( ! $this->files->exists($compileFilePath))
             {
