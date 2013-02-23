@@ -91,10 +91,7 @@ class CompileCommand extends Command {
 
 		// If the force option has been set then we'll tell the compiler that the collections
 		// are to be forcefully compiled.
-		if ($this->input->getOption('force'))
-		{
-			$this->compiler->setForce(true);
-		}
+		$this->input->getOption('force') and $this->compiler->force();
 
 		$this->compiler->setOutputPath($this->outputPath);
 
