@@ -38,6 +38,11 @@ class BassetServiceProvider extends ServiceProvider {
 			return new AssetManager($app['files'], $app['path.public'], $app['env']);
 		});
 
+		$this->app['basset.repository'] = $this->app->share(function($app)
+		{
+			return new CollectionRepository($app['files'], $app['config']->get('app.manifest'));
+		});
+
 		$this->app['basset'] = $this->app->share(function($app)
 		{
 			return new Factory($app['files'], $app['config'], $app['url'], $app['basset.manager']);
@@ -62,11 +67,11 @@ class BassetServiceProvider extends ServiceProvider {
 		{
 			$compiler = new FilesystemCompiler($app['files'], $app['config']);
 
-			// The output path is where the compiled collections are saved. This path is relative
-			// to the public directory.
-			$outputPath = $app['path.public'].'/'.$app['config']->get('basset::compiling_path');
+			// The compile path is where the compiled collections are saved. This path is relative
+			// to the public directory, so we'll join the public path and the compile path together.
+			$compilePath = $app['path.public'].'/'.$app['config']->get('basset::compiling_path');
 
-			return new CompileCommand($app['basset'], $compiler, $outputPath);
+			return new CompileCommand($app['basset'], $compiler, $app['basset.repository'], $compilePath);
 		});
 
 		$this->commands('command.basset', 'command.basset.compile');
@@ -79,7 +84,7 @@ class BassetServiceProvider extends ServiceProvider {
 	 */
 	public function provides()
 	{
-		return array('basset', 'basset.manager');
+		return array('basset', 'basset.manager', 'basset.repository');
 	}
 
 }

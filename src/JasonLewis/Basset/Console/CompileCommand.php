@@ -3,6 +3,7 @@
 use RuntimeException;
 use JasonLewis\Basset\Factory;
 use Illuminate\Console\Command;
+use JasonLewis\Basset\CollectionRepository;
 use Symfony\Component\Console\Input\InputOption;
 use JasonLewis\Basset\Compiler\CompilerInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -40,11 +41,18 @@ class CompileCommand extends Command {
 	protected $compiler;
 
 	/**
+	 * Collection repository instance.
+	 * 
+	 * @var JasonLewis\Basset\CollectionRepository
+	 */
+	protected $repository;
+
+	/**
 	 * Path to output compiled collections.
 	 * 
 	 * @var string
 	 */
-	protected $outputPath;
+	protected $compilePath;
 
 	/**
 	 * Create a new basset compile command instance.
@@ -53,13 +61,14 @@ class CompileCommand extends Command {
 	 * @param  JasonLewis\Basset\Compiler\CompilerInterface  $compiler
 	 * @return void
 	 */
-	public function __construct(Factory $factory, CompilerInterface $compiler, $outputPath)
+	public function __construct(Factory $factory, CompilerInterface $compiler, CollectionRepository $repository, $compilePath)
 	{
 		parent::__construct();
 
 		$this->factory = $factory;
 		$this->compiler = $compiler;
-		$this->outputPath = $outputPath;
+		$this->repository = $repository;
+		$this->compilePath = $compilePath;
 	}
 
 	/**
@@ -69,6 +78,10 @@ class CompileCommand extends Command {
 	 */
 	public function fire()
 	{
+		// Load the existing collection repository so that we can register and store any changes to
+		// collections within the repository.
+		$this->repository->load();
+
 		if ( ! is_null($collection = $this->input->getArgument('collection')))
 		{
 			if ( ! $this->factory->hasCollection($collection))
@@ -93,7 +106,7 @@ class CompileCommand extends Command {
 		// are to be forcefully compiled.
 		$this->input->getOption('force') and $this->compiler->force();
 
-		$this->compiler->setOutputPath($this->outputPath);
+		$this->compiler->setCompilePath($this->compilePath);
 
 		// Spin through each of the collections and compile both the scripts and styles. Each is broken into
 		// a separate try/catch block so that we can catch any exceptions thrown when attempting to compile.
@@ -143,6 +156,11 @@ class CompileCommand extends Command {
 			{
 				$this->line("<comment>Scripts are up-to-date for collection:</comment> {$collection->getName()}");
 			}
+
+			// After the compiling has taken place we'll register this collection with the repository. This will
+			// store all information related to this collection so that Basset knows what files to load when
+			// running under different environments.
+			$this->repository->register($collection, $this->compiler->getFingerprint(), $this->input->getOption('dev'));
 		}
 	}
 
