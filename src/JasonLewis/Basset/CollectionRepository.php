@@ -41,7 +41,7 @@ class CollectionRepository {
     /**
      * Load and set the manifest on the repository instance.
      *
-     * @return void
+     * @return array
      */
     public function load()
     {
@@ -51,6 +51,8 @@ class CollectionRepository {
         {
             $this->manifest = $manifest;
         }
+
+        return $this->manifest;
     }
 
     /**
@@ -135,6 +137,16 @@ class CollectionRepository {
         }
 
         return $this->manifest[$name];
+    }
+
+    /**
+     * Get the manifest array.
+     *
+     * @return array
+     */
+    public function getManifest()
+    {
+        return $this->manifest;
     }
 
     /**
