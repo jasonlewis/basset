@@ -14,7 +14,6 @@
         "illuminate/console": "4.0.*",
         "illuminate/filesystem": "4.0.*",
         "illuminate/support": "4.0.*",
-        "illuminate/routing": "4.0.*",
         "jasonlewis/resource-watcher": "*",
         "kriswallsmith/assetic": "1.1.*@dev"
     },
