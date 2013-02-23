@@ -2,6 +2,6 @@
 
 use Exception;
 
-class NoAssetsCompiledException extends Exception {
+class EmptyResponseException extends Exception {
 
 }

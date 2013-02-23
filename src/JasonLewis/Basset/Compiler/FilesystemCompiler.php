@@ -1,7 +1,7 @@
 <?php namespace JasonLewis\Basset\Compiler;
 
 use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exceptions\CompilingNotRequiredException;
+use JasonLewis\Basset\Exceptions\CollectionExistsException;
 
 class FilesystemCompiler extends StringCompiler {
 
@@ -59,7 +59,7 @@ class FilesystemCompiler extends StringCompiler {
 
         if ($this->files->exists($outputFilePath) and ! $this->force)
         {
-            throw new CompilingNotRequiredException("The [{$group}] on collection [{$collection->getName()}] are up to date.");
+            throw new CollectionExistsException("The [{$group}] on collection [{$collection->getName()}] are up to date.");
         }
 
         $this->files->put($outputFilePath, $response);

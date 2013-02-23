@@ -1,7 +1,7 @@
 <?php namespace JasonLewis\Basset\Compiler;
 
 use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exceptions\NoAssetsCompiledException;
+use JasonLewis\Basset\Exceptions\EmptyResponseException;
 
 class StringCompiler extends Compiler {
 
@@ -34,7 +34,7 @@ class StringCompiler extends Compiler {
         // If no assets were compiled then we'll throw an exception.
         if (empty($responses))
         {
-            throw new NoAssetsCompiledException("No [{$group}] assets compiled for collection [{$collection->getName()}]");
+            throw new EmptyResponseException("No [{$group}] assets compiled for collection [{$collection->getName()}]");
         }
 
         return $responses;

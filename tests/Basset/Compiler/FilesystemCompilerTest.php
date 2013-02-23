@@ -49,7 +49,7 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\CompilingNotRequiredException
+     * @expectedException JasonLewis\Basset\Exceptions\CollectionExistsException
      */
     public function testFilesystemCompilerFailsWithNoChanges()
     {

@@ -2,6 +2,6 @@
 
 use Exception;
 
-class CompilingNotRequiredException extends Exception {
+class CollectionExistsException extends Exception {
 
 }

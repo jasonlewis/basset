@@ -45,7 +45,7 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
 
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\NoAssetsCompiledException
+     * @expectedException JasonLewis\Basset\Exceptions\EmptyResponseException
      */
     public function testStringCompilerWithIgnoredAssets()
     {
@@ -66,7 +66,7 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
 
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\NoAssetsCompiledException
+     * @expectedException JasonLewis\Basset\Exceptions\EmptyResponseException
      */
     public function testStringCompilerWithRemoteAssetsAndNoRemoteCompiling()
     {
