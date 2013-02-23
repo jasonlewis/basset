@@ -11,14 +11,14 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCanGetCollectionName()
+    public function testGetCollectionName()
     {
         $collection = $this->getStandardCollectionInstance();
         $this->assertEquals('foo', $collection->getName());
     }
 
 
-    public function testCanAddBasicAsset()
+    public function testAddBasicAsset()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
@@ -28,12 +28,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
         $collection->add('bar.css');
         $assets = $collection->getAssets();
-        $this->assertCount(1, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
     }
 
 
-    public function testCanAddAliasedAsset()
+    public function testAddAliasedAsset()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
@@ -44,12 +43,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
         $collection->add('foo');
         $assets = $collection->getAssets();
-        $this->assertCount(1, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
     }
 
 
-    public function testCanAddRemoteAssets()
+    public function testAddRemoteAssets()
     {
         $files = $this->getFiles();
         $config = $this->getConfig();
@@ -58,13 +56,12 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
         $collection->add('http://foo.com/bar.css');
         $assets = $collection->getAssets();
-        $this->assertCount(1, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
         $this->assertTrue($assets[0]->isRemote());
     }
 
 
-    public function testCanAddAssetsFromDefinedDirectory()
+    public function testAddAssetsFromDefinedDirectory()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->once()->with('path/to/bar.css')->andReturn(false);
@@ -82,12 +79,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->__construct($files, $config, $manager, 'foo');
         $collection->add('bar.css');
         $assets = $collection->getAssets();
-        $this->assertCount(1, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
     }
 
 
-    public function testCanAddAssetFromWithinWorkingDirectory()
+    public function testAddAssetFromWithinWorkingDirectory()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->twice()->with('path/to/nested/bar.css')->andReturn(true);
@@ -104,7 +100,6 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
             $collection->add('bar.css');
         });
         $assets = $collection->getAssets();
-        $this->assertCount(1, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
     }
 
@@ -129,7 +124,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCanGetAllIgnoredAssets()
+    public function testGetAllIgnoredAssets()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
@@ -143,12 +138,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->add('foo.css');
         $assets = $collection->getIgnoredAssets();
         $this->assertCount(1, $assets);
-        $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
         $this->assertCount(2, $collection->getAssets());
     }
 
 
-    public function testCanGetIgnoredAssetsByGroup()
+    public function testGetIgnoredAssetsByGroup()
     {
         $files = $this->getFiles();
         $files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
@@ -164,7 +158,6 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->add('foo.js')->ignore();
         $assets = $collection->getIgnoredAssets('styles');
         $this->assertCount(1, $assets);
-        $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
     }
 
 
@@ -176,7 +169,6 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $files->shouldReceive('getRemote')->once()->with('path/to/css/example.css')->andReturn('html { background-color: #fff; }');
         $files->shouldReceive('getRemote')->once()->with('path/to/js/example.js')->andReturn('alert("hello world")');
         $config = $this->getConfig();
-        $config->shouldReceive('get')->twice()->with('basset::compile_remotes', '')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.css/example.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.js/example.js')->andReturn(false);
         $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to', 'local'));

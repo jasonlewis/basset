@@ -11,7 +11,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCanRequireDirectory()
+    public function testRequireDirectory()
     {
         $files = $this->getFiles();
         $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
@@ -31,14 +31,13 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $directory->shouldReceive('iterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireDirectory();
         $assets = $directory->getAssets();
-        $this->assertCount(2, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[1]);
         $this->assertEquals('css/example.css', $assets[0]->getAbsolutePath());
     }
 
 
-    public function testCanRecursivelyRequireDirectory()
+    public function testRecursivelyRequireDirectory()
     {
         $files = $this->getFiles();
         $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
@@ -56,14 +55,13 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireTree();
         $assets = $directory->getAssets();
-        $this->assertCount(2, $assets);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
         $this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[1]);
         $this->assertEquals('css/nested/foobar.css', $assets[1]->getAbsolutePath());
     }
 
 
-    public function testCanExcludeAndRequireSpecificFilesInDirectory()
+    public function testExcludeAndRequireSpecificFilesInDirectory()
     {
         $files = $this->getFiles();
         $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));

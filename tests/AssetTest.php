@@ -11,18 +11,18 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCanGetAssetProperties()
+    public function testGetAssetProperties()
     {
         $asset = $this->getAssetInstance();
         $this->assertEquals('foo/bar.css', $asset->getRelativePath());
         $this->assertEquals('/absolute/foo/bar.css', $asset->getAbsolutePath());
+        $this->assertEquals('css', $asset->getValidExtension());
     }
 
 
     public function testAssetsCanBeIgnored()
     {
-        $asset = $this->getAssetInstance();
-        $asset->ignore();
+        $asset = $this->getAssetInstance()->ignore();
         $this->assertTrue($asset->isIgnored());
     }
 
@@ -51,8 +51,6 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $filter->shouldReceive('getFilter')->once()->andReturn('ExistingFilter');
         $asset->apply($filter);
         $filters = $asset->getFilters();
-        $this->assertArrayHasKey('RandomFilter', $filters);
-        $this->assertArrayHasKey('ExistingFilter', $filters);
         $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['RandomFilter']);
         $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['ExistingFilter']);
     }
@@ -69,13 +67,13 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
         $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('script');
         $barFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $zooFilter = m::mock('JasonLewis\Basset\Filter');
-        $zooFilter->shouldReceive('getFilter')->once()->andReturn('ZooFilter');
-        $zooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
-        $zooFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
+        $bazFilter = m::mock('JasonLewis\Basset\Filter');
+        $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
+        $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
+        $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
         $asset->apply($fooFilter);
         $asset->apply($barFilter);
-        $asset->apply($zooFilter);
+        $asset->apply($bazFilter);
         $asset->prepareFilters();
         $filters = $asset->getFilters();
         $this->assertArrayHasKey('FooFilter', $filters);

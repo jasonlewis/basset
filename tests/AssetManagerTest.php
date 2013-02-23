@@ -16,7 +16,6 @@ class AssetManagerTest extends PHPUnit_Framework_TestCase {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $manager = new JasonLewis\Basset\AssetManager($files, __DIR__, 'local');
         $asset = $manager->make(__FILE__);
-        $this->assertInstanceOf('JasonLewis\Basset\Asset', $asset);
         $this->assertEquals(basename(__FILE__), $asset->getRelativePath());
         $this->assertEquals(__FILE__, $asset->getAbsolutePath());
     }

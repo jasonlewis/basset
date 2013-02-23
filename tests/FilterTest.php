@@ -17,7 +17,6 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $filter = new JasonLewis\Basset\Filter('FooFilter', $resource);
         $filter->setArguments('Foo', 'Bar');
         $arguments = $filter->getArguments();
-        $this->assertCount(2, $arguments);
         $this->assertEquals('Foo', $arguments[0]);
     }
 
@@ -31,7 +30,6 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('Foo', $environments[0]);
         $filter->onEnvironments('Bar', 'Zoo');
         $environments = $filter->getEnvironments();
-        $this->assertCount(3, $environments);
         $this->assertEquals('Bar', $environments[1]);
     }
 
