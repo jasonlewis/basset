@@ -93,7 +93,7 @@ class FilesystemCompiler extends StringCompiler {
 
             $compileFilePath = $compilePath;
 
-            if (in_array($pathInfo['dirname'], array('.', '..')))
+            if ( ! in_array($pathInfo['dirname'], array('.', '..')))
             {
                 $compileFilePath .= "/{$pathInfo['dirname']}";
             }
