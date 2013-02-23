@@ -1,6 +1,8 @@
 <?php
 
 use Mockery as m;
+use JasonLewis\Basset\Asset;
+use JasonLewis\Basset\FilterFactory;
 
 class AssetTest extends PHPUnit_Framework_TestCase {
 
@@ -14,22 +16,25 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     public function testGetAssetProperties()
     {
         $asset = $this->getAssetInstance();
+
         $this->assertEquals('foo/bar.css', $asset->getRelativePath());
-        $this->assertEquals('/absolute/foo/bar.css', $asset->getAbsolutePath());
+        $this->assertEquals('path/to/foo/bar.css', $asset->getAbsolutePath());
         $this->assertEquals('css', $asset->getValidExtension());
     }
 
 
     public function testAssetsCanBeIgnored()
     {
-        $asset = $this->getAssetInstance()->ignore();
-        $this->assertTrue($asset->isIgnored());
+        $asset = $this->getAssetInstance();
+
+        $this->assertTrue($asset->ignore()->isIgnored());
     }
 
 
     public function testAssetIsStyleOrScript()
     {
         $asset = $this->getAssetInstance();
+
         $this->assertTrue($asset->isStyle());
         $this->assertFalse($asset->isScript());
     }
@@ -37,86 +42,135 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHosted()
     {
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $asset = new JasonLewis\Basset\Asset($files, m::mock('JasonLewis\Basset\FilterFactory'), 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'local');
+        $files = $this->getFilesMock();
+        $filterFactory = $this->getFilterFactoryMock();
+
+        $asset = new Asset($files, $filterFactory, 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'testing');
+
         $this->assertTrue($asset->isRemote());
     }
 
 
     public function testFiltersAreAppliedToAssets()
     {
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $config = m::mock('Illuminate\Config\Repository');
-        $config->shouldReceive('has')->once()->with('basset::filters.RandomFilter')->andReturn(false);
-        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
-        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
-        $asset->apply('RandomFilter');
-        $filter = m::mock('JasonLewis\Basset\Filter');
-        $filter->shouldReceive('getFilter')->once()->andReturn('ExistingFilter');
+        $files = $this->getFilesMock();
+        $config = $this->getConfigMock();
+        $config->shouldReceive('has')->once()->with('basset::filters.FooFilter')->andReturn(false);
+        $filterFactory = new FilterFactory($config);
+
+        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+
+        $asset->apply('FooFilter');
+
+        $filter = $this->getFilterMock();
+        $filter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
         $asset->apply($filter);
+
         $filters = $asset->getFilters();
-        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['RandomFilter']);
-        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['ExistingFilter']);
+
+        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['FooFilter']);
+        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['BarFilter']);
     }
 
 
-    public function testFiltersAreCorrectlyPrepared()
+    public function testFiltersArePrepared()
     {
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $config = m::mock('Illuminate\Config\Repository');
+        $files = $this->getFilesMock();
+        $config = $this->getConfigMock();
         $filterFactory = new JasonLewis\Basset\FilterFactory($config);
-        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
-        $fooFilter = m::mock('JasonLewis\Basset\Filter');
+
+        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+
+        $fooFilter = $this->getFilterMock();
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $barFilter = m::mock('JasonLewis\Basset\Filter');
+
+        $barFilter = $this->getFilterMock();
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
         $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('script');
         $barFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $bazFilter = m::mock('JasonLewis\Basset\Filter');
+
+        $bazFilter = $this->getFilterMock();
         $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
         $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
+
         $asset->apply($fooFilter);
         $asset->apply($barFilter);
         $asset->apply($bazFilter);
+
         $asset->prepareFilters();
+
         $filters = $asset->getFilters();
+
         $this->assertArrayHasKey('FooFilter', $filters);
-        $this->assertCount(1, $filters);
+        $this->assertArrayNotHasKey('BarFilter', $filters);
+        $this->assertArrayNotHasKey('BazFilter', $filters);
     }
 
 
     public function testAssetIsCompiledCorrectly()
     {
         $contents = 'html { background-color: #fff; }';
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
+
+        $files = $this->getFilesMock();
         $files->shouldReceive('getRemote')->once()->andReturn($contents);
-        $config = m::mock('Illuminate\Config\Repository');
-        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
-        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
+        $config = $this->getConfigMock();
+        $filterFactory = new FilterFactory($config);
+
+        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+
         $instantiatedFilter = m::mock('Assetic\Filter\FilterInterface');
         $instantiatedFilter->shouldReceive('filterLoad')->once()->andReturn(null);
         $instantiatedFilter->shouldReceive('filterDump')->once()->andReturnUsing(function($asset) use ($contents)
         {
             $asset->setContent(str_replace('html', 'body', $contents));
         });
-        $filter = m::mock('JasonLewis\Basset\Filter');
+
+        $filter = $this->getFilterMock();
         $filter->shouldReceive('getFilter')->once()->andReturn('BodyFilter');
         $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $filter->shouldReceive('getEnvironments')->once()->andReturn(array());
         $filter->shouldReceive('instantiate')->once()->andReturn($instantiatedFilter);
+
         $asset->apply($filter);
+
         $this->assertEquals('body { background-color: #fff; }', $asset->compile());
     }
 
 
     protected function getAssetInstance()
     {
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $filterFactory = m::mock('JasonLewis\Basset\FilterFactory');
-        return new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
+        $files = $this->getFilesMock();
+        $filterFactory = $this->getFilterFactoryMock();
+
+        return new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
     }
+
+
+    protected function getFilesMock()
+    {
+        return m::mock('Illuminate\Filesystem\Filesystem');
+    }
+
+
+    protected function getFilterFactoryMock()
+    {
+        return m::mock('JasonLewis\Basset\FilterFactory');
+    }
+
+
+    protected function getFilterMock()
+    {
+        return m::mock('JasonLewis\Basset\Filter');
+    }
+
+
+    protected function getConfigMock()
+    {
+        return m::mock('Illuminate\Config\Repository');
+    }
+
 
 }
