@@ -8,13 +8,12 @@ return array(
 	|--------------------------------------------------------------------------
 	|
 	| When you add a remote asset it's often located on a CDN and you don't
-	| want it compiled into your collection. Disabling the compiling of remote
-	| assets means they won't be included during the compiling, but when you
-	| request a collection in your view it will be added as another tag.
+	| want it compiled into your collection. Disabling the compiling of all
+	| remote assets means they won't be included in the compiled collection.
 	|
 	*/
 
-	'compile_remotes' => false,
+	'compile_remotes' => true,
 
 	/*
 	|--------------------------------------------------------------------------
@@ -80,7 +79,7 @@ return array(
 	|
 	| A named filter can be used to quickly apply a filter to a collection of
 	| assets.
-	| 
+	|
 	|	'YuiCss' => 'Yui\CssCompressorFilter'
 	|
 	| If you'd like to specify options for a named filter you can define the
