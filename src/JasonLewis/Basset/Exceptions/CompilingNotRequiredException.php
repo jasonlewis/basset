@@ -3,5 +3,5 @@
 use Exception;
 
 class CompilingNotRequiredException extends Exception {
-	
+
 }
