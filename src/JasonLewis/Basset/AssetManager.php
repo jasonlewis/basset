@@ -23,21 +23,21 @@ class AssetManager {
      *
      * @var string
      */
-    protected $environment;
+    protected $workingEnvironment;
 
     /**
      * Create a new asset manager instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  string  $publicPath
-     * @param  string  $environment
+     * @param  string  $workingEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, $publicPath, $environment)
+    public function __construct(Filesystem $files, $publicPath, $workingEnvironment)
     {
         $this->files = $files;
         $this->publicPath = $publicPath;
-        $this->environment = $environment;
+        $this->workingEnvironment = $workingEnvironment;
     }
 
     /**
@@ -54,7 +54,7 @@ class AssetManager {
 
         $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
 
-        return new Asset($this->files, $absolutePath, $relativePath, $this->environment);
+        return new Asset($this->files, $absolutePath, $relativePath, $this->workingEnvironment);
     }
 
     /**

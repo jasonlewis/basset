@@ -33,7 +33,7 @@ class Asset implements FilterableInterface {
      *
      * @var string
      */
-    protected $environment;
+    protected $workingEnvironment;
 
     /**
      * Array of filters.
@@ -55,15 +55,15 @@ class Asset implements FilterableInterface {
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  string  $absolutePath
      * @param  string  $relativePath
-     * @param  string  $environment
+     * @param  string  $workingEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, $absolutePath, $relativePath, $environment)
+    public function __construct(Filesystem $files, $absolutePath, $relativePath, $workingEnvironment)
     {
         $this->files = $files;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
-        $this->environment = $environment;
+        $this->workingEnvironment = $workingEnvironment;
     }
 
     /**
@@ -181,7 +181,7 @@ class Asset implements FilterableInterface {
             // is running within one of the specified environments.
             $possibleEnvironments = $filter->getEnvironments();
 
-            if ($possibleEnvironments and ! in_array($this->environment, $possibleEnvironments))
+            if ($possibleEnvironments and ! in_array($this->workingEnvironment, $possibleEnvironments))
             {
                 unset($this->filters[$key]);
             }
