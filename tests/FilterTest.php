@@ -48,16 +48,13 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	/**
-     * @expectedException ReflectionException
-     */
 	public function testFiltersCanBeInstantiated()
 	{
 		$resource = m::mock('JasonLewis\Basset\FilterableInterface');
 		$filter = m::mock('JasonLewis\Basset\Filter[exists]', array('FooFilter', $resource));
 		$filter->shouldReceive('exists')->once()->andReturn('stdClass');
 		$filter->setArguments('Foo', 'Bar');
-		$filter->instantiate();
+		$this->assertInstanceOf('stdClass', $filter->instantiate());
 	}
 
 
