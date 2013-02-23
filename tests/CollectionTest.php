@@ -129,7 +129,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testCanGetIgnoredAssets()
+	public function testCanGetAllIgnoredAssets()
 	{
 		$files = $this->getFiles();
 		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
@@ -145,6 +145,26 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$this->assertCount(1, $assets);
 		$this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
 		$this->assertCount(2, $collection->getAssets());
+	}
+
+
+	public function testCanGetIgnoredAssetsByGroup()
+	{
+		$files = $this->getFiles();
+		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/foo.js')->andReturn(true);
+		$config = $this->getConfig();
+		$config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
+		$config->shouldReceive('has')->once()->with('basset::assets.foo.js')->andReturn(false);
+		$manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to', 'local'));
+		$manager->shouldReceive('getAbsolutePath')->with('path/to/bar.css')->andReturn('path/to/bar.css');
+		$manager->shouldReceive('getAbsolutePath')->with('path/to/foo.js')->andReturn('path/to/foo.js');
+		$collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
+		$collection->add('bar.css')->ignore();
+		$collection->add('foo.js')->ignore();
+		$assets = $collection->getIgnoredAssets('styles');
+		$this->assertCount(1, $assets);
+		$this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
 	}
 
 
