@@ -23,7 +23,7 @@ class StringCompiler extends Compiler {
 		{
 			// If remote assets are not to be compiled and the asset is remote or the asset is being
 			// ignored then it won't be included.
-			if ( ! $this->config->get('basset::compile_remotes', false) and $asset->isRemote() or $asset->isIgnored())
+			if ($asset->isIgnored() or ( ! $this->config->get('basset::compile_remotes', false) and $asset->isRemote()))
 			{
 				continue;
 			}
