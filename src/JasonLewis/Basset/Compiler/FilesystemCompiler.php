@@ -10,7 +10,7 @@ class FilesystemCompiler extends StringCompiler {
 	 * 
 	 * @var string
 	 */
-	protected $outputPath;
+	protected $compilePath;
 
 	/**
 	 * Indicates if the compiling should be forced.
@@ -18,6 +18,13 @@ class FilesystemCompiler extends StringCompiler {
 	 * @var bool
 	 */
 	protected $force = false;
+
+	/**
+	 * Compiled collection fingerprint.
+	 * 
+	 * @var string
+	 */
+	protected $fingerprint;
 
 	/**
 	 * Compile the assets of a collection.
@@ -33,22 +40,22 @@ class FilesystemCompiler extends StringCompiler {
 		// line.
 		$response = implode(PHP_EOL, $response);
 
-		// If the output path does not exist then we'll attempt to create it.
-		if ( ! $this->files->exists($this->outputPath))
+		// If the compile path does not exist then we'll attempt to create it.
+		if ( ! $this->files->exists($this->compilePath))
 		{
-			$this->files->makeDirectory($this->outputPath);
+			$this->files->makeDirectory($this->compilePath);
 		}
 
 		// The fingerprint is an MD5 hash of the compiled response. This allows the cache
 		// to be busted when a new lot of assets are compiled.
-		$fingerprint = md5($response);
+		$this->fingerprint = md5($response);
 
 		$extension = $this->determineExtension($group);
 
 		// Before we attempt to save the response to the output file we'll first make sure
 		// that a file with the same name does not exist. If one exists then we'll throw
 		// an exception unless the compiling is being forced.
-		$outputFilePath = "{$this->outputPath}/{$collection->getName()}-{$fingerprint}.{$extension}";
+		$outputFilePath = "{$this->compilePath}/{$collection->getName()}-{$this->fingerprint}.{$extension}";
 
 		if ($this->files->exists($outputFilePath) and ! $this->force)
 		{
@@ -71,29 +78,29 @@ class FilesystemCompiler extends StringCompiler {
 
 		// The output path will be the supplied output path plus the name of the collection.
 		// This helps to organise assets for each collection during development.
-		$outputPath = "{$this->outputPath}/{$collection->getName()}";
+		$compilePath = "{$this->compilePath}/{$collection->getName()}";
 
-		if ( ! $this->files->exists($outputPath))
+		if ( ! $this->files->exists($compilePath))
 		{
-			$this->files->makeDirectory($outputPath);
+			$this->files->makeDirectory($compilePath);
 		}
 
 		$extension = $this->determineExtension($group);
 
 		// Spin through each of the responses and create the relevant directories and files for
 		// each of them.
-		foreach ($responses as $file => $contents)
+		foreach ($responses as $relativePath => $contents)
 		{
-			$pathInfo = pathinfo($file);
+			$pathInfo = pathinfo($relativePath);
 
-			$outputFilePath = "{$outputPath}/{$pathInfo['dirname']}";
+			$compileFilePath = "{$compilePath}/{$pathInfo['dirname']}";
 
-			if ( ! $this->files->exists($outputFilePath))
+			if ( ! $this->files->exists($compileFilePath))
 			{
-				$this->files->makeDirectory($outputFilePath);
+				$this->files->makeDirectory($compileFilePath);
 			}
 
-			$this->files->put("{$outputFilePath}/{$pathInfo['filename']}.{$extension}", $contents);
+			$this->files->put("{$compileFilePath}/{$pathInfo['filename']}.{$extension}", $contents);
 		}
 	}
 
@@ -109,14 +116,14 @@ class FilesystemCompiler extends StringCompiler {
 	}
 
 	/**
-	 * Set the output path.
+	 * Set the compile path.
 	 * 
 	 * @param  string  $path
 	 * @return JasonLewis\Basset\Compiler\FilesystemCompiler
 	 */
-	public function setOutputPath($path)
+	public function setCompilePath($path)
 	{
-		$this->outputPath = $path;
+		$this->compilePath = $path;
 
 		return $this;
 	}
@@ -142,6 +149,16 @@ class FilesystemCompiler extends StringCompiler {
 		$this->force = $force;
 
 		return $this;
+	}
+
+	/**
+	 * Get the compiled collections fingerprint.
+	 * 
+	 * @return string
+	 */
+	public function getFingerprint()
+	{
+		return $this->fingerprint;
 	}
 
 }
