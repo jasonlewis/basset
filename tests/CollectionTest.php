@@ -129,6 +129,25 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testCanGetIgnoredAssets()
+	{
+		$files = $this->getFiles();
+		$files->shouldReceive('exists')->twice()->with('path/to/bar.css')->andReturn(true);
+		$files->shouldReceive('exists')->twice()->with('path/to/foo.css')->andReturn(true);
+		$config = $this->getConfig();
+		$config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
+		$config->shouldReceive('has')->once()->with('basset::assets.foo.css')->andReturn(false);
+		$manager = new JasonLewis\Basset\AssetManager($files, 'path/to', 'local');
+		$collection = new JasonLewis\Basset\Collection($files, $config, $manager, 'foo');
+		$collection->add('bar.css')->ignore();
+		$collection->add('foo.css');
+		$assets = $collection->getIgnoredAssets();
+		$this->assertCount(1, $assets);
+		$this->assertInstanceOf('JasonLewis\Basset\Asset', $assets[0]);
+		$this->assertCount(2, $collection->getAssets());
+	}
+
+
 	public function testCollectionIsCompiledCorrectly()
 	{
 		$files = $this->getFiles();

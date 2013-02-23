@@ -421,7 +421,7 @@ class Collection implements FilterableInterface {
 
 		foreach ($this->assets as $asset)
 		{
-			if ($asset->isIgnored() and is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}())
+			if ($asset->isIgnored() and (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}()))
 			{
 				$assets[] = $asset;
 			}
