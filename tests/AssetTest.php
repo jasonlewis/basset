@@ -38,14 +38,18 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     public function testAssetCanBeRemotelyHosted()
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $asset = new JasonLewis\Basset\Asset($files, 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'local');
+        $asset = new JasonLewis\Basset\Asset($files, m::mock('JasonLewis\Basset\FilterFactory'), 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'local');
         $this->assertTrue($asset->isRemote());
     }
 
 
     public function testFiltersAreAppliedToAssets()
     {
-        $asset = $this->getAssetInstance();
+        $files = m::mock('Illuminate\Filesystem\Filesystem');
+        $config = m::mock('Illuminate\Config\Repository');
+        $config->shouldReceive('has')->once()->with('basset::filters.RandomFilter')->andReturn(false);
+        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
+        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
         $asset->apply('RandomFilter');
         $filter = m::mock('JasonLewis\Basset\Filter');
         $filter->shouldReceive('getFilter')->once()->andReturn('ExistingFilter');
@@ -58,7 +62,10 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testFiltersAreCorrectlyPrepared()
     {
-        $asset = $this->getAssetInstance();
+        $files = m::mock('Illuminate\Filesystem\Filesystem');
+        $config = m::mock('Illuminate\Config\Repository');
+        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
+        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
         $fooFilter = m::mock('JasonLewis\Basset\Filter');
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
@@ -86,7 +93,9 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $contents = 'html { background-color: #fff; }';
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $files->shouldReceive('getRemote')->once()->andReturn($contents);
-        $asset = new JasonLewis\Basset\Asset($files, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
+        $config = m::mock('Illuminate\Config\Repository');
+        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
+        $asset = new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
         $instantiatedFilter = m::mock('Assetic\Filter\FilterInterface');
         $instantiatedFilter->shouldReceive('filterLoad')->once()->andReturn(null);
         $instantiatedFilter->shouldReceive('filterDump')->once()->andReturnUsing(function($asset) use ($contents)
@@ -106,7 +115,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     protected function getAssetInstance()
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
-        return new JasonLewis\Basset\Asset($files, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
+        $filterFactory = m::mock('JasonLewis\Basset\FilterFactory');
+        return new JasonLewis\Basset\Asset($files, $filterFactory, '/absolute/foo/bar.css', 'foo/bar.css', 'local');
     }
 
 }

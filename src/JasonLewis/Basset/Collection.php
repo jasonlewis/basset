@@ -30,11 +30,18 @@ class Collection implements FilterableInterface {
     protected $config;
 
     /**
-     * Basset asset manager instance.
+     * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetManager
+     * @var JasonLewis\Basset\AssetFactory
      */
-    protected $manager;
+    protected $assetFactory;
+
+    /**
+     * Basset filter factory instance.
+     *
+     * @var JasonLewis\Basset\FilterFactory
+     */
+    protected $filterFactory;
 
     /**
      * Array of assets.
@@ -69,16 +76,36 @@ class Collection implements FilterableInterface {
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  JasonLewis\Basset\AssetManager  $manager
      * @param  string  $name
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, AssetManager $manager, $name)
+    public function __construct(Filesystem $files, Repository $config, $name)
     {
         $this->files = $files;
         $this->config = $config;
-        $this->manager = $manager;
         $this->name = $name;
+    }
+
+    /**
+     * Set the asset factory instance.
+     *
+     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
+     * @return void
+     */
+    public function setAssetFactory(AssetFactory $assetFactory)
+    {
+        $this->assetFactory = $assetFactory;
+    }
+
+    /**
+     * Set the filter factory instance.
+     *
+     * @param  JasonLewis\Basset\FilterFactory  $filterFactory
+     * @return void
+     */
+    public function setFilterFactory(FilterFactory $filterFactory)
+    {
+        $this->filterFactory = $filterFactory;
     }
 
     /**
@@ -130,9 +157,9 @@ class Collection implements FilterableInterface {
         }
 
         // Determine if the asset exists within the public directory.
-        elseif ($this->manager->find($name))
+        elseif ($this->assetFactory->find($name))
         {
-            $assetPath = $this->manager->path($name);
+            $assetPath = $this->assetFactory->path($name);
         }
 
         // Lastly we'll attempt to locate the asset by spinning through all of the named directories.
@@ -167,7 +194,7 @@ class Collection implements FilterableInterface {
 
         if ( ! is_null($assetPath))
         {
-            $asset = $this->manager->make($assetPath);
+            $asset = $this->assetFactory->make($assetPath);
 
             if ($asset->isRemote() or $this->files->exists($assetPath))
             {
@@ -222,7 +249,7 @@ class Collection implements FilterableInterface {
         }
         catch (RuntimeException $error)
         {
-            return new Directory($this->files, $this->manager, null);
+            return new Directory($this->files, $this->assetFactory, $this->filterFactory, null);
         }
 
         return $this->directories[] = $directory->requireDirectory();
@@ -242,7 +269,7 @@ class Collection implements FilterableInterface {
         }
         catch (RuntimeException $error)
         {
-            return new Directory($this->files, $this->manager, null);
+            return new Directory($this->files, $this->assetFactory, $this->filterFactory, null);
         }
 
         return $this->directories[] = $directory->requireTree();
@@ -310,12 +337,12 @@ class Collection implements FilterableInterface {
         // Lastly we'll prefix the directory path with the path to the public directory.
         else
         {
-            $path = $this->manager->path($path);
+            $path = $this->assetFactory->path($path);
         }
 
         if ($this->files->exists($path))
         {
-            return new Directory($this->files, $this->manager, $path);
+            return new Directory($this->files, $this->assetFactory, $this->filterFactory, $path);
         }
     }
 
@@ -371,21 +398,11 @@ class Collection implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        // If the supplied filter is already a Filter instance then we'll set the filter
-        // directly on the asset.
-        if ($filter instanceof Filter)
-        {
-            return $this->filters[$filter->getFilter()] = $filter;
-        }
+        $filter = $this->filterFactory->make($filter, $callback, $this);
 
-        $filter = new Filter($filter, $this);
+        $key = $filter->getFilter();
 
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $filter);
-        }
-
-        return $this->filters[$filter->getFilter()] = $filter;
+        return $this->filters[$key] = $filter;
     }
 
     /**

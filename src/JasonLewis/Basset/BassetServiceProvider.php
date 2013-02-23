@@ -33,9 +33,14 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app['basset.manager'] = $this->app->share(function($app)
+        $this->app['basset.factory.asset'] = $this->app->share(function($app)
         {
-            return new AssetManager($app['files'], $app['path.public'], $app['env']);
+            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['path.public'], $app['env']);
+        });
+
+        $this->app['basset.factory.filter'] = $this->app->share(function($app)
+        {
+            return new FilterFactory($app['config']);
         });
 
         $this->app['basset.repository'] = $this->app->share(function($app)
@@ -45,7 +50,7 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Factory($app['files'], $app['config'], $app['url'], $app['basset.manager']);
+            return new Basset($app['files'], $app['config'], $app['basset.factory.asset'], $app['basset.factory.filter']);
         });
 
         $this->registerCommands();
@@ -84,7 +89,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('basset', 'basset.manager', 'basset.repository');
+        return array('basset', 'basset.repository', 'basset.factory.asset', 'basset.factory.filter');
     }
 
 }

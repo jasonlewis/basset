@@ -58,9 +58,10 @@ class Asset implements FilterableInterface {
      * @param  string  $workingEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, $absolutePath, $relativePath, $workingEnvironment)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, $absolutePath, $relativePath, $workingEnvironment)
     {
         $this->files = $files;
+        $this->filterFactory = $filterFactory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->workingEnvironment = $workingEnvironment;
@@ -197,21 +198,11 @@ class Asset implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        // If the supplied filter is already a Filter instance then we'll set the filter
-        // directly on the asset.
-        if ($filter instanceof Filter)
-        {
-            return $this->filters[$filter->getFilter()] = $filter;
-        }
+        $filter = $this->filterFactory->make($filter, $callback, $this);
 
-        $filter = new Filter($filter, $this);
+        $key = $filter->getFilter();
 
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $filter);
-        }
-
-        return $this->filters[$filter->getFilter()] = $filter;
+        return $this->filters[$key] = $filter;
     }
 
     /**

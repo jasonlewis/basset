@@ -14,9 +14,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testRequireDirectory()
     {
         $files = $this->getFiles();
-        $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/foobar.css')->andReturn('css/foobar.css');
+        $filterFactory = $this->getFilterFactory();
+        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory[getAbsolutePath]', array($files, $filterFactory, 'path/to/public', 'local'));
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/foobar.css')->andReturn('css/foobar.css');
         $assets = array(
             m::mock('SplFileInfo'),
             m::mock('SplFileInfo'),
@@ -27,7 +28,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[2]->shouldReceive('isFile')->once()->andReturn(true);
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('css/example.css');
         $assets[2]->shouldReceive('getPathname')->once()->andReturn('css/foobar.css');
-        $directory = m::mock('JasonLewis\Basset\Directory[iterateDirectory]', array($files, $manager, 'css'));
+        $directory = m::mock('JasonLewis\Basset\Directory[iterateDirectory]', array($files, $assetFactory, $filterFactory, 'css'));
         $directory->shouldReceive('iterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireDirectory();
         $assets = $directory->getAssets();
@@ -40,9 +41,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testRecursivelyRequireDirectory()
     {
         $files = $this->getFiles();
-        $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/nested/foobar.css')->andReturn('css/nested/foobar.css');
+        $filterFactory = $this->getFilterFactory();
+        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory[getAbsolutePath]', array($files, $filterFactory, 'path/to/public', 'local'));
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/nested/foobar.css')->andReturn('css/nested/foobar.css');
         $assets = array(
             m::mock('SplFileInfo'),
             m::mock('SplFileInfo')
@@ -51,7 +53,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[1]->shouldReceive('isFile')->once()->andReturn(true);
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('css/example.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('css/nested/foobar.css');
-        $directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]', array($files, $manager, 'css'));
+        $directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]', array($files, $assetFactory, $filterFactory, 'css'));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireTree();
         $assets = $directory->getAssets();
@@ -64,9 +66,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testExcludeAndRequireSpecificFilesInDirectory()
     {
         $files = $this->getFiles();
-        $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/nested/foobar.css')->andReturn('css/nested/foobar.css');
+        $filterFactory = $this->getFilterFactory();
+        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory[getAbsolutePath]', array($files, $filterFactory, 'path/to/public', 'local'));
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/nested/foobar.css')->andReturn('css/nested/foobar.css');
         $assets = array(
             m::mock('SplFileInfo'),
             m::mock('SplFileInfo')
@@ -75,7 +78,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[1]->shouldReceive('isFile')->once()->andReturn(true);
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('css/example.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('css/nested/foobar.css');
-        $directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]', array($files, $manager, 'css'));
+        $directory = m::mock('JasonLewis\Basset\Directory[recursivelyIterateDirectory]', array($files, $assetFactory, $filterFactory, 'css'));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireTree()->only('css/example.css');
         $assets = $directory->getAssets();
@@ -91,9 +94,12 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testFiltersAreAppliedToEntireDirectory()
     {
         $files = $this->getFiles();
-        $manager = m::mock('JasonLewis\Basset\AssetManager[getAbsolutePath]', array($files, 'path/to/public', 'local'));
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
-        $manager->shouldReceive('getAbsolutePath')->once()->with('css/foobar.css')->andReturn('css/foobar.css');
+        $config = $this->getConfig();
+        $config->shouldReceive('has')->once()->with('basset::filters.FooFilter')->andReturn(false);
+        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
+        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory[getAbsolutePath]', array($files, $filterFactory, 'path/to/public', 'local'));
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/example.css')->andReturn('css/example.css');
+        $assetFactory->shouldReceive('getAbsolutePath')->once()->with('css/foobar.css')->andReturn('css/foobar.css');
         $assets = array(
             m::mock('SplFileInfo'),
             m::mock('SplFileInfo')
@@ -102,7 +108,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[1]->shouldReceive('isFile')->once()->andReturn(true);
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('css/example.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('css/foobar.css');
-        $directory = m::mock('JasonLewis\Basset\Directory[iterateDirectory]', array($files, $manager, 'css'));
+        $directory = m::mock('JasonLewis\Basset\Directory[iterateDirectory]', array($files, $assetFactory, $filterFactory, 'css'));
         $directory->shouldReceive('iterateDirectory')->once()->with('css')->andReturn($assets);
         $directory->requireDirectory()->apply('FooFilter');
         $directory->processFilters();
@@ -124,9 +130,21 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    protected function getManager()
+    protected function getConfig()
     {
-        return m::mock('JasonLewis\Basset\AssetManager');
+        return m::mock('Illuminate\Config\Repository');
+    }
+
+
+    protected function getAssetFactory()
+    {
+        return m::mock('JasonLewis\Basset\AssetFactory');
+    }
+
+
+    protected function getFilterFactory()
+    {
+        return m::mock('JasonLewis\Basset\FilterFactory');
     }
 
 

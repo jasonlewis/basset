@@ -5,7 +5,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Filesystem\Filesystem;
 
-class Factory {
+class Basset {
 
     /**
      * Asset collections.
@@ -36,35 +36,42 @@ class Factory {
     protected $url;
 
     /**
-     * Basset asset manager instance.
+     * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetManager
+     * @var JasonLewis\Basset\AssetFactory
      */
-    protected $manager;
+    protected $assetFactory;
+
+    /**
+     * Basset filter factory instance.
+     *
+     * @var JasonLewis\Basset\FilterFactory
+     */
+    protected $filterFactory;
 
     /**
      * Create a new factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  Illuminate\Routing\UrlGenerator  $url
-     * @param  JasonLewis\Basset\AssetManager  $manager
+     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
+     * @param  JasonLewis\Basset\FilterFactory  $filterFactory
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, UrlGenerator $url, AssetManager $manager)
+    public function __construct(Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory)
     {
         $this->files = $files;
         $this->config = $config;
-        $this->url = $url;
-        $this->manager = $manager;
+        $this->assetFactory = $assetFactory;
+        $this->filterFactory = $filterFactory;
     }
 
     /**
-     * Alias of Factory::collection()
+     * Alias of Basset::collection()
      *
      * @param  string  $name
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Factory
+     * @return JasonLewis\Basset\Collection
      */
     public function make($name, Closure $callback = null)
     {
@@ -76,16 +83,24 @@ class Factory {
      *
      * @param  string  $name
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Factory
+     * @return JasonLewis\Basset\Collection
      */
     public function collection($name, Closure $callback = null)
     {
         if ( ! isset($this->collections[$name]))
         {
-            $this->collections[$name] = new Collection($this->files, $this->config, $this->manager, $name);
+            $collection = new Collection($this->files, $this->config, $name);
+
+            // Set the asset and filter factories on the collection. These are used to find and
+            // make assets and filters.
+            $collection->setAssetFactory($this->assetFactory);
+
+            $collection->setFilterFactory($this->filterFactory);
+
+            $this->collections[$name] = $collection;
         }
 
-        // If the collection was given a callable function where assets can be
+        // If the collection was given a callable closure where assets can be
         // added we'll fire it now.
         if (is_callable($callback))
         {

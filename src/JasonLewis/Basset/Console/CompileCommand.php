@@ -1,7 +1,7 @@
 <?php namespace JasonLewis\Basset\Console;
 
 use RuntimeException;
-use JasonLewis\Basset\Factory;
+use JasonLewis\Basset\Basset;
 use Illuminate\Console\Command;
 use JasonLewis\Basset\CollectionRepository;
 use Symfony\Component\Console\Input\InputOption;
@@ -27,11 +27,11 @@ class CompileCommand extends Command {
     protected $description = 'Compile asset collections';
 
     /**
-     * Basset factory instance.
+     * Basset instance.
      *
-     * @var JasonLewis\Basset\Factory
+     * @var JasonLewis\Basset\Basset
      */
-    protected $factory;
+    protected $basset;
 
     /**
      * Filesystem compiler instance.
@@ -57,15 +57,15 @@ class CompileCommand extends Command {
     /**
      * Create a new basset compile command instance.
      *
-     * @param  JasonLewis\Basset\Factory  $factory
+     * @param  JasonLewis\Basset\Basset  $basset
      * @param  JasonLewis\Basset\Compiler\CompilerInterface  $compiler
      * @return void
      */
-    public function __construct(Factory $factory, CompilerInterface $compiler, CollectionRepository $repository, $compilePath)
+    public function __construct(Basset $basset, CompilerInterface $compiler, CollectionRepository $repository, $compilePath)
     {
         parent::__construct();
 
-        $this->factory = $factory;
+        $this->basset = $basset;
         $this->compiler = $compiler;
         $this->repository = $repository;
         $this->compilePath = $compilePath;
@@ -84,7 +84,7 @@ class CompileCommand extends Command {
 
         if ( ! is_null($collection = $this->input->getArgument('collection')))
         {
-            if ( ! $this->factory->hasCollection($collection))
+            if ( ! $this->basset->hasCollection($collection))
             {
                 $this->error("Could not find collection: {$collection}");
 
@@ -93,13 +93,13 @@ class CompileCommand extends Command {
 
             $this->info("Gathering assets for collection...");
 
-            $collections = array($this->factory->collection($collection));
+            $collections = array($this->basset->collection($collection));
         }
         else
         {
             $this->info("Gathering all collections to compile...");
 
-            $collections = $this->factory->getCollections();
+            $collections = $this->basset->getCollections();
         }
 
         // If the force option has been set then we'll tell the compiler that the collections

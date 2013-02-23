@@ -2,7 +2,7 @@
 
 use Illuminate\Filesystem\Filesystem;
 
-class AssetManager {
+class AssetFactory {
 
     /**
      * Illuminate filesystem instance.
@@ -26,16 +26,17 @@ class AssetManager {
     protected $workingEnvironment;
 
     /**
-     * Create a new asset manager instance.
+     * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  string  $publicPath
      * @param  string  $workingEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, $publicPath, $workingEnvironment)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, $publicPath, $workingEnvironment)
     {
         $this->files = $files;
+        $this->filterFactory = $filterFactory;
         $this->publicPath = $publicPath;
         $this->workingEnvironment = $workingEnvironment;
     }
@@ -48,13 +49,11 @@ class AssetManager {
      */
     public function make($path)
     {
-        // If the path to the asset is a valid URL then we'll assume the asset is being
-        // remotely hosted and so the absolute path will be the URL to the asset.
         $absolutePath = $this->getAbsolutePath($path);
 
         $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
 
-        return new Asset($this->files, $absolutePath, $relativePath, $this->workingEnvironment);
+        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath, $this->workingEnvironment);
     }
 
     /**

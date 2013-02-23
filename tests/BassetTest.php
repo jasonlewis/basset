@@ -2,7 +2,7 @@
 
 use Mockery as m;
 
-class FactoryTest extends PHPUnit_Framework_TestCase {
+class BassetTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()
@@ -15,10 +15,10 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $config = m::mock('Illuminate\Config\Repository');
-        $url = m::mock('Illuminate\Routing\UrlGenerator');
-        $manager = m::mock('JasonLewis\Basset\AssetManager');
-        $factory = new JasonLewis\Basset\Factory($files, $config, $url, $manager);
-        $collection = $factory->collection('foo');
+        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory');
+        $filterFactory = m::mock('JasonLewis\Basset\FilterFactory');
+        $basset = new JasonLewis\Basset\Basset($files, $config, $assetFactory, $filterFactory);
+        $collection = $basset->collection('foo');
         $this->assertInstanceOf('JasonLewis\Basset\Collection', $collection);
     }
 

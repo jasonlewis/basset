@@ -23,11 +23,18 @@ class Directory implements FilterableInterface {
     protected $files;
 
     /**
-     * Basset asset manager instance.
+     * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetManager
+     * @var JasonLewis\Basset\AssetFactory
      */
-    protected $manager;
+    protected $assetFactory;
+
+    /**
+     * Basset filter factory instance.
+     *
+     * @var JasonLewis\Basset\FilterFactory
+     */
+    protected $filterFactory;
 
     /**
      * Array of assets.
@@ -47,14 +54,15 @@ class Directory implements FilterableInterface {
      * Create a new directory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  JasonLewis\Basset\AssetManager  $manager
+     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
      * @param  string  $path
      * @return void
      */
-    public function __construct(Filesystem $files, AssetManager $manager, $path)
+    public function __construct(Filesystem $files, AssetFactory $assetFactory, FilterFactory $filterFactory, $path)
     {
         $this->files = $files;
-        $this->manager = $manager;
+        $this->assetFactory = $assetFactory;
+        $this->filterFactory = $filterFactory;
         $this->path = $path;
     }
 
@@ -91,7 +99,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->manager->make($file->getPathname());
+                $this->assets[] = $this->assetFactory->make($file->getPathname());
             }
         }
 
@@ -109,7 +117,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->manager->make($file->getPathname());
+                $this->assets[] = $this->assetFactory->make($file->getPathname());
             }
         }
 
@@ -202,21 +210,11 @@ class Directory implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        // If the supplied filter is already a Filter instance then we'll set the filter
-        // directly on the asset.
-        if ($filter instanceof Filter)
-        {
-            return $this->filters[$filter->getFilter()] = $filter;
-        }
+        $filter = $this->filterFactory->make($filter, $callback, $this);
 
-        $filter = new Filter($filter, $this);
+        $key = $filter->getFilter();
 
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $filter);
-        }
-
-        return $this->filters[$filter->getFilter()] = $filter;
+        return $this->filters[$key] = $filter;
     }
 
     /**

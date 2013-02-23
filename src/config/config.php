@@ -83,10 +83,14 @@ return array(
 	|	'YuiCss' => 'Yui\CssCompressorFilter'
 	|
 	| If you'd like to specify options for a named filter you can define the
-	| filter as an array.
+	| filter as an array, the value should be a closure where you can set
+	| arguments for the constructor, etc.
 	|
 	|	'YuiCss' => array(
-	|		'Yui\CssCompressorFilter' => array('/path/to/yuicompressor.jar')
+	|		'Yui\CssCompressorFilter' => function($filter)
+	|		{
+	|			$filter->setArguments('path/to/jar');
+	|		}
 	|	)
 	|
 	| The filter can then be referenced by its name when applying filters.
