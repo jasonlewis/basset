@@ -67,6 +67,16 @@ class Asset implements FilterableInterface {
 	}
 
 	/**
+	 * Get the valid extension of the asset.
+	 * 
+	 * @return string
+	 */
+	public function getValidExtension()
+	{
+		return $this->isScript() ? 'js' : 'css';
+	}
+
+	/**
 	 * Get the absolute path to the asset.
 	 * 
 	 * @return string
