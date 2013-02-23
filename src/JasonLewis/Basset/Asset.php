@@ -117,13 +117,24 @@ class Asset implements FilterableInterface {
 	}
 
 	/**
-	 * Sets the asset to be ignored.
+	 * Alias for JasonLewis\Basset\Asset::setIgnored(true)
 	 * 
 	 * @return JasonLewis\Basset\Asset
 	 */
 	public function ignore()
 	{
-		$this->ignored = true;
+		return $this->setIgnored(true);
+	}
+
+	/**
+	 * Sets the asset to be ignored.
+	 * 
+	 * @param  bool  $ignored
+	 * @return JasonLewis\Basset\Asset
+	 */
+	public function setIgnored($ignored)
+	{
+		$this->ignored = $ignored;
 
 		return $this;
 	}

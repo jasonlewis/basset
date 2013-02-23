@@ -88,7 +88,6 @@ class FilesystemCompiler extends StringCompiler {
 
 			$outputFilePath = "{$outputPath}/{$pathInfo['dirname']}";
 
-			// If the output path does not exist then we'll attempt to create it.
 			if ( ! $this->files->exists($outputFilePath))
 			{
 				$this->files->makeDirectory($outputFilePath);
@@ -120,6 +119,16 @@ class FilesystemCompiler extends StringCompiler {
 		$this->outputPath = $path;
 
 		return $this;
+	}
+
+	/**
+	 * Alias for JasonLewis\Basset\Compiler\FilesystemCompiler::setForce(true)
+	 * 
+	 * @return JasonLewis\Basset\Compiler\FilesystemCompiler
+	 */
+	public function force()
+	{
+		return $this->setForce(true);
 	}
 
 	/**
