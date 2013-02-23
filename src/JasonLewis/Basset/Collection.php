@@ -169,14 +169,15 @@ class Collection implements FilterableInterface {
 		{
 			$asset = $this->manager->make($assetPath);
 
-			// If the asset is not being remotely hosted and it does not exist then we'll return nothing.
-			if ( ! $asset->isRemote() and ! $this->files->exists($assetPath))
+			if ($asset->isRemote() or $this->files->exists($assetPath))
 			{
-				return;
+				return $this->assets[] = $asset;
 			}
-
-			return $this->assets[] = $asset;
 		}
+		
+		// To avoid nasty errors being thrown when assets don't exist yet due to a package that is
+		// yet to be published we'l return a dummy asset instance so that methods are still chainable.
+		return new Asset($this->files, null, null, null);
 	}
 
 	/**
@@ -388,7 +389,7 @@ class Collection implements FilterableInterface {
 	}
 
 	/**
-	 * Get an array of assets filtered by a group, scripts or styles.
+	 * Get an array of assets filtered by a group.
 	 * 
 	 * @param  string  $group
 	 * @return array
@@ -399,9 +400,28 @@ class Collection implements FilterableInterface {
 
 		foreach ($this->assets as $asset)
 		{
-			// If no group was supplied or the asset is part of the group being requested
-			// then we'll prepare the assets filters and add it to the array.
 			if (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}())
+			{
+				$assets[] = $asset;
+			}
+		}
+
+		return $assets;
+	}
+
+	/**
+	 * Get an array of ignored assets filtered by a group.
+	 * 
+	 * @param  string  $group
+	 * @return array
+	 */
+	public function getIgnoredAssets($group = null)
+	{
+		$assets = array();
+
+		foreach ($this->assets as $asset)
+		{
+			if ($asset->isIgnored() and is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}())
 			{
 				$assets[] = $asset;
 			}
