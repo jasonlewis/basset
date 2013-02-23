@@ -23,22 +23,22 @@ class AssetFactory {
      *
      * @var string
      */
-    protected $workingEnvironment;
+    protected $appEnvironment;
 
     /**
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  string  $publicPath
-     * @param  string  $workingEnvironment
+     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, $publicPath, $workingEnvironment)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, $publicPath, $appEnvironment)
     {
         $this->files = $files;
         $this->filterFactory = $filterFactory;
         $this->publicPath = $publicPath;
-        $this->workingEnvironment = $workingEnvironment;
+        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -53,7 +53,7 @@ class AssetFactory {
 
         $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
 
-        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath, $this->workingEnvironment);
+        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath, $this->appEnvironment);
     }
 
     /**
