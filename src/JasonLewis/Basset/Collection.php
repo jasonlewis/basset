@@ -448,6 +448,24 @@ class Collection implements FilterableInterface {
     }
 
     /**
+     * Determine the extension based on the group.
+     *
+     * @param  string  $group
+     * @return string
+     */
+    public function determineExtension($group)
+    {
+        return str_plural($group) == 'styles' ? 'css' : 'js';
+    }
+
+    public function getFingerprintPath($fingerprint, $group)
+    {
+        $extension = $this->determineExtension($group);
+
+        return "{$this->getName()}-{$fingerprint}.{$extension}";
+    }
+
+    /**
      * Get the applied filters.
      *
      * @return array

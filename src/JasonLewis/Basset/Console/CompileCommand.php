@@ -3,12 +3,12 @@
 use RuntimeException;
 use JasonLewis\Basset\Basset;
 use Illuminate\Console\Command;
-use JasonLewis\Basset\CollectionRepository;
+use JasonLewis\Basset\Manifest\Repository;
 use Symfony\Component\Console\Input\InputOption;
 use JasonLewis\Basset\Compiler\CompilerInterface;
 use Symfony\Component\Console\Input\InputArgument;
-use JasonLewis\Basset\Exceptions\NoAssetsCompiledException;
-use JasonLewis\Basset\Exceptions\CompilingNotRequiredException;
+use JasonLewis\Basset\Exception\EmptyResponseException;
+use JasonLewis\Basset\Exception\CollectionExistsException;
 
 class CompileCommand extends Command {
 
@@ -41,9 +41,9 @@ class CompileCommand extends Command {
     protected $compiler;
 
     /**
-     * Collection repository instance.
+     * Manifest repository instance.
      *
-     * @var JasonLewis\Basset\CollectionRepository
+     * @var JasonLewis\Basset\Manifest\Repository
      */
     protected $repository;
 
@@ -61,7 +61,7 @@ class CompileCommand extends Command {
      * @param  JasonLewis\Basset\Compiler\CompilerInterface  $compiler
      * @return void
      */
-    public function __construct(Basset $basset, CompilerInterface $compiler, CollectionRepository $repository, $compilePath)
+    public function __construct(Basset $basset, CompilerInterface $compiler, Repository $repository, $compilePath)
     {
         parent::__construct();
 
@@ -78,10 +78,6 @@ class CompileCommand extends Command {
      */
     public function fire()
     {
-        // Load the existing collection repository so that we can register and store any changes to
-        // collections within the repository.
-        $this->repository->load();
-
         if ( ! is_null($collection = $this->input->getArgument('collection')))
         {
             if ( ! $this->basset->hasCollection($collection))
@@ -126,11 +122,11 @@ class CompileCommand extends Command {
 
                 $this->line("<info>Styles successfully compiled for collection:</info> {$collection->getName()}");
             }
-            catch (NoAssetsCompiledException $error)
+            catch (EmptyResponseException $error)
             {
                 $this->line("<comment>There are no styles to compile for collection:</comment> {$collection->getName()}");
             }
-            catch (CompilingNotRequiredException $error)
+            catch (CollectionExistsException $error)
             {
                 $this->line("<comment>Styles are up-to-date for collection:</comment> {$collection->getName()}");
             }
@@ -148,11 +144,11 @@ class CompileCommand extends Command {
 
                 $this->line("<info>Scripts successfully compiled for collection:</info> {$collection->getName()}");
             }
-            catch (NoAssetsCompiledException $error)
+            catch (EmptyResponseException $error)
             {
                 $this->line("<comment>There are no scripts to compile for collection:</comment> {$collection->getName()}");
             }
-            catch (CompilingNotRequiredException $error)
+            catch (CollectionExistsException $error)
             {
                 $this->line("<comment>Scripts are up-to-date for collection:</comment> {$collection->getName()}");
             }

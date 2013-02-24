@@ -1,8 +1,9 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace JasonLewis\Basset\Manifest;
 
+use JasonLewis\Basset\Collection;
 use Illuminate\Filesystem\Filesystem;
 
-class CollectionRepository {
+class Repository {
 
     /**
      * Illuminate filesystem instance.
@@ -49,7 +50,7 @@ class CollectionRepository {
 
         if ( ! is_null($manifest))
         {
-            $this->manifest = $manifest;
+            $this->manifest = $this->parseManifest($manifest);
         }
 
         return $this->manifest;
@@ -74,17 +75,22 @@ class CollectionRepository {
      * Register a collection with the manifest.
      *
      * @param  JasonLewis\Basset\Collection  $collection
-     * @param  string  $fingerprint
+     * @param  array  $fingerprints
      * @param  bool  $development
      * @return void
      */
-    public function register(Collection $collection, $fingerprint, $development = false)
+    public function register(Collection $collection, $fingerprints, $development = false)
     {
-        $entry = $this->find($collection->getName());
+        $collectionName = $collection->getName();
 
-        // We can immedietly set the collections fingerprint for the entry if one exists.
+        $entry = $this->freshEntry();
+
+        // We can immedietly set the collections fingerprints for the entry if one exists.
         // This fingerprint is used to bust the cache and identify the current compiled file.
-        $entry['fingerprint'] = $fingerprint;
+        foreach ($fingerprints as $group => $fingerprint)
+        {
+            $entry->setFingerprint($fingerprint, $group);
+        }
 
         // If the collection has been compiled for development then we'll spin through all
         // the assets within the collection and add their corrosponding development locations
@@ -93,17 +99,28 @@ class CollectionRepository {
         {
             foreach ($collection->getAssets() as $asset)
             {
-                $relativePath = $asset->getRelativePath();
+                $path = $asset->getRelativePath();
+
+                $group = $asset->getGroup();
+
+                if ($asset->isRemote())
+                {
+                    $entry->addDevelopment($path, $path, $group);
+
+                    continue;
+                }
 
                 // We'll get the path info for the relative path to the asset so we can correctly
                 // build the path to the development asset.
-                $pathInfo = pathinfo($relativePath);
+                list($directoryName, $fileName) = array(pathinfo($path, PATHINFO_DIRNAME), pathinfo($path, PATHINFO_FILENAME));
 
-                $entry['development'][$relativePath] = "{$collection->getName()}/{$pathInfo['dirname']}/{$pathInfo['filename']}.{$asset->getValidExtension()}";
+                $extension = $asset->getUsableExtension();
+
+                $entry->addDevelopment($path, "{$directoryName}/{$fileName}.{$extension}", $group);
             }
         }
 
-        $this->manifest[$collection->getName()] = $entry;
+        $this->manifest[$collectionName] = $entry->toArray();
 
         $this->writeManifest($this->manifest);
     }
@@ -119,6 +136,22 @@ class CollectionRepository {
         $path = $this->manifestPath.'/collections.json';
 
         $this->files->put($path, json_encode($manifest));
+
+        return $manifest;
+    }
+
+    /**
+     * Parse a manifest array.
+     *
+     * @param  array  $manifest
+     * @return array
+     */
+    public function parseManifest(array $manifest)
+    {
+        foreach ($manifest as $key => $entry)
+        {
+            $manifest[$key] = new Entry($entry);
+        }
 
         return $manifest;
     }
@@ -140,6 +173,17 @@ class CollectionRepository {
     }
 
     /**
+     * Determine if a collection exists in the manifest.
+     *
+     * @param  string  $name
+     * @return bool
+     */
+    public function has($name)
+    {
+        return $this->find($name) !== $this->freshEntry();
+    }
+
+    /**
      * Get the manifest array.
      *
      * @return array
@@ -156,7 +200,7 @@ class CollectionRepository {
      */
     protected function freshEntry()
     {
-        return array('development' => array(), 'fingerprint' => null);
+        return new Entry;
     }
 
 }

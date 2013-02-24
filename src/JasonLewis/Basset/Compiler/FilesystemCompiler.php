@@ -1,7 +1,7 @@
 <?php namespace JasonLewis\Basset\Compiler;
 
 use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exceptions\CollectionExistsException;
+use JasonLewis\Basset\Exception\CollectionExistsException;
 
 class FilesystemCompiler extends StringCompiler {
 
@@ -20,11 +20,11 @@ class FilesystemCompiler extends StringCompiler {
     protected $force = false;
 
     /**
-     * Compiled collection fingerprint.
+     * Compiled collection fingerprints.
      *
-     * @var string
+     * @var array
      */
-    protected $fingerprint;
+    protected $fingerprint = array();
 
     /**
      * Compile the assets of a collection.
@@ -36,8 +36,6 @@ class FilesystemCompiler extends StringCompiler {
     {
         $response = parent::compile($collection, $group);
 
-        // The response will be an array. We'll implode the items joining them with a new
-        // line.
         $response = implode(PHP_EOL, $response);
 
         // If the compile path does not exist then we'll attempt to create it.
@@ -48,18 +46,20 @@ class FilesystemCompiler extends StringCompiler {
 
         // The fingerprint is an MD5 hash of the compiled response. This allows the cache
         // to be busted when a new lot of assets are compiled.
-        $this->fingerprint = md5($response);
+        $this->fingerprint[$group] = md5($response);
 
-        $extension = $this->determineExtension($group);
+        $extension = $collection->determineExtension($group);
 
         // Before we attempt to save the response to the output file we'll first make sure
         // that a file with the same name does not exist. If one exists then we'll throw
         // an exception unless the compiling is being forced.
-        $outputFilePath = "{$this->compilePath}/{$collection->getName()}-{$this->fingerprint}.{$extension}";
+        $collectionName = $collection->getName();
+
+        $outputFilePath = "{$this->compilePath}/{$collectionName}-{$this->fingerprint[$group]}.{$extension}";
 
         if ($this->files->exists($outputFilePath) and ! $this->force)
         {
-            throw new CollectionExistsException("The [{$group}] on collection [{$collection->getName()}] are up to date.");
+            throw new CollectionExistsException("The [{$group}] on collection [{$collectionName}] are up to date.");
         }
 
         $this->files->put($outputFilePath, $response);
@@ -74,48 +74,42 @@ class FilesystemCompiler extends StringCompiler {
     {
         $responses = parent::compile($collection, $group);
 
-        // The output path will be the supplied output path plus the name of the collection.
-        // This helps to organise assets for each collection during development.
-        $compilePath = "{$this->compilePath}/{$collection->getName()}";
+        $collectionName = $collection->getName();
+
+        // Determine if the compile path exists. If the path does not exist we'll make an attempt
+        // to create it. Things could get ugly if we don't.
+        $compilePath = "{$this->compilePath}/{$collectionName}";
 
         if ( ! $this->files->exists($compilePath))
         {
             $this->files->makeDirectory($compilePath);
         }
 
-        $extension = $this->determineExtension($group);
+        $extension = $collection->determineExtension($group);
 
-        // Spin through each of the responses and create the relevant directories and files for
-        // each of them.
-        foreach ($responses as $relativePath => $contents)
+        // Spin through the responses. For each response we'll need to possibly create it's
+        // base directory if it's nested within the compile path. Once we have the directory
+        // we can proceed to dump the contents to the file.
+        foreach ($responses as $relativePath => $assetContents)
         {
-            $pathInfo = pathinfo($relativePath);
+            list($directoryName, $fileName) = array(pathinfo($relativePath, PATHINFO_DIRNAME), pathinfo($relativePath, PATHINFO_FILENAME));
 
-            $compileFilePath = $compilePath;
+            $filePath = $compilePath;
 
-            if ( ! in_array($pathInfo['dirname'], array('.', '..')))
+            // If the directory name where the file is located is not one of the dot directories
+            // then we'll add the directory to the path as well.
+            if ( ! in_array($directoryName, array('.', '..')))
             {
-                $compileFilePath .= "/{$pathInfo['dirname']}";
+                $filePath = "{$filePath}/{$directoryName}";
             }
 
-            if ( ! $this->files->exists($compileFilePath))
+            if ( ! $this->files->exists($filePath))
             {
-                $this->files->makeDirectory($compileFilePath);
+                $this->files->makeDirectory($filePath);
             }
 
-            $this->files->put("{$compileFilePath}/{$pathInfo['filename']}.{$extension}", $contents);
+            $this->files->put("{$filePath}/{$fileName}.{$extension}", $assetContents);
         }
-    }
-
-    /**
-     * Determine the extension based on the group.
-     *
-     * @param  string  $group
-     * @return string
-     */
-    protected function determineExtension($group)
-    {
-        return $group == 'styles' ? 'css' : 'js';
     }
 
     /**
@@ -155,7 +149,7 @@ class FilesystemCompiler extends StringCompiler {
     }
 
     /**
-     * Get the compiled collections fingerprint.
+     * Get the compiled collections fingerprints.
      *
      * @return string
      */

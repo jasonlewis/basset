@@ -1,7 +1,7 @@
 <?php namespace JasonLewis\Basset\Compiler;
 
 use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exceptions\EmptyResponseException;
+use JasonLewis\Basset\Exception\EmptyResponseException;
 
 class StringCompiler extends Compiler {
 

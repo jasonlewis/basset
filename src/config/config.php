@@ -2,6 +2,10 @@
 
 return array(
 
+    'runtime' => true,
+
+    'production' => 'production',
+
     /*
     |--------------------------------------------------------------------------
     | Compile Remotes

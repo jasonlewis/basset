@@ -68,11 +68,11 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Get the valid extension of the asset.
+     * Get the usable extension of the asset.
      *
      * @return string
      */
-    public function getValidExtension()
+    public function getUsableExtension()
     {
         return $this->isScript() ? 'js' : 'css';
     }
@@ -158,6 +158,16 @@ class Asset implements FilterableInterface {
     public function isIgnored()
     {
         return $this->ignored;
+    }
+
+    /**
+     * Get the assets group.
+     *
+     * @return string
+     */
+    public function getGroup()
+    {
+        return $this->isScript() ? 'scripts' : 'styles';
     }
 
     /**
