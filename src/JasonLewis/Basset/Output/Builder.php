@@ -50,6 +50,11 @@ class Builder {
         $this->collections = $collections;
     }
 
+    public function asset($path)
+    {
+
+    }
+
     /**
      * Output the styles for a given collection.
      *

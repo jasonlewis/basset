@@ -7,6 +7,7 @@ use JasonLewis\Basset\Console\CompileCommand;
 use JasonLewis\Basset\Compiler\FilesystemCompiler;
 use JasonLewis\Basset\Output\Builder as OutputBuilder;
 use JasonLewis\Basset\Output\Resolver as OutputResolver;
+use JasonLewis\Basset\Output\Controller as OutputController;
 
 define('BASSET_VERSION', '4.0.0');
 
@@ -49,7 +50,7 @@ class BassetServiceProvider extends ServiceProvider {
         // To process assets dynamically we'll register a route with the router that will allow
         // un-compiled assets to be compiled on the fly and returned to the browser. Static files
         // are not served and it can be much slower.
-        $this->registerRoutes();
+        $this->registerRouting();
     }
 
     /**
@@ -65,19 +66,32 @@ class BassetServiceProvider extends ServiceProvider {
         }
     }
 
-    protected function registerRoutes()
+    /**
+     * Register the asset processing route with the router.
+     *
+     * @return void
+     */
+    protected function registerRouting()
     {
-        // To avoid any possibility of duplicating a route we'll store a random string in the session
-        // that will be used as the first segment of the URI.
-        $randomString = $this->app['session']->get('basset_random_segment', str_random());
-
-        if ( ! $this->app['session']->has('basset_random_segment'))
+        // Bind the output controller to the container so that we can resolve it's dependencies.
+        // This is essential in making the controller testable and more robust.
+        $this->app['JasonLewis\Basset\Output\Controller'] = function($app)
         {
-            $this->app['session']->put('basset_random_segment', $randomString);
-        }
+            return new OutputController($app['basset.output']);
+        };
 
-        $this->app['router']->get("{$randomString}/{asset}", 'JasonLewis\Basset\Output\Controller@processAsset')
-                            ->where('asset', '.*');
+        // We can now register a callback to the booting event fired by the application. This
+        // allows us to hook in after the sessions have been started and properly register the
+        // route with the router.
+        $me = $this;
+
+        $this->app->booting(function($app) use ($me)
+        {
+            $hash = $me->getPatternHash();
+
+            $app['router']->get("{$hash}/{asset}", 'JasonLewis\Basset\Output\Controller@processAsset')->where('asset', '.*');
+        });
+
     }
 
     /**
@@ -165,6 +179,25 @@ class BassetServiceProvider extends ServiceProvider {
         // Resolve the commands with Artisan by attaching the event listener to Artisan's
         // startup. This allows us to use the commands from our terminal.
         $this->commands('command.basset', 'command.basset.compile');
+    }
+
+    /**
+     * Generate a random hash for the URI pattern.
+     *
+     * @return string
+     */
+    public function getPatternHash()
+    {
+        $session = $this->app['session'];
+
+        $hash = $this->app['session']->get('basset_hash', str_random());
+
+        if ( ! $this->app['session']->has('basset_hash'))
+        {
+            $this->app['session']->put('basset_hash', $hash);
+        }
+
+        return $hash;
     }
 
     /**
