@@ -1,8 +1,9 @@
 <?php namespace Basset;
 
 use Basset\Manifest\Repository;
-use Basset\Console\BassetCommand;
 use Basset\Console\BuildCommand;
+use Basset\Console\CleanCommand;
+use Basset\Console\BassetCommand;
 use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
 use Basset\Output\Builder as OutputBuilder;
@@ -193,9 +194,14 @@ class BassetServiceProvider extends ServiceProvider {
             return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $app['basset.cleaner'], $buildPath);
         });
 
+        $this->app['command.basset.clean'] = $this->app->share(function($app)
+        {
+            return new CleanCommand($app['basset.cleaner']);
+        });
+
         // Resolve the commands with Artisan by attaching the event listener to Artisan's
         // startup. This allows us to use the commands from our terminal.
-        $this->commands('command.basset', 'command.basset.build');
+        $this->commands('command.basset', 'command.basset.build', 'command.basset.clean');
     }
 
     /**
