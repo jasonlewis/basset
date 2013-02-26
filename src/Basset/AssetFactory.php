@@ -49,9 +49,9 @@ class AssetFactory {
      */
     public function make($path)
     {
-        $absolutePath = $this->getAbsolutePath($path);
+        $absolutePath = $this->buildAbsolutePath($path);
 
-        $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $absolutePath), '/');
+        $relativePath = $this->buildRelativePath($absolutePath);
 
         return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath, $this->appEnvironment);
     }
@@ -79,14 +79,36 @@ class AssetFactory {
     }
 
     /**
-     * Get the absolute path to an asset.
+     * Build the absolute path to an asset.
      *
      * @param  string  $path
      * @return string
      */
-    public function getAbsolutePath($path)
+    public function buildAbsolutePath($path)
     {
         return filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
+    }
+
+    /**
+     * Build the relative path to an asset.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function buildRelativePath($path)
+    {
+        $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $path), '/');
+
+        // If we're not dealing with a remote asset and the relative and absolute paths are the
+        // same then it's likely the asset is outside the public path.
+        if ( ! filter_var($path, FILTER_VALIDATE_URL) and str_replace('\\', '/', $path) == $relativePath)
+        {
+            list($directoryName, $fileName) = array(pathinfo($path, PATHINFO_DIRNAME), pathinfo($path, PATHINFO_BASENAME));
+
+            $relativePath = md5($directoryName).'/'.$fileName;
+        }
+
+        return $relativePath;
     }
 
 }
