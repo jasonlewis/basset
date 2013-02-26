@@ -2,6 +2,8 @@
 
 use Basset\Basset;
 use RuntimeException;
+use Basset\Collection;
+use Basset\BuildCleaner;
 use Illuminate\Console\Command;
 use Basset\Manifest\Repository;
 use Basset\Builder\BuilderInterface;
@@ -48,6 +50,13 @@ class BuildCommand extends Command {
     protected $manifest;
 
     /**
+     * Build cleaner instance.
+     *
+     * @var Basset\BuildCleaner
+     */
+    protected $cleaner;
+
+    /**
      * Path to output built collections.
      *
      * @var string
@@ -61,13 +70,14 @@ class BuildCommand extends Command {
      * @param  Basset\Builder\BuilderInterface  $builder
      * @return void
      */
-    public function __construct(Basset $basset, BuilderInterface $builder, Repository $manifest, $buildPath)
+    public function __construct(Basset $basset, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath)
     {
         parent::__construct();
 
         $this->basset = $basset;
         $this->builder = $builder;
         $this->manifest = $manifest;
+        $this->cleaner = $cleaner;
         $this->buildPath = $buildPath;
     }
 
@@ -92,14 +102,7 @@ class BuildCommand extends Command {
         {
             try
             {
-                if ($this->input->getOption('dev'))
-                {
-                    $this->builder->buildDevelopment($collection, 'styles');
-                }
-                else
-                {
-                    $this->builder->buildStyles($collection);
-                }
+                $this->build($collection, 'styles');
 
                 $this->line("<info>Styles successfully built for collection:</info> {$collection->getName()}");
             }
@@ -114,14 +117,7 @@ class BuildCommand extends Command {
 
             try
             {
-                if ($this->input->getOption('dev'))
-                {
-                    $this->builder->buildDevelopment($collection, 'scripts');
-                }
-                else
-                {
-                    $this->builder->buildScripts($collection);
-                }
+                $this->build($collection, 'scripts');
 
                 $this->line("<info>Scripts successfully built for collection:</info> {$collection->getName()}");
             }
@@ -137,6 +133,28 @@ class BuildCommand extends Command {
             // Once a collection has been built we need to register the collection with the manifest repository. The
             // repository will store details about the collection in the manifest.
             $this->manifest->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
+        }
+
+        // After building all the collections we'll let the cleaner tidy up any unnecessary asset files.
+        $this->cleaner->clean();
+    }
+
+    /**
+     * Build a given group on the collection.
+     *
+     * @param  Basset\Collection  $collection
+     * @param  string  $group
+     * @return void
+     */
+    protected function build(Collection $collection, $group)
+    {
+        if ($this->input->getOption('dev'))
+        {
+            $this->builder->buildDevelopment($collection, $group);
+        }
+        else
+        {
+            $this->builder->{'build'.camel_case($group)}($collection);
         }
     }
 

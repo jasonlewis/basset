@@ -26,6 +26,7 @@ class BassetServiceProvider extends ServiceProvider {
      * @var array
      */
     protected $components = array(
+        'Cleaner',
         'OutputBuilder',
         'Factories',
         'Repository',
@@ -40,12 +41,12 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-        $this->package('jasonlewis/basset');
+        $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
         // When booting the application we need to load the collections stored within the manifest
         // repository. These collections indicate the fingerprints required to display the
         // collections correctly.
-        $this->app['basset.repository']->load();
+        $this->app['basset.manifest']->load();
 
         // To process assets dynamically we'll register a route with the router that will allow
         // assets to be built on the fly and returned to the browser. Static files will not be served
@@ -93,7 +94,21 @@ class BassetServiceProvider extends ServiceProvider {
 
             $route->where('collection', '.*?')->where('asset', '.*');
         });
+    }
 
+    /**
+     * Register the build cleaner.
+     *
+     * @return void
+     */
+    protected function registerCleaner()
+    {
+        $this->app['basset.cleaner'] = $this->app->share(function($app)
+        {
+            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
+
+            return new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
+        });
     }
 
     /**
@@ -105,7 +120,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.output'] = $this->app->share(function($app)
         {
-            $resolver = new OutputResolver($app['basset.repository'], $app['router'], $app['config'], $app['env']);
+            $resolver = new OutputResolver($app['basset.manifest'], $app['router'], $app['config'], $app['env']);
 
             return new OutputBuilder($resolver, $app['config'], $app['session'], $app['basset']->getCollections());
         });
@@ -175,7 +190,7 @@ class BassetServiceProvider extends ServiceProvider {
             // to the public directory, so we'll join the public path and the build path together.
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
 
-            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $buildPath);
+            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $app['basset.cleaner'], $buildPath);
         });
 
         // Resolve the commands with Artisan by attaching the event listener to Artisan's
