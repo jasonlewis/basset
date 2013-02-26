@@ -136,7 +136,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected function registerRepository()
     {
-        $this->app['basset.repository'] = $this->app->share(function($app)
+        $this->app['basset.manifest'] = $this->app->share(function($app)
         {
             return new Repository($app['files'], $app['config']->get('app.manifest'));
         });
@@ -175,7 +175,7 @@ class BassetServiceProvider extends ServiceProvider {
             // to the public directory, so we'll join the public path and the build path together.
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
 
-            return new BuildCommand($app['basset'], $builder, $app['basset.repository'], $buildPath);
+            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $buildPath);
         });
 
         // Resolve the commands with Artisan by attaching the event listener to Artisan's
@@ -209,7 +209,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('basset', 'basset.repository', 'basset.renderer', 'basset.factory.asset', 'basset.factory.filter');
+        return array('basset', 'basset.manifest', 'basset.renderer', 'basset.factory.asset', 'basset.factory.filter');
     }
 
 }

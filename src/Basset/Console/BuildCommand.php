@@ -45,7 +45,7 @@ class BuildCommand extends Command {
      *
      * @var Basset\Manifest\Repository
      */
-    protected $repository;
+    protected $manifest;
 
     /**
      * Path to output built collections.
@@ -61,13 +61,13 @@ class BuildCommand extends Command {
      * @param  Basset\Builder\BuilderInterface  $builder
      * @return void
      */
-    public function __construct(Basset $basset, BuilderInterface $builder, Repository $repository, $buildPath)
+    public function __construct(Basset $basset, BuilderInterface $builder, Repository $manifest, $buildPath)
     {
         parent::__construct();
 
         $this->basset = $basset;
         $this->builder = $builder;
-        $this->repository = $repository;
+        $this->manifest = $manifest;
         $this->buildPath = $buildPath;
     }
 
@@ -136,7 +136,7 @@ class BuildCommand extends Command {
 
             // Once a collection has been built we need to register the collection with the manifest repository. The
             // repository will store details about the collection in the manifest.
-            $this->repository->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
+            $this->manifest->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
         }
     }
 
