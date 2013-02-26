@@ -64,7 +64,7 @@ class Resolver {
     {
         $name = $collection->getName();
 
-        if ($this->manifest->hasEntry($name) and $this->runningInProduction())
+        if ($this->manifest->hasEntry($name) and $this->runningInProduction() and $this->manifest->getEntry($name)->hasFingerprint($group))
         {
             return $this->manifest->getEntry($name)->getFingerprint($group);
         }
@@ -80,7 +80,7 @@ class Resolver {
     {
         $name = $collection->getName();
 
-        if ($this->manifest->hasEntry($name))
+        if ($this->manifest->hasEntry($name) and $this->manifest->getEntry($name)->hasFingerprint($group))
         {
             return $this->manifest->getEntry($name)->getDevelopment($group);
         }

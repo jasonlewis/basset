@@ -57,12 +57,12 @@ class BuildCleaner {
         {
             $name = $file->getFilename();
 
-            if (str_is("{$collection}-*.css", $name) and ! str_is("{$collection}-{$fingerprints['styles']}.css", $name))
+            if (isset($fingerprints['styles']) and str_is("{$collection}-*.css", $name) and ! str_is("{$collection}-{$fingerprints['styles']}.css", $name))
             {
                 $this->files->delete($file->getPathname());
             }
 
-            if (str_is("{$collection}-*.js", $name) and ! str_is("{$collection}-{$fingerprints['scripts']}.js", $name))
+            if (isset($fingerprints['scripts']) and str_is("{$collection}-*.js", $name) and ! str_is("{$collection}-{$fingerprints['scripts']}.js", $name))
             {
                 $this->files->delete($file->getPathname());
             }

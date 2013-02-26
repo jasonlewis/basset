@@ -94,15 +94,15 @@ class Builder {
 
         // Firstly we'll attempt to resolve a fingerprinted collection. If a collection has an
         // existing fingerprint and the application is running within the correct environment
-        // we'll yield the static asset.
+        // we'll fetch the static asset.
         if ($fingerprint = $this->resolver->resolveFingerprintedCollection($collection, $group))
         {
             $response = $this->buildFingerprintedCollection($collection, $fingerprint, $group);
         }
 
         // Next we'll attempt to resolve a development collection. If a collection has been
-        // compiled with the develop switch then each of the statically compiled assets will
-        // be yielded.
+        // built with the develop switch then each of the statically built assets will
+        // be fetched.
         elseif ($development = $this->resolver->resolveDevelopmentCollection($collection, $group))
         {
             $response = $this->buildDevelopmentCollection($collection, $development, $group);
@@ -132,11 +132,11 @@ class Builder {
 
         $extension = $collection->determineExtension($group);
 
-        $path = $this->parseCompilePath("{$collectionName}-{$fingerprint}.{$extension}");
+        $path = $this->parseBuildPath("{$collectionName}-{$fingerprint}.{$extension}");
 
         // We'll get the response of the original fingerprinted collection first. Then we'll need to
         // spin through any of the ignored assets and append them to the response as well. Ignored
-        // assets are only ignored by the compiler, but they still need to be yielded.
+        // assets are only ignored by the builder, but they still need to be fetched.
         $response = $this->{'build'.camel_case($group).'Element'}($path);
 
         $responses = array_merge(array($response), $this->buildIgnoredAssets($collection, $group));
@@ -171,13 +171,13 @@ class Builder {
             }
 
             // The manifest stores the original relative paths in the key and the corrosponding
-            // value will represent the compiled location path. Generally the only thing that will
+            // value will represent the builed location path. Generally the only thing that will
             // differ is the extension.
             $path = $development[$path];
 
             if ( ! $asset->isRemote() and ! $asset->isIgnored())
             {
-                $path = $this->parseCompilePath("{$collectionName}/{$path}");
+                $path = $this->parseBuildPath("{$collectionName}/{$path}");
             }
 
             $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
@@ -241,16 +241,16 @@ class Builder {
     }
 
     /**
-     * Prefix the compiled path to the existing path if one exists.
+     * Prefix the build path to the existing path if one exists.
      *
      * @param  string  $path
      * @return string
      */
-    protected function parseCompilePath($path)
+    protected function parseBuildPath($path)
     {
-        if ($compilePath = $this->config->get('basset::compiling_path'))
+        if ($buildPath = $this->config->get('basset::build_path'))
         {
-            $path = "{$compilePath}/{$path}";
+            $path = "{$buildPath}/{$path}";
         }
 
         return $path;

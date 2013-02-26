@@ -96,15 +96,15 @@ class FilesystemBuilder extends StringBuilder {
             // to the path. We're essentially mimicking the directory structure of the collection.
             if ( ! in_array($directoryName, array('.', '..')))
             {
-                $filePath = "{$filePath}/{$directoryName}";
+                $outputPath = "{$outputPath}/{$directoryName}";
             }
 
-            if ( ! $this->files->exists($filePath))
+            if ( ! $this->files->exists($outputPath))
             {
-                $this->files->makeDirectory($filePath);
+                $this->files->makeDirectory($outputPath);
             }
 
-            $this->files->put("{$filePath}/{$fileName}.{$extension}", $assetContents);
+            $this->files->put("{$outputPath}/{$fileName}.{$extension}", $assetContents);
         }
     }
 

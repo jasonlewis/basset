@@ -45,6 +45,17 @@ class Entry implements JsonableInterface, ArrayableInterface {
     }
 
     /**
+     * Determine if entry has a fingerprint.
+     *
+     * @param  string  $group
+     * @return bool
+     */
+    public function hasFingerprint($group)
+    {
+        return isset($this->fingerprints[$group]);
+    }
+
+    /**
      * Add a development asset path.
      *
      * @param  string  $path
