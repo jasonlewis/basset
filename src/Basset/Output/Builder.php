@@ -154,7 +154,7 @@ class Builder {
      */
     protected function buildDevelopmentCollection(Collection $collection, array $development, $group)
     {
-        $collectionName = $collection->getName();
+        $name = $collection->getName();
 
         // Spin through all the assets for the supplied group and add them to the array of
         // responses. If the asset is remotely hosted or has been ignored then we'll use
@@ -177,7 +177,7 @@ class Builder {
 
             if ( ! $asset->isRemote() and ! $asset->isIgnored())
             {
-                $path = $this->parseBuildPath("{$collectionName}/{$path}");
+                $path = $this->parseBuildPath("{$name}/{$path}");
             }
 
             $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
@@ -195,8 +195,23 @@ class Builder {
      */
     protected function buildDynamicCollection(Collection $collection, $group)
     {
-        $collectionName = $collection->getName();
+        $name = $collection->getName();
 
+        $assets = $collection->getAssets($group);
+
+        return $this->buildDynamicAssets($name, $group, $assets);
+    }
+
+    /**
+     * Build an array of dynamic assets.
+     *
+     * @param  string  $name
+     * @param  string  $group
+     * @param  array  $assets
+     * @return array
+     */
+    protected function buildDynamicAssets($name, $group, array $assets)
+    {
         $responses = array();
 
         // The path to dynamically generated assets includes a random hash that's been
@@ -204,13 +219,13 @@ class Builder {
         // this hash.
         $hash = $this->session->get('basset_hash');
 
-        foreach ($collection->getAssets($group) as $asset)
+        foreach ($assets as $asset)
         {
             $path = $asset->getRelativePath();
 
             if ( ! $asset->isRemote())
             {
-                $path = "{$hash}/{$collectionName}/{$path}";
+                $path = "{$hash}/{$name}/{$path}";
             }
 
             $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
@@ -228,16 +243,11 @@ class Builder {
      */
     protected function buildIgnoredAssets(Collection $collection, $group)
     {
-        $responses = array();
+        $name = $collection->getName();
 
-        foreach ($collection->getIgnoredAssets($group) as $asset)
-        {
-            $path = $asset->getRelativePath();
+        $assets = $collection->getIgnoredAssets($group);
 
-            $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
-        }
-
-        return $responses;
+        return $this->buildDynamicAssets($name, $group, $assets);
     }
 
     /**
