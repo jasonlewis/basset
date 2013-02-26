@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset\Console;
+<?php namespace Basset\Console;
 
 use Illuminate\Console\Command;
 

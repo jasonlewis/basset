@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Closure;
 use Assetic\Asset\StringAsset;
@@ -43,7 +43,7 @@ class Asset implements FilterableInterface {
     protected $filters = array();
 
     /**
-     * Indicates if the asset is to be ignored from compiling.
+     * Indicates if the asset is to be ignored.
      *
      * @var bool
      */
@@ -128,9 +128,9 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Alias for JasonLewis\Basset\Asset::setIgnored(true)
+     * Alias for Basset\Asset::setIgnored(true)
      *
-     * @return JasonLewis\Basset\Asset
+     * @return Basset\Asset
      */
     public function ignore()
     {
@@ -141,7 +141,7 @@ class Asset implements FilterableInterface {
      * Sets the asset to be ignored.
      *
      * @param  bool  $ignored
-     * @return JasonLewis\Basset\Asset
+     * @return Basset\Asset
      */
     public function setIgnored($ignored)
     {
@@ -204,7 +204,7 @@ class Asset implements FilterableInterface {
      *
      * @param  string|Filter  $filter
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Filter
+     * @return Basset\Filter
      */
     public function apply($filter, Closure $callback = null)
     {
@@ -226,13 +226,13 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Compile the asset.
+     * Build the asset.
      *
      * @return string
      */
-    public function compile()
+    public function build()
     {
-        // Before we begin to compile we'll prepare the filters by removing those that are not
+        // Before we begin to build the asset we'll prepare the filters by removing those that are not
         // to be applied to this asset.
         $this->prepareFilters();
 

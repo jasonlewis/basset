@@ -1,18 +1,18 @@
-<?php namespace JasonLewis\Basset\Output;
+<?php namespace Basset\Output;
 
+use Basset\Collection;
 use Illuminate\Routing\Router;
-use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Compiler\StringCompiler;
-use JasonLewis\Basset\Compiler\FilesystemCompiler;
+use Basset\Compiler\StringCompiler;
+use Basset\Compiler\FilesystemCompiler;
 use Illuminate\Config\Repository as ConfigRepository;
-use JasonLewis\Basset\Manifest\Repository as ManifestRepository;
+use Basset\Manifest\Repository as ManifestRepository;
 
 class Resolver {
 
     /**
      * Manfiest repository instance.
      *
-     * @var JasonLewis\Basset\Manifest\Repository
+     * @var Basset\Manifest\Repository
      */
     protected $repository;
 
@@ -40,7 +40,7 @@ class Resolver {
     /**
      * Create a new output resolver instance.
      *
-     * @param  JasonLewis\Basset\Manifest\Repository  $repository
+     * @param  Basset\Manifest\Repository  $repository
      * @param  Illuminate\Routing\Router  $router
      * @param  Illuminate\Config\Repository  $config
      * @param  string  $appEnvironment
@@ -57,7 +57,7 @@ class Resolver {
     /**
      * Resolve a fingerprinted collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return string
      */
     public function resolveFingerprintedCollection(Collection $collection, $group)
@@ -73,7 +73,7 @@ class Resolver {
     /**
      * Resolve a development collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return string
      */
     public function resolveDevelopmentCollection(Collection $collection, $group)

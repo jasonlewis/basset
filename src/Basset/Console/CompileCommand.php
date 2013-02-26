@@ -1,14 +1,14 @@
-<?php namespace JasonLewis\Basset\Console;
+<?php namespace Basset\Console;
 
+use Basset\Basset;
 use RuntimeException;
-use JasonLewis\Basset\Basset;
 use Illuminate\Console\Command;
-use JasonLewis\Basset\Manifest\Repository;
+use Basset\Manifest\Repository;
 use Symfony\Component\Console\Input\InputOption;
-use JasonLewis\Basset\Compiler\CompilerInterface;
+use Basset\Compiler\CompilerInterface;
 use Symfony\Component\Console\Input\InputArgument;
-use JasonLewis\Basset\Exception\EmptyResponseException;
-use JasonLewis\Basset\Exception\CollectionExistsException;
+use Basset\Exception\EmptyResponseException;
+use Basset\Exception\CollectionExistsException;
 
 class CompileCommand extends Command {
 
@@ -29,21 +29,21 @@ class CompileCommand extends Command {
     /**
      * Basset instance.
      *
-     * @var JasonLewis\Basset\Basset
+     * @var Basset\Basset
      */
     protected $basset;
 
     /**
      * Filesystem compiler instance.
      *
-     * @var JasonLewis\Basset\Compiler\FilesystemCompiler
+     * @var Basset\Compiler\FilesystemCompiler
      */
     protected $compiler;
 
     /**
      * Manifest repository instance.
      *
-     * @var JasonLewis\Basset\Manifest\Repository
+     * @var Basset\Manifest\Repository
      */
     protected $repository;
 
@@ -57,8 +57,8 @@ class CompileCommand extends Command {
     /**
      * Create a new basset compile command instance.
      *
-     * @param  JasonLewis\Basset\Basset  $basset
-     * @param  JasonLewis\Basset\Compiler\CompilerInterface  $compiler
+     * @param  Basset\Basset  $basset
+     * @param  Basset\Compiler\CompilerInterface  $compiler
      * @return void
      */
     public function __construct(Basset $basset, CompilerInterface $compiler, Repository $repository, $compilePath)

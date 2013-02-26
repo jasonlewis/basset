@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Closure;
 use Illuminate\Config\Repository;
@@ -38,14 +38,14 @@ class Basset {
     /**
      * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetFactory
+     * @var Basset\AssetFactory
      */
     protected $assetFactory;
 
     /**
      * Basset filter factory instance.
      *
-     * @var JasonLewis\Basset\FilterFactory
+     * @var Basset\FilterFactory
      */
     protected $filterFactory;
 
@@ -54,8 +54,8 @@ class Basset {
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
-     * @param  JasonLewis\Basset\FilterFactory  $filterFactory
+     * @param  Basset\AssetFactory  $assetFactory
+     * @param  Basset\FilterFactory  $filterFactory
      * @return void
      */
     public function __construct(Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory)
@@ -71,7 +71,7 @@ class Basset {
      *
      * @param  string  $name
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Collection
+     * @return Basset\Collection
      */
     public function make($name, Closure $callback = null)
     {
@@ -83,7 +83,7 @@ class Basset {
      *
      * @param  string  $name
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Collection
+     * @return Basset\Collection
      */
     public function collection($name, Closure $callback = null)
     {

@@ -1,7 +1,7 @@
-<?php namespace JasonLewis\Basset\Compiler;
+<?php namespace Basset\Compiler;
 
-use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exception\CollectionExistsException;
+use Basset\Collection;
+use Basset\Exception\CollectionExistsException;
 
 class FilesystemCompiler extends StringCompiler {
 
@@ -29,7 +29,7 @@ class FilesystemCompiler extends StringCompiler {
     /**
      * Compile the assets of a collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return void
      */
     public function compile(Collection $collection, $group)
@@ -116,7 +116,7 @@ class FilesystemCompiler extends StringCompiler {
      * Set the compile path.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Compiler\FilesystemCompiler
+     * @return Basset\Compiler\FilesystemCompiler
      */
     public function setCompilePath($path)
     {
@@ -126,9 +126,9 @@ class FilesystemCompiler extends StringCompiler {
     }
 
     /**
-     * Alias for JasonLewis\Basset\Compiler\FilesystemCompiler::setForce(true)
+     * Alias for Basset\Compiler\FilesystemCompiler::setForce(true)
      *
-     * @return JasonLewis\Basset\Compiler\FilesystemCompiler
+     * @return Basset\Compiler\FilesystemCompiler
      */
     public function force()
     {
@@ -139,7 +139,7 @@ class FilesystemCompiler extends StringCompiler {
      * Set the compiling to be forced.
      *
      * @param  bool  $force
-     * @return JasonLewis\Basset\Compiler\FilesystemCompiler
+     * @return Basset\Compiler\FilesystemCompiler
      */
     public function setForce($force)
     {

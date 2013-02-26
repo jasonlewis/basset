@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset\Exception;
+<?php namespace Basset\Exception;
 
 use Exception;
 

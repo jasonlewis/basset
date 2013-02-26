@@ -1,6 +1,6 @@
-<?php namespace JasonLewis\Basset\Compiler;
+<?php namespace Basset\Compiler;
 
-use JasonLewis\Basset\Collection;
+use Basset\Collection;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
 
@@ -36,7 +36,7 @@ abstract class Compiler implements CompilerInterface {
     /**
      * Compile the scripts of a collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return mixed
      */
     public function compileScripts(Collection $collection)
@@ -47,7 +47,7 @@ abstract class Compiler implements CompilerInterface {
     /**
      * Compile the styles of a collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return mixed
      */
     public function compileStyles(Collection $collection)

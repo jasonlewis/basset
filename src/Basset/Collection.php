@@ -1,10 +1,10 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Closure;
 use RuntimeException;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
-use JasonLewis\Basset\Compiler\StringCompiler;
+use Basset\Compiler\StringCompiler;
 
 class Collection implements FilterableInterface {
 
@@ -32,14 +32,14 @@ class Collection implements FilterableInterface {
     /**
      * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetFactory
+     * @var Basset\AssetFactory
      */
     protected $assetFactory;
 
     /**
      * Basset filter factory instance.
      *
-     * @var JasonLewis\Basset\FilterFactory
+     * @var Basset\FilterFactory
      */
     protected $filterFactory;
 
@@ -67,7 +67,7 @@ class Collection implements FilterableInterface {
     /**
      * Collection working directory.
      *
-     * @var JasonLewis\Basset\Directory
+     * @var Basset\Directory
      */
     protected $workingDirectory;
 
@@ -89,7 +89,7 @@ class Collection implements FilterableInterface {
     /**
      * Set the asset factory instance.
      *
-     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
+     * @param  Basset\AssetFactory  $assetFactory
      * @return void
      */
     public function setAssetFactory(AssetFactory $assetFactory)
@@ -100,7 +100,7 @@ class Collection implements FilterableInterface {
     /**
      * Set the filter factory instance.
      *
-     * @param  JasonLewis\Basset\FilterFactory  $filterFactory
+     * @param  Basset\FilterFactory  $filterFactory
      * @return void
      */
     public function setFilterFactory(FilterFactory $filterFactory)
@@ -122,7 +122,7 @@ class Collection implements FilterableInterface {
      * Add an asset to the collection.
      *
      * @param  string  $name
-     * @return JasonLewis\Basset\Asset
+     * @return Basset\Asset
      */
     public function add($name)
     {
@@ -239,7 +239,7 @@ class Collection implements FilterableInterface {
      * Require all assets within a directory.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function requireDirectory($path = null)
     {
@@ -259,7 +259,7 @@ class Collection implements FilterableInterface {
      * Require all assets within a directory tree.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function requireTree($path = null)
     {
@@ -279,7 +279,7 @@ class Collection implements FilterableInterface {
      * Parse a require directory or tree path and return a directory instance.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     protected function parseRequirePath($path)
     {
@@ -311,7 +311,7 @@ class Collection implements FilterableInterface {
      * Parse a directory path and return a directory instance.
      *
      * @param  string  $directory
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function parseDirectoryPath($path)
     {
@@ -394,7 +394,7 @@ class Collection implements FilterableInterface {
      *
      * @param  string  $filter
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Filter
+     * @return Basset\Filter
      */
     public function apply($filter, Closure $callback = null)
     {

@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Illuminate\Filesystem\Filesystem;
 
@@ -45,7 +45,7 @@ class AssetFactory {
      * Make a new asset instance, resolving the absolute and relative paths.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Asset
+     * @return Basset\Asset
      */
     public function make($path)
     {

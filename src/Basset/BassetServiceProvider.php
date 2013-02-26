@@ -1,13 +1,13 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
+use Basset\Manifest\Repository;
+use Basset\Console\BassetCommand;
+use Basset\Console\CompileCommand;
+use Basset\Compiler\FilesystemCompiler;
 use Illuminate\Support\ServiceProvider;
-use JasonLewis\Basset\Manifest\Repository;
-use JasonLewis\Basset\Console\BassetCommand;
-use JasonLewis\Basset\Console\CompileCommand;
-use JasonLewis\Basset\Compiler\FilesystemCompiler;
-use JasonLewis\Basset\Output\Builder as OutputBuilder;
-use JasonLewis\Basset\Output\Resolver as OutputResolver;
-use JasonLewis\Basset\Output\Controller as OutputController;
+use Basset\Output\Builder as OutputBuilder;
+use Basset\Output\Resolver as OutputResolver;
+use Basset\Output\Controller as OutputController;
 
 define('BASSET_VERSION', '4.0.0');
 
@@ -75,9 +75,9 @@ class BassetServiceProvider extends ServiceProvider {
     {
         // Bind the output controller to the container so that we can resolve it's dependencies.
         // This is essential in making the controller testable and more robust.
-        $this->app['JasonLewis\Basset\Output\Controller'] = function($app)
+        $this->app['Basset\Output\Controller'] = function($app)
         {
-            return new OutputController($app['basset.output']);
+            return new OutputController($app['basset']);
         };
 
         // We can now register a callback to the booting event fired by the application. This
@@ -89,7 +89,9 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $hash = $me->getPatternHash();
 
-            $app['router']->get("{$hash}/{asset}", 'JasonLewis\Basset\Output\Controller@processAsset')->where('asset', '.*');
+            $route = $app['router']->get("{$hash}/{collection}/{asset}", 'Basset\Output\Controller@processAsset');
+
+            $route->where('collection', '.*?')->where('asset', '.*');
         });
 
     }
@@ -190,11 +192,11 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $session = $this->app['session'];
 
-        $hash = $this->app['session']->get('basset_hash', str_random());
+        $hash = $session->get('basset_hash', str_random());
 
-        if ( ! $this->app['session']->has('basset_hash'))
+        if ( ! $session->has('basset_hash'))
         {
-            $this->app['session']->put('basset_hash', $hash);
+            $session->put('basset_hash', $hash);
         }
 
         return $hash;

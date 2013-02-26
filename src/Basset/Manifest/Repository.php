@@ -1,6 +1,6 @@
-<?php namespace JasonLewis\Basset\Manifest;
+<?php namespace Basset\Manifest;
 
-use JasonLewis\Basset\Collection;
+use Basset\Collection;
 use Illuminate\Filesystem\Filesystem;
 
 class Repository {
@@ -74,7 +74,7 @@ class Repository {
     /**
      * Register a collection with the manifest.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  array  $fingerprints
      * @param  bool  $development
      * @return void

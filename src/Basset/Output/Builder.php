@@ -1,15 +1,15 @@
-<?php namespace JasonLewis\Basset\Output;
+<?php namespace Basset\Output;
 
+use Basset\Collection;
 use Illuminate\Session\Store;
 use Illuminate\Config\Repository;
-use JasonLewis\Basset\Collection;
 
 class Builder {
 
     /**
      * Output resolver instance.
      *
-     * @var JasonLewis\Basset\Output\Resolver
+     * @var Basset\Output\Resolver
      */
     protected $resolver;
 
@@ -37,7 +37,7 @@ class Builder {
     /**
      * Create a new output builder instance.
      *
-     * @param  JasonLewis\Basset\Output\Resolver  $resolver
+     * @param  Basset\Output\Resolver  $resolver
      * @param  Illuminate\Config\Repository  $config
      * @param  array  $collections
      * @return void
@@ -48,11 +48,6 @@ class Builder {
         $this->config = $config;
         $this->session = $session;
         $this->collections = $collections;
-    }
-
-    public function asset($path)
-    {
-
     }
 
     /**
@@ -126,7 +121,7 @@ class Builder {
     /**
      * Build a fingerprinted collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  string  $fingerprint
      * @param  string  $group
      * @return array
@@ -152,7 +147,7 @@ class Builder {
     /**
      * Build a development collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  array  $development
      * @param  string  $group
      * @return array
@@ -194,19 +189,40 @@ class Builder {
     /**
      * Build a dynamic collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  string  $group
      * @return array
      */
     protected function buildDynamicCollection(Collection $collection, $group)
     {
-        return array();
+        $collectionName = $collection->getName();
+
+        $responses = array();
+
+        // The path to dynamically generated assets includes a random hash that's been
+        // stored in each session. We'll prefix assets that aren't remotely hosted with
+        // this hash.
+        $hash = $this->session->get('basset_hash');
+
+        foreach ($collection->getAssets($group) as $asset)
+        {
+            $path = $asset->getRelativePath();
+
+            if ( ! $asset->isRemote())
+            {
+                $path = "{$hash}/{$collectionName}/{$path}";
+            }
+
+            $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
+        }
+
+        return $responses;
     }
 
     /**
      * Build a collections ignored assets.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  string  $group
      * @return array
      */

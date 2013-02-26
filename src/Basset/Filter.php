@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace asset;
 
 use Closure;
 use ReflectionClass;
@@ -29,7 +29,7 @@ class Filter {
     /**
      * Resource being filtered.
      *
-     * @var JasonLewis\Basset\FilterableInterface
+     * @var asset\FilterableInterface
      */
     protected $resource;
 
@@ -63,7 +63,7 @@ class Filter {
      * Add a before filtering callback.
      *
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function beforeFiltering(Closure $callback)
     {
@@ -75,7 +75,7 @@ class Filter {
     /**
      * Set the filters instantiation arguments
      *
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function setArguments()
     {
@@ -88,7 +88,7 @@ class Filter {
      * Add an environment to apply the filter on.
      *
      * @param  string  $environment
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function onEnvironment($environment)
     {
@@ -100,7 +100,7 @@ class Filter {
     /**
      * Add an array of environments to apply the filter on.
      *
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function onEnvironments()
     {
@@ -112,7 +112,7 @@ class Filter {
     /**
      * Apply filter to only styles.
      *
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function onlyStyles()
     {
@@ -124,7 +124,7 @@ class Filter {
     /**
      * Apply filter to only scripts.
      *
-     * @return JasonLewis\Basset\Filter
+     * @return asset\Filter
      */
     public function onlyScripts()
     {
@@ -194,9 +194,9 @@ class Filter {
         {
             return "Assetic\\Filter\\{$this->filter}";
         }
-        elseif (class_exists("JasonLewis\\Basset\\Filter\\{$this->filter}"))
+        elseif (class_exists("Basset\\Filter\\{$this->filter}"))
         {
-            return "JasonLewis\\Basset\\Filter\\{$this->filter}";
+            return "Basset\\Filter\\{$this->filter}";
         }
 
         return false;

@@ -1,13 +1,13 @@
-<?php namespace JasonLewis\Basset\Compiler;
+<?php namespace Basset\Compiler;
 
-use JasonLewis\Basset\Collection;
+use Basset\Collection;
 
 interface CompilerInterface {
 
     /**
      * Compile the assets of a collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @param  string  $group
      * @return mixed
      */

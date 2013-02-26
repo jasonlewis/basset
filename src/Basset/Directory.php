@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Closure;
 use FilesystemIterator;
@@ -25,14 +25,14 @@ class Directory implements FilterableInterface {
     /**
      * Basset asset factory instance.
      *
-     * @var JasonLewis\Basset\AssetFactory
+     * @var Basset\AssetFactory
      */
     protected $assetFactory;
 
     /**
      * Basset filter factory instance.
      *
-     * @var JasonLewis\Basset\FilterFactory
+     * @var Basset\FilterFactory
      */
     protected $filterFactory;
 
@@ -54,7 +54,7 @@ class Directory implements FilterableInterface {
      * Create a new directory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  JasonLewis\Basset\AssetFactory  $assetFactory
+     * @param  Basset\AssetFactory  $assetFactory
      * @param  string  $path
      * @return void
      */
@@ -91,7 +91,7 @@ class Directory implements FilterableInterface {
     /**
      * Require the current directory.
      *
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function requireDirectory()
     {
@@ -109,7 +109,7 @@ class Directory implements FilterableInterface {
     /**
      * Require the current directory tree.
      *
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function requireTree()
     {
@@ -128,7 +128,7 @@ class Directory implements FilterableInterface {
      * Exclude an array of assets.
      *
      * @param  array  $assets
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function except($assets)
     {
@@ -147,7 +147,7 @@ class Directory implements FilterableInterface {
      * Include only a subset of assets.
      *
      * @param  array  $assets
-     * @return JasonLewis\Basset\Directory
+     * @return Basset\Directory
      */
     public function only($assets)
     {
@@ -206,7 +206,7 @@ class Directory implements FilterableInterface {
      *
      * @param  string  $filter
      * @param  Closure  $callback
-     * @return JasonLewis\Basset\Filter
+     * @return Basset\Filter
      */
     public function apply($filter, Closure $callback = null)
     {

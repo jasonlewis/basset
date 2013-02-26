@@ -1,14 +1,14 @@
-<?php namespace JasonLewis\Basset\Compiler;
+<?php namespace Basset\Compiler;
 
-use JasonLewis\Basset\Collection;
-use JasonLewis\Basset\Exception\EmptyResponseException;
+use Basset\Collection;
+use Basset\Exception\EmptyResponseException;
 
 class StringCompiler extends Compiler {
 
     /**
      * Compile the assets of a collection.
      *
-     * @param  JasonLewis\Basset\Collection  $collection
+     * @param  Basset\Collection  $collection
      * @return array
      */
     public function compile(Collection $collection, $group)

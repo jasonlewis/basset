@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset\Manifest;
+<?php namespace Basset\Manifest;
 
 use Illuminate\Support\Contracts\JsonableInterface;
 use Illuminate\Support\Contracts\ArrayableInterface;
@@ -35,7 +35,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      *
      * @param  string  $fingerprint
      * @param  string  $group
-     * @return JasonLewis\Basset\Manifest\Entry
+     * @return Basset\Manifest\Entry
      */
     public function setFingerprint($fingerprint, $group)
     {
@@ -48,7 +48,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      * Add a development asset path.
      *
      * @param  string  $path
-     * @return JasonLewis\Basset\Manifest\Entry
+     * @return Basset\Manifest\Entry
      */
     public function addDevelopment($originalPath, $compiledPath, $group)
     {

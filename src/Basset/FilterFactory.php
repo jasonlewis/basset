@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset;
+<?php namespace Basset;
 
 use Illuminate\Config\Repository;
 
@@ -25,10 +25,10 @@ class FilterFactory {
     /**
      * Make a new filter instance.
      *
-     * @param  JasonLewis\Basset\Filter|string  $filter
+     * @param  Basset\Filter|string  $filter
      * @param  Closure  $callback
-     * @param  JasonLewis\Basset\FilterableInterface  $resource
-     * @return JasonLewis\Basse\Filter
+     * @param  Basset\FilterableInterface  $resource
+     * @return Basset\Filter
      */
     public function make($filter, $callback, FilterableInterface $resource)
     {

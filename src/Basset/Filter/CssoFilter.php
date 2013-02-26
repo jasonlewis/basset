@@ -1,4 +1,4 @@
-<?php namespace JasonLewis\Basset\Filter;
+<?php namespace Basset\Filter;
 
 use Assetic\Asset\AssetInterface;
 use Assetic\Filter\BaseNodeFilter;
