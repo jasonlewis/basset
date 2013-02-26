@@ -45,6 +45,12 @@ class Controller extends IlluminateController {
         }
     }
 
+    /**
+     * Build the response for an asset.
+     *
+     * @param  Basset\Asset  $asset
+     * @return Illuminate\Http\Response
+     */
     protected function buildResponse(Asset $asset)
     {
         // Build the asset, this applies all filters that have been applied and
