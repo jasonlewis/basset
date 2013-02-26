@@ -4,27 +4,27 @@ use Basset\Basset;
 use RuntimeException;
 use Illuminate\Console\Command;
 use Basset\Manifest\Repository;
-use Symfony\Component\Console\Input\InputOption;
-use Basset\Compiler\CompilerInterface;
-use Symfony\Component\Console\Input\InputArgument;
+use Basset\Builder\BuilderInterface;
 use Basset\Exception\EmptyResponseException;
 use Basset\Exception\CollectionExistsException;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
 
-class CompileCommand extends Command {
+class BuildCommand extends Command {
 
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $name = 'basset:compile';
+    protected $name = 'basset:build';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Compile asset collections';
+    protected $description = 'Build asset collections';
 
     /**
      * Basset instance.
@@ -34,11 +34,11 @@ class CompileCommand extends Command {
     protected $basset;
 
     /**
-     * Filesystem compiler instance.
+     * Builder instance.
      *
-     * @var Basset\Compiler\FilesystemCompiler
+     * @var Basset\Builder\BuilderInterface
      */
-    protected $compiler;
+    protected $builder;
 
     /**
      * Manifest repository instance.
@@ -48,27 +48,27 @@ class CompileCommand extends Command {
     protected $repository;
 
     /**
-     * Path to output compiled collections.
+     * Path to output built collections.
      *
      * @var string
      */
-    protected $compilePath;
+    protected $buildPath;
 
     /**
      * Create a new basset compile command instance.
      *
      * @param  Basset\Basset  $basset
-     * @param  Basset\Compiler\CompilerInterface  $compiler
+     * @param  Basset\Builder\BuilderInterface  $builder
      * @return void
      */
-    public function __construct(Basset $basset, CompilerInterface $compiler, Repository $repository, $compilePath)
+    public function __construct(Basset $basset, BuilderInterface $builder, Repository $repository, $buildPath)
     {
         parent::__construct();
 
         $this->basset = $basset;
-        $this->compiler = $compiler;
+        $this->builder = $builder;
         $this->repository = $repository;
-        $this->compilePath = $compilePath;
+        $this->buildPath = $buildPath;
     }
 
     /**
@@ -93,38 +93,38 @@ class CompileCommand extends Command {
         }
         else
         {
-            $this->info("Gathering all collections to compile...");
+            $this->info("Gathering all collections to build...");
 
             $collections = $this->basset->getCollections();
         }
 
-        // If the force option has been set then we'll tell the compiler that the collections
-        // are to be forcefully compiled.
-        $this->input->getOption('force') and $this->compiler->force();
+        // If the force option has been set then we'll tell the builder that the collections
+        // are to be forcefully built.
+        $this->input->getOption('force') and $this->builder->force();
 
-        $this->compiler->setCompilePath($this->compilePath);
+        $this->builder->setBuildPath($this->buildPath);
 
-        // Spin through each of the collections and compile both the scripts and styles. Each is broken into
-        // a separate try/catch block so that we can catch any exceptions thrown when attempting to compile.
-        // We'll also handle the compiling of development assets here as well.
+        // Spin through each of the collections and build both the scripts and styles. Each is broken into
+        // a separate try/catch block so that we can catch any exceptions thrown when attempting to build.
+        // We'll also handle the building of development assets here as well.
         foreach ($collections as $collection)
         {
             try
             {
                 if ($this->input->getOption('dev'))
                 {
-                    $this->compiler->compileDevelopment($collection, 'styles');
+                    $this->builder->buildDevelopment($collection, 'styles');
                 }
                 else
                 {
-                    $this->compiler->compileStyles($collection);
+                    $this->builder->buildStyles($collection);
                 }
 
-                $this->line("<info>Styles successfully compiled for collection:</info> {$collection->getName()}");
+                $this->line("<info>Styles successfully built for collection:</info> {$collection->getName()}");
             }
             catch (EmptyResponseException $error)
             {
-                $this->line("<comment>There are no styles to compile for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>There are no styles to build for collection:</comment> {$collection->getName()}");
             }
             catch (CollectionExistsException $error)
             {
@@ -135,28 +135,28 @@ class CompileCommand extends Command {
             {
                 if ($this->input->getOption('dev'))
                 {
-                    $this->compiler->compileDevelopment($collection, 'scripts');
+                    $this->builder->buildDevelopment($collection, 'scripts');
                 }
                 else
                 {
-                    $this->compiler->compileScripts($collection);
+                    $this->builder->buildScripts($collection);
                 }
 
-                $this->line("<info>Scripts successfully compiled for collection:</info> {$collection->getName()}");
+                $this->line("<info>Scripts successfully built for collection:</info> {$collection->getName()}");
             }
             catch (EmptyResponseException $error)
             {
-                $this->line("<comment>There are no scripts to compile for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>There are no scripts to build for collection:</comment> {$collection->getName()}");
             }
             catch (CollectionExistsException $error)
             {
                 $this->line("<comment>Scripts are up-to-date for collection:</comment> {$collection->getName()}");
             }
 
-            // After the compiling has taken place we'll register this collection with the repository. This will
+            // After the building has taken place we'll register this collection with the repository. This will
             // store all information related to this collection so that Basset knows what files to load when
             // running under different environments.
-            $this->repository->register($collection, $this->compiler->getFingerprint(), $this->input->getOption('dev'));
+            $this->repository->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
         }
     }
 
@@ -168,7 +168,7 @@ class CompileCommand extends Command {
     protected function getArguments()
     {
         return array(
-            array('collection', InputArgument::OPTIONAL, 'The asset collection to compile'),
+            array('collection', InputArgument::OPTIONAL, 'The asset collection to build'),
         );
     }
 
@@ -180,8 +180,8 @@ class CompileCommand extends Command {
     protected function getOptions()
     {
         return array(
-            array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-compile of the collection'),
-            array('dev', null, InputOption::VALUE_NONE, 'Compile assets individually for development'),
+            array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-build of the collection'),
+            array('dev', null, InputOption::VALUE_NONE, 'Build assets individually for development'),
         );
     }
 

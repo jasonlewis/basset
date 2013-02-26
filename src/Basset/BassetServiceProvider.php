@@ -2,8 +2,8 @@
 
 use Basset\Manifest\Repository;
 use Basset\Console\BassetCommand;
-use Basset\Console\CompileCommand;
-use Basset\Compiler\FilesystemCompiler;
+use Basset\Console\BuildCommand;
+use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
 use Basset\Output\Builder as OutputBuilder;
 use Basset\Output\Resolver as OutputResolver;
@@ -48,8 +48,8 @@ class BassetServiceProvider extends ServiceProvider {
         $this->app['basset.repository']->load();
 
         // To process assets dynamically we'll register a route with the router that will allow
-        // un-compiled assets to be compiled on the fly and returned to the browser. Static files
-        // are not served and it can be much slower.
+        // assets to be built on the fly and returned to the browser. Static files will not be served
+        // meaning this is much slower then building assets via the command line.
         $this->registerRouting();
     }
 
@@ -167,20 +167,20 @@ class BassetServiceProvider extends ServiceProvider {
             return new BassetCommand;
         });
 
-        $this->app['command.basset.compile'] = $this->app->share(function($app)
+        $this->app['command.basset.build'] = $this->app->share(function($app)
         {
-            $compiler = new FilesystemCompiler($app['files'], $app['config']);
+            $builder = new FilesystemBuilder($app['files'], $app['config']);
 
-            // The compile path is where the compiled collections are saved. This path is relative
-            // to the public directory, so we'll join the public path and the compile path together.
-            $compilePath = $app['path.public'].'/'.$app['config']->get('basset::compiling_path');
+            // The build path is where the built collections are saved. This path is relative
+            // to the public directory, so we'll join the public path and the build path together.
+            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
 
-            return new CompileCommand($app['basset'], $compiler, $app['basset.repository'], $compilePath);
+            return new BuildCommand($app['basset'], $builder, $app['basset.repository'], $buildPath);
         });
 
         // Resolve the commands with Artisan by attaching the event listener to Artisan's
         // startup. This allows us to use the commands from our terminal.
-        $this->commands('command.basset', 'command.basset.compile');
+        $this->commands('command.basset', 'command.basset.build');
     }
 
     /**

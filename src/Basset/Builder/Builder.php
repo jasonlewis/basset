@@ -1,10 +1,10 @@
-<?php namespace Basset\Compiler;
+<?php namespace Basset\Builder;
 
 use Basset\Collection;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
 
-abstract class Compiler implements CompilerInterface {
+abstract class Builder implements BuilderInterface {
 
     /**
      * Illuminate filesystem instance.
@@ -21,7 +21,7 @@ abstract class Compiler implements CompilerInterface {
     protected $config;
 
     /**
-     * Create a new compiler instance.
+     * Create a new builder instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
@@ -34,25 +34,25 @@ abstract class Compiler implements CompilerInterface {
     }
 
     /**
-     * Compile the scripts of a collection.
+     * Build the scripts of a collection.
      *
      * @param  Basset\Collection  $collection
      * @return mixed
      */
-    public function compileScripts(Collection $collection)
+    public function buildScripts(Collection $collection)
     {
-        return $this->compile($collection, 'scripts');
+        return $this->build($collection, 'scripts');
     }
 
     /**
-     * Compile the styles of a collection.
+     * Build the styles of a collection.
      *
      * @param  Basset\Collection  $collection
      * @return mixed
      */
-    public function compileStyles(Collection $collection)
+    public function buildStyles(Collection $collection)
     {
-        return $this->compile($collection, 'styles');
+        return $this->build($collection, 'styles');
     }
 
 }
