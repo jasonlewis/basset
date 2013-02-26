@@ -2,54 +2,70 @@
 
 return array(
 
-    'runtime' => true,
+    /*
+    |--------------------------------------------------------------------------
+    | Production Environment
+    |--------------------------------------------------------------------------
+    |
+    | Basset needs to know what your production environment is so that it can
+    | respond with the correct assets. When in production Basset will attempt
+    | to return any built collections. If a collection has not been built
+    | Basset will look for development assets that may have been built. If
+    | neither can be found Basset will dynamically route to each asset in the
+    | collection and apply the filters.
+    |
+    | The last method can be very taxing so it's highly recommended that
+    | collections are built when deploying to a production environment.
+    |
+    */
 
     'production' => 'production',
 
     /*
     |--------------------------------------------------------------------------
-    | Compile Remotes
+    | Build Remote Assets
     |--------------------------------------------------------------------------
     |
-    | When you add a remote asset it's often located on a CDN and you don't
-    | want it compiled into your collection. Disabling the compiling of all
-    | remote assets means they won't be included in the compiled collection.
+    | Remote assets are often stored on a CDN. This means you normally wouldn't
+    | want to build the remote assets as part of your collection. Disabling
+    | this will result in all remote assets to still be included but as
+    | separate HTML tags.
     |
     */
 
-    'compile_remotes' => true,
+    'build_remotes' => true,
 
     /*
     |--------------------------------------------------------------------------
-    | Compiling Path
+    | Build Path
     |--------------------------------------------------------------------------
     |
-    | When assets are statically compiled via the command line the generated
-    | files will be stored in this directory. The path is relative to the public
-    | directory.
+    | When assets are built with Artisan they will be stored within a directory
+    | relative to the public directory.
     |
-    | If the directory does not exist, Basset will attempt to create it.
+    | If the directory does not exist Basset will attempt to create it.
     |
     */
 
-    'compiling_path' => 'assets',
+    'build_path' => 'assets',
 
     /*
     |--------------------------------------------------------------------------
-    | Named Asset Directories
+    | Named Directories
     |--------------------------------------------------------------------------
     |
-    | These named directories are used for quick reference as well as when
-    | searching for an asset. Assets are located by cascading through the array
-    | of directories until an asset with the matching name is found.
+    | These directories are a convenience when requiring a directory or tree.
+    | Basset will also revert to recursively scanning these directories if it
+    | cannot locate an asset.
     |
-    | Directories are relative from the public directory.
+    | Directory paths should be relative to the public directory.
     |
     | You can specifiy an absolute path to a directory by prefixing it with
     | 'path: '.
     |
     | array(
-    |    'css' => 'path: /path/to/your/directory'
+    |    'js' => 'javascripts',
+    |    'css' => 'path: /absolute/path/to/your/css'
     | )
     |
     */
@@ -63,14 +79,13 @@ return array(
     | Asset Aliases
     |--------------------------------------------------------------------------
     |
-    | Similar to directories you can define names for assets that may be used
-    | in a number of collections.
+    | Adding the same asset to a number of collections can be a pain when you
+    | have to define its path every time. With aliases you can give your assets
+    | a name and simply use that name when adding an asset.
     |
     | array(
     |    'layout' => 'css/layout.css'
     | )
-    |
-    | Aliased assets are checked first when adding an asset.
     |
     */
 
@@ -82,7 +97,7 @@ return array(
     |--------------------------------------------------------------------------
     |
     | A named filter can be used to quickly apply a filter to a collection of
-    | assets.
+    | assets or an individual asset.
     |
     |   'YuiCss' => 'Yui\CssCompressorFilter'
     |
@@ -97,7 +112,7 @@ return array(
     |       }
     |   )
     |
-    | The filter can then be referenced by its name when applying filters.
+    | The filter can then be referenced by its name when applying.
     |
     */
 
