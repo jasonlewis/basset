@@ -78,35 +78,16 @@ class BuildCommand extends Command {
      */
     public function fire()
     {
-        if ( ! is_null($collection = $this->input->getArgument('collection')))
-        {
-            if ( ! $this->basset->hasCollection($collection))
-            {
-                $this->error("Could not find collection: {$collection}");
+        $collections = $this->fetchCollections();
 
-                return;
-            }
-
-            $this->info("Gathering assets for collection...");
-
-            $collections = array($this->basset->collection($collection));
-        }
-        else
-        {
-            $this->info("Gathering all collections to build...");
-
-            $collections = $this->basset->getCollections();
-        }
-
-        // If the force option has been set then we'll tell the builder that the collections
-        // are to be forcefully built.
+        // If the force option has been set then we'll tell the builder to forcefully re-build each
+        // of the collections.
         $this->input->getOption('force') and $this->builder->force();
 
         $this->builder->setBuildPath($this->buildPath);
 
-        // Spin through each of the collections and build both the scripts and styles. Each is broken into
-        // a separate try/catch block so that we can catch any exceptions thrown when attempting to build.
-        // We'll also handle the building of development assets here as well.
+        // Spin through each of the collections to be built and build both the scripts and styles. We'll catch
+        // any exceptions thrown during the building of the assets and output friendlier messages to the user.
         foreach ($collections as $collection)
         {
             try
@@ -153,11 +134,40 @@ class BuildCommand extends Command {
                 $this->line("<comment>Scripts are up-to-date for collection:</comment> {$collection->getName()}");
             }
 
-            // After the building has taken place we'll register this collection with the repository. This will
-            // store all information related to this collection so that Basset knows what files to load when
-            // running under different environments.
+            // Once a collection has been built we need to register the collection with the manifest repository. The
+            // repository will store details about the collection in the manifest.
             $this->repository->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
         }
+    }
+
+    /**
+     * Fetch the collections to be built.
+     *
+     * @return array
+     */
+    protected function fetchCollections()
+    {
+        if ( ! is_null($collection = $this->input->getArgument('collection')))
+        {
+            if ( ! $this->basset->hasCollection($collection))
+            {
+                $this->error("Could not find collection: {$collection}");
+
+                return;
+            }
+
+            $this->info("Gathering assets for collection...");
+
+            $collections = array($this->basset->collection($collection));
+        }
+        else
+        {
+            $this->info("Gathering all collections to build...");
+
+            $collections = $this->basset->getCollections();
+        }
+
+        return $collections;
     }
 
     /**
