@@ -1,4 +1,4 @@
-<?php namespace asset;
+<?php namespace Basset;
 
 use Closure;
 use ReflectionClass;
