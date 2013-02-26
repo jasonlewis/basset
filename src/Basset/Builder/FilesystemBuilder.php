@@ -34,35 +34,32 @@ class FilesystemBuilder extends StringBuilder {
      */
     public function build(Collection $collection, $group)
     {
-        $response = parent::build($collection, $group);
+        $response = array_to_newlines(parent::build($collection, $group));
 
-        $response = implode(PHP_EOL, $response);
-
-        // If the build path does not exist then we'll attempt to create it.
         if ( ! $this->files->exists($this->buildPath))
         {
             $this->files->makeDirectory($this->buildPath);
         }
 
-        // The fingerprint is an MD5 hash of the built response. This allows the cache
-        // to be busted when a new lot of assets are built.
+        // Create a fingerprint of the built response. The fingerprint is an MD5 hash, this allows
+        // the cache to be busted by generating a new hash when the assets are changed.
         $this->fingerprint[$group] = md5($response);
 
         $extension = $collection->determineExtension($group);
 
-        // Before we attempt to save the response to the output file we'll first make sure
-        // that a file with the same name does not exist. If one exists then we'll throw
-        // an exception unless the building is being forced.
         $collectionName = $collection->getName();
 
-        $outputFilePath = "{$this->buildPath}/{$collectionName}-{$this->fingerprint[$group]}.{$extension}";
+        // If we're not forcefully re-building the collection we'll make sure that an existing
+        // collection with the same fingerprint does not already exist. If it does then there's
+        // no reason for it to be re-built.
+        $outputPath = "{$this->buildPath}/{$collectionName}-{$this->fingerprint[$group]}.{$extension}";
 
-        if ($this->files->exists($outputFilePath) and ! $this->force)
+        if ($this->files->exists($outputPath) and ! $this->force)
         {
             throw new CollectionExistsException("The [{$group}] on collection [{$collectionName}] are up to date.");
         }
 
-        $this->files->put($outputFilePath, $response);
+        $this->files->put($outputPath, $response);
     }
 
     /**
@@ -76,8 +73,8 @@ class FilesystemBuilder extends StringBuilder {
 
         $collectionName = $collection->getName();
 
-        // Determine if the build path exists. If the path does not exist we'll make an attempt
-        // to create it. Things could get ugly if we don't.
+        // Development assets are stored in a sub-directory so as to avoid any possible double-ups
+        // between collections.
         $buildPath = "{$this->buildPath}/{$collectionName}";
 
         if ( ! $this->files->exists($buildPath))
@@ -87,17 +84,16 @@ class FilesystemBuilder extends StringBuilder {
 
         $extension = $collection->determineExtension($group);
 
-        // Spin through the responses. For each response we'll need to possibly create it's
-        // base directory if it's nested within the build path. Once we have the directory
-        // we can proceed to dump the contents to the file.
+        // Spin through each of the responses and create the required directories. Each asset that is
+        // to be built will then have its contents dumped to a file.
         foreach ($responses as $relativePath => $assetContents)
         {
             list($directoryName, $fileName) = array(pathinfo($relativePath, PATHINFO_DIRNAME), pathinfo($relativePath, PATHINFO_FILENAME));
 
-            $filePath = $buildPath;
+            $outputPath = $buildPath;
 
-            // If the directory name where the file is located is not one of the dot directories
-            // then we'll add the directory to the path as well.
+            // If we're not in the base directory of our build path then we'll add the assets directory
+            // to the path. We're essentially mimicking the directory structure of the collection.
             if ( ! in_array($directoryName, array('.', '..')))
             {
                 $filePath = "{$filePath}/{$directoryName}";
