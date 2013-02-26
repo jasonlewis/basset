@@ -20,11 +20,11 @@ class Repository {
     protected $manifestPath;
 
     /**
-     * Manifest array.
+     * Manifest instance.
      *
-     * @var array
+     * @var Basset\Manifest\Manifest
      */
-    protected $manifest = array();
+    protected $manifest;
 
     /**
      * Create a new collection repository instance.
@@ -37,20 +37,24 @@ class Repository {
     {
         $this->files = $files;
         $this->manifestPath = $manifestPath;
+        $this->manifest = new Manifest;
     }
 
     /**
      * Load and set the manifest on the repository instance.
      *
-     * @return array
+     * @return Basset\Manifest\Manifest
      */
     public function load()
     {
         $manifest = $this->loadManifest();
 
-        if ( ! is_null($manifest))
+        if (is_array($manifest))
         {
-            $this->manifest = $this->parseManifest($manifest);
+            foreach ($manifest as $key => $entry)
+            {
+                $this->manifest->setEntry($key, new Entry($entry));
+            }
         }
 
         return $this->manifest;
@@ -120,67 +124,26 @@ class Repository {
             }
         }
 
-        $this->manifest[$collectionName] = $entry->toArray();
+        // Make the manifest a variable with the methods scope so that we don't turn the manifest property
+        // into a bunch of arrays when writing the manifest.
+        $this->manifest->setEntry($collectionName, $entry);
 
-        $this->writeManifest($this->manifest);
+        $this->writeManifest($this->manifest->toJson());
     }
 
     /**
      * Write to the manifest file.
      *
-     * @param  array  $manifest
+     * @param  string  $manifest
      * @return array
      */
     public function writeManifest($manifest)
     {
         $path = $this->manifestPath.'/collections.json';
 
-        $this->files->put($path, json_encode($manifest));
+        $this->files->put($path, $manifest);
 
         return $manifest;
-    }
-
-    /**
-     * Parse a manifest array.
-     *
-     * @param  array  $manifest
-     * @return array
-     */
-    public function parseManifest(array $manifest)
-    {
-        foreach ($manifest as $key => $entry)
-        {
-            $manifest[$key] = new Entry($entry);
-        }
-
-        return $manifest;
-    }
-
-    /**
-     * Find a collection in the manifest or get a fresh entry.
-     *
-     * @param  string  $name
-     * @return array
-     */
-    public function find($name)
-    {
-        if ( ! isset($this->manifest[$name]))
-        {
-            return $this->freshEntry();
-        }
-
-        return $this->manifest[$name];
-    }
-
-    /**
-     * Determine if a collection exists in the manifest.
-     *
-     * @param  string  $name
-     * @return bool
-     */
-    public function has($name)
-    {
-        return $this->find($name) !== $this->freshEntry();
     }
 
     /**
@@ -201,6 +164,18 @@ class Repository {
     protected function freshEntry()
     {
         return new Entry;
+    }
+
+    /**
+     * Dynamically pass method calls to the manifest.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        return call_user_func_array(array($this->manifest, $method), $parameters);
     }
 
 }

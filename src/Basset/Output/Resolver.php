@@ -14,7 +14,7 @@ class Resolver {
      *
      * @var Basset\Manifest\Repository
      */
-    protected $repository;
+    protected $manifest;
 
     /**
      * Illuminate router instance.
@@ -40,15 +40,15 @@ class Resolver {
     /**
      * Create a new output resolver instance.
      *
-     * @param  Basset\Manifest\Repository  $repository
+     * @param  Basset\Manifest\Repository  $manifest
      * @param  Illuminate\Routing\Router  $router
      * @param  Illuminate\Config\Repository  $config
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(ManifestRepository $repository, Router $router, ConfigRepository $config, $appEnvironment)
+    public function __construct(ManifestRepository $manifest, Router $router, ConfigRepository $config, $appEnvironment)
     {
-        $this->repository = $repository;
+        $this->manifest = $manifest;
         $this->router = $router;
         $this->config = $config;
         $this->appEnvironment = $appEnvironment;
@@ -64,9 +64,9 @@ class Resolver {
     {
         $name = $collection->getName();
 
-        if ($this->repository->has($name) and $this->runningInProduction())
+        if ($this->manifest->hasEntry($name) and $this->runningInProduction())
         {
-            return $this->repository->find($name)->getFingerprint($group);
+            return $this->manifest->getEntry($name)->getFingerprint($group);
         }
     }
 
@@ -80,9 +80,9 @@ class Resolver {
     {
         $name = $collection->getName();
 
-        if ($this->repository->has($name))
+        if ($this->manifest->hasEntry($name))
         {
-            return $this->repository->find($name)->getDevelopment($group);
+            return $this->manifest->getEntry($name)->getDevelopment($group);
         }
     }
 

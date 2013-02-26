@@ -38,9 +38,9 @@ class BuildCleaner {
             return $this->performCleanup($collection, $entry['fingerprint']);
         }
 
-        foreach ($this->manifest->getManifest() as $collection => $entry)
+        foreach ($this->manifest->getEntries() as $collection => $entry)
         {
-            $this->performCleanup($collection, $entry['fingerprint']);
+            $this->performCleanup($collection, $entry->getFingerprints());
         }
     }
 

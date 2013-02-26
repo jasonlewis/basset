@@ -13,11 +13,11 @@ class Entry implements JsonableInterface, ArrayableInterface {
     protected $development = array();
 
     /**
-     * Entry fingerprint.
+     * Entry fingerprints.
      *
      * @var array
      */
-    protected $fingerprint = array();
+    protected $fingerprints = array();
 
     /**
      * Create a new manifest entry instance.
@@ -39,7 +39,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function setFingerprint($fingerprint, $group)
     {
-        $this->fingerprint[$group] = $fingerprint;
+        $this->fingerprints[$group] = $fingerprint;
 
         return $this;
     }
@@ -68,7 +68,17 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function getFingerprint($group)
     {
-        return $this->fingerprint[$group];
+        return $this->fingerprints[$group];
+    }
+
+    /**
+     * Get all entry fingerprints.
+     *
+     * @return array
+     */
+    public function getFingerprints()
+    {
+        return $this->fingerprints;
     }
 
     /**
@@ -97,7 +107,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function isFingerprinted($group)
     {
-        return ! is_null($this->fingerprint[$group]);
+        return ! is_null($this->fingerprints[$group]);
     }
 
     /**
@@ -113,9 +123,9 @@ class Entry implements JsonableInterface, ArrayableInterface {
             $this->development = $entry['development'];
         }
 
-        if (isset($entry['fingerprint']))
+        if (isset($entry['fingerprints']))
         {
-            $this->fingerprint = $entry['fingerprint'];
+            $this->fingerprints = $entry['fingerprints'];
         }
     }
 
@@ -137,7 +147,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function toArray()
     {
-        return array('development' => $this->development, 'fingerprint' => $this->fingerprint);
+        return array('development' => $this->development, 'fingerprints' => $this->fingerprints);
     }
 
 }
