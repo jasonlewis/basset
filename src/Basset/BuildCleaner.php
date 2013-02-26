@@ -24,10 +24,20 @@ class BuildCleaner {
     /**
      * Clean all the collections in the manifest.
      *
+     * @param  string  $collection
      * @return void
      */
-    public function clean()
+    public function clean($collection = null)
     {
+        // If a collection was supplied and it exists in the manifest we'll only clean that
+        // collection. Otherwise all the collections will be cleaned.
+        if ( ! is_null($collection) and $this->manifest->has($collection))
+        {
+            $entry = $this->manifest->find($collection);
+
+            return $this->performCleanup($collection, $entry['fingerprint']);
+        }
+
         foreach ($this->manifest->getManifest() as $collection => $entry)
         {
             $this->performCleanup($collection, $entry['fingerprint']);
