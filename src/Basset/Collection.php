@@ -186,7 +186,7 @@ class Collection implements FilterableInterface {
 
         // To avoid nasty errors being thrown when assets don't exist yet due to a package that is
         // yet to be published we'l return a dummy asset instance so that methods are still chainable.
-        return new Asset($this->files, null, null, null);
+        return new Asset($this->files, $this->filterFactory, null, null, null);
     }
 
     /**
