@@ -123,7 +123,7 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $resolver = new OutputResolver($app['basset.manifest'], $app['router'], $app['config'], $app['env']);
 
-            return new OutputBuilder($resolver, $app['config'], $app['session'], $app['basset']->getCollections());
+            return new OutputBuilder($resolver, $app['config'], $app['session'], $app['url'], $app['basset']->getCollections());
         });
     }
 

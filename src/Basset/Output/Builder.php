@@ -3,6 +3,7 @@
 use Basset\Collection;
 use Illuminate\Session\Store;
 use Illuminate\Config\Repository;
+use Illuminate\Routing\UrlGenerator;
 
 class Builder {
 
@@ -28,6 +29,13 @@ class Builder {
     protected $session;
 
     /**
+     * Illuminate url generator instance.
+     *
+     * @var Illuminate\Routing\UrlGenerator
+     */
+    protected $url;
+
+    /**
      * Array of asset collections.
      *
      * @var array
@@ -42,11 +50,12 @@ class Builder {
      * @param  array  $collections
      * @return void
      */
-    public function __construct(Resolver $resolver, Repository $config, Store $session, array $collections)
+    public function __construct(Resolver $resolver, Repository $config, Store $session, UrlGenerator $url, array $collections)
     {
         $this->resolver = $resolver;
         $this->config = $config;
         $this->session = $session;
+        $this->url = $url;
         $this->collections = $collections;
     }
 
@@ -274,7 +283,7 @@ class Builder {
      */
     protected function buildStylesElement($path)
     {
-        return '<link rel="stylesheet" type="text/css" href="'.asset($path).'" />';
+        return '<link rel="stylesheet" type="text/css" href="'.$this->url->asset($path).'" />';
     }
 
     /**
@@ -285,7 +294,7 @@ class Builder {
      */
     protected function buildScriptsElement($path)
     {
-        return '<script type="text/javascript" src="'.asset($path).'"></script>';
+        return '<script src="'.$this->url->asset($path).'"></script>';
     }
 
 }
