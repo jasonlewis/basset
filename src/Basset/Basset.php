@@ -89,13 +89,7 @@ class Basset {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $collection = new Collection($this->files, $this->config, $name);
-
-            // Set the asset and filter factories on the collection. These are used to find and
-            // make assets and filters.
-            $collection->setAssetFactory($this->assetFactory);
-
-            $collection->setFilterFactory($this->filterFactory);
+            $collection = new Collection($name, $this->files, $this->config, $this->assetFactory, $this->filterFactory);
 
             $this->collections[$name] = $collection;
         }

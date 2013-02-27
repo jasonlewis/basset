@@ -61,11 +61,11 @@ class Entry implements JsonableInterface, ArrayableInterface {
      * @param  string  $path
      * @return Basset\Manifest\Entry
      */
-    public function addDevelopment($originalPath, $compiledPath, $group)
+    public function addDevelopment($originalPath, $builtPath, $group)
     {
         if ( ! isset($this->development[$group]) or ! array_key_exists($originalPath, $this->development))
         {
-            $this->development[$group][$originalPath] = $compiledPath;
+            $this->development[$group][$originalPath] = $builtPath;
         }
 
         return $this;

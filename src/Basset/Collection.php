@@ -74,37 +74,19 @@ class Collection implements FilterableInterface {
     /**
      * Create a new collection instance.
      *
+     * @param  string  $name
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  string  $name
-     * @return void
-     */
-    public function __construct(Filesystem $files, Repository $config, $name)
-    {
-        $this->files = $files;
-        $this->config = $config;
-        $this->name = $name;
-    }
-
-    /**
-     * Set the asset factory instance.
-     *
      * @param  Basset\AssetFactory  $assetFactory
-     * @return void
-     */
-    public function setAssetFactory(AssetFactory $assetFactory)
-    {
-        $this->assetFactory = $assetFactory;
-    }
-
-    /**
-     * Set the filter factory instance.
-     *
      * @param  Basset\FilterFactory  $filterFactory
      * @return void
      */
-    public function setFilterFactory(FilterFactory $filterFactory)
+    public function __construct($name, Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory)
     {
+        $this->name = $name;
+        $this->files = $files;
+        $this->config = $config;
+        $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
     }
 
@@ -456,13 +438,6 @@ class Collection implements FilterableInterface {
     public function determineExtension($group)
     {
         return str_plural($group) == 'styles' ? 'css' : 'js';
-    }
-
-    public function getFingerprintPath($fingerprint, $group)
-    {
-        $extension = $this->determineExtension($group);
-
-        return "{$this->getName()}-{$fingerprint}.{$extension}";
     }
 
     /**

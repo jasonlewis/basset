@@ -1,7 +1,7 @@
 <?php
 
 use Mockery as m;
-use JasonLewis\Basset\FilterFactory;
+use Basset\FilterFactory;
 
 class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -19,7 +19,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
         $filter = $filterFactory->make('FooFilter', null, $resource);
 
-        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filter);
+        $this->assertInstanceOf('Basset\Filter', $filter);
     }
 
 
@@ -105,13 +105,13 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterMock()
     {
-        return m::mock('JasonLewis\Basset\Filter');
+        return m::mock('Basset\Filter');
     }
 
 
     protected function getResourceMock()
     {
-        return m::mock('JasonLewis\Basset\FilterableInterface');
+        return m::mock('Basset\FilterableInterface');
     }
 
 

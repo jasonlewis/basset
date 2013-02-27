@@ -1,9 +1,9 @@
 <?php
 
 use Mockery as m;
-use JasonLewis\Basset\Compiler\StringCompiler;
+use Basset\Builder\StringBuilder;
 
-class StringCompilerTest extends PHPUnit_Framework_TestCase {
+class StringBuilderTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()
@@ -12,7 +12,7 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testStringCompiler()
+    public function testCollectionsAreBuiltWithStringBuilder()
     {
         $assets = array(
             $this->getAssetMock(),
@@ -21,11 +21,11 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('compile')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
         $assets[1]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
-        $assets[1]->shouldReceive('compile')->once()->andReturn('a { text-decoration: none; }');
+        $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('processCollection')->once();
@@ -33,21 +33,21 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
         $config = $this->getConfigMock();
         $files = $this->getFilesMock();
 
-        $compiler = new StringCompiler($files, $config);
+        $builder = new StringBuilder($files, $config);
 
         $expectedArray = array(
             'foo.css' => 'body { background-color: #fff; }',
             'bar.css' => 'a { text-decoration: none; }'
         );
 
-        $this->assertEquals($expectedArray, $compiler->compile($collection, 'styles'));
+        $this->assertEquals($expectedArray, $builder->build($collection, 'styles'));
     }
 
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\EmptyResponseException
+     * @expectedException Basset\Exception\EmptyResponseException
      */
-    public function testStringCompilerWithIgnoredAssets()
+    public function testStringBuilderWithIgnoredAssets()
     {
         $asset = $this->getAssetMock();
         $asset->shouldReceive('isIgnored')->once()->andReturn(true);
@@ -59,16 +59,16 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
         $config = $this->getConfigMock();
         $files = $this->getFilesMock();
 
-        $compiler = new StringCompiler($files, $config);
+        $builder = new StringBuilder($files, $config);
 
-        $compiler->compile($collection, 'styles');
+        $builder->build($collection, 'styles');
     }
 
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\EmptyResponseException
+     * @expectedException Basset\Exception\EmptyResponseException
      */
-    public function testStringCompilerWithRemoteAssetsAndNoRemoteCompiling()
+    public function testStringBuilderWithRemoteAssetsAndNoRemoteCompiling()
     {
         $asset = $this->getAssetMock();
         $asset->shouldReceive('isIgnored')->once()->andReturn(false);
@@ -79,24 +79,24 @@ class StringCompilerTest extends PHPUnit_Framework_TestCase {
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn(array($asset));
         $collection->shouldReceive('getName')->once()->andReturn('foo');
         $config = $this->getConfigMock();
-        $config->shouldReceive('get')->once()->with('basset::compile_remotes', false)->andReturn(false);
+        $config->shouldReceive('get')->once()->with('basset::build_remotes', false)->andReturn(false);
         $files = $this->getFilesMock();
 
-        $compiler = new StringCompiler($files, $config);
+        $builder = new StringBuilder($files, $config);
 
-        $compiler->compile($collection, 'styles');
+        $builder->build($collection, 'styles');
     }
 
 
     protected function getCollectionMock()
     {
-        return m::mock('JasonLewis\Basset\Collection');
+        return m::mock('Basset\Collection');
     }
 
 
     protected function getAssetMock()
     {
-        return m::mock('JasonLewis\Basset\Asset');
+        return m::mock('Basset\Asset');
     }
 
 

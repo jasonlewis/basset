@@ -15,7 +15,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
     {
         $basset = $this->getBassetInstance();
 
-        $this->assertInstanceOf('JasonLewis\Basset\Collection', $basset->collection('foo'));
+        $this->assertInstanceOf('Basset\Collection', $basset->collection('foo'));
     }
 
 
@@ -45,10 +45,10 @@ class BassetTest extends PHPUnit_Framework_TestCase {
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $config = m::mock('Illuminate\Config\Repository');
-        $assetFactory = m::mock('JasonLewis\Basset\AssetFactory');
-        $filterFactory = m::mock('JasonLewis\Basset\FilterFactory');
+        $assetFactory = m::mock('Basset\AssetFactory');
+        $filterFactory = m::mock('Basset\FilterFactory');
 
-        return new JasonLewis\Basset\Basset($files, $config, $assetFactory, $filterFactory);
+        return new Basset\Basset($files, $config, $assetFactory, $filterFactory);
     }
 
 

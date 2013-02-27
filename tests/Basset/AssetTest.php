@@ -1,8 +1,8 @@
 <?php
 
 use Mockery as m;
-use JasonLewis\Basset\Asset;
-use JasonLewis\Basset\FilterFactory;
+use Basset\Asset;
+use Basset\FilterFactory;
 
 class AssetTest extends PHPUnit_Framework_TestCase {
 
@@ -19,7 +19,9 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals('foo/bar.css', $asset->getRelativePath());
         $this->assertEquals('path/to/foo/bar.css', $asset->getAbsolutePath());
-        $this->assertEquals('css', $asset->getValidExtension());
+        $this->assertEquals('css', $asset->getUsableExtension());
+        $this->assertEquals(array(), $asset->getFilters());
+        $this->assertEquals('styles', $asset->getGroup());
     }
 
 
@@ -31,7 +33,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAssetIsStyleOrScript()
+    public function testCheckingOfAssetGroup()
     {
         $asset = $this->getAssetInstance();
 
@@ -68,8 +70,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $filters = $asset->getFilters();
 
-        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['FooFilter']);
-        $this->assertInstanceOf('JasonLewis\Basset\Filter', $filters['BarFilter']);
+        $this->assertInstanceOf('Basset\Filter', $filters['FooFilter']);
+        $this->assertInstanceOf('Basset\Filter', $filters['BarFilter']);
     }
 
 
@@ -77,7 +79,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $files = $this->getFilesMock();
         $config = $this->getConfigMock();
-        $filterFactory = new JasonLewis\Basset\FilterFactory($config);
+        $filterFactory = new Basset\FilterFactory($config);
 
         $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
 
@@ -110,7 +112,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAssetIsCompiledCorrectly()
+    public function testAssetIsBuiltCorrectly()
     {
         $contents = 'html { background-color: #fff; }';
 
@@ -136,7 +138,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $asset->apply($filter);
 
-        $this->assertEquals('body { background-color: #fff; }', $asset->compile());
+        $this->assertEquals('body { background-color: #fff; }', $asset->build());
     }
 
 
@@ -157,13 +159,13 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterFactoryMock()
     {
-        return m::mock('JasonLewis\Basset\FilterFactory');
+        return m::mock('Basset\FilterFactory');
     }
 
 
     protected function getFilterMock()
     {
-        return m::mock('JasonLewis\Basset\Filter');
+        return m::mock('Basset\Filter');
     }
 
 

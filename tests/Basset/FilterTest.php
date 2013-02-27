@@ -1,7 +1,7 @@
 <?php
 
 use Mockery as m;
-use JasonLewis\Basset\Filter;
+use Basset\Filter;
 
 class FilterTest extends PHPUnit_Framework_TestCase {
 
@@ -57,11 +57,26 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     public function testFiltersCanBeInstantiated()
     {
         $resource = $this->getResourceMock();
-        $filter = m::mock('JasonLewis\Basset\Filter[exists]', array('FooFilter', $resource));
+        $filter = m::mock('Basset\Filter[exists]', array('FooFilter', $resource));
         $filter->shouldReceive('exists')->once()->andReturn('stdClass');
         $filter->setArguments('Foo', 'Bar');
 
         $this->assertInstanceOf('stdClass', $filter->instantiate());
+    }
+
+
+    public function testFiltersCanBeInstantiatedWithBeforeFilteringEvents()
+    {
+        $resource = $this->getResourceMock();
+        $filter = m::mock('Basset\Filter[exists]', array('FooFilter', $resource));
+        $filter->shouldReceive('exists')->once()->andReturn('stdClass');
+        $filter->setArguments('Foo', 'Bar');
+        $filter->beforeFiltering(function($filter)
+        {
+            $filter->foo = 'bar';
+        });
+
+        $this->assertEquals('bar', $filter->instantiate()->foo);
     }
 
 
@@ -77,7 +92,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     protected function getResourceMock()
     {
-        return m::mock('JasonLewis\Basset\FilterableInterface');
+        return m::mock('Basset\FilterableInterface');
     }
 
 

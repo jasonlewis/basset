@@ -1,9 +1,9 @@
 <?php
 
 use Mockery as m;
-use JasonLewis\Basset\Compiler\FilesystemCompiler;
+use Basset\Builder\FilesystemBuilder;
 
-class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
+class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()
@@ -12,7 +12,7 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testFilesystemCompiler()
+    public function testCollectionsAreBuiltWithFilesystemBuilder()
     {
         $assets = array(
             $this->getAssetMock(),
@@ -21,11 +21,11 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('compile')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
         $assets[1]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
-        $assets[1]->shouldReceive('compile')->once()->andReturn('a { text-decoration: none; }');
+        $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
         $expectedResponse = 'body { background-color: #fff; }'.PHP_EOL.'a { text-decoration: none; }';
         $fingerprint = md5($expectedResponse);
@@ -34,57 +34,31 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
         $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
         $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
         $config = $this->getConfigMock();
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/compile')->andReturn(false);
-        $files->shouldReceive('makeDirectory')->once()->with('path/to/compile');
-        $files->shouldReceive('exists')->once()->with("path/to/compile/foo-{$fingerprint}.css")->andReturn(false);
-        $files->shouldReceive('put')->once()->with("path/to/compile/foo-{$fingerprint}.css", $expectedResponse);
+        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(false);
+        $files->shouldReceive('makeDirectory')->once()->with('path/to/build');
+        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(false);
+        $files->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", $expectedResponse);
 
-        $compiler = new FilesystemCompiler($files, $config);
+        $builder = new FilesystemBuilder($files, $config);
 
-        $compiler->setCompilePath('path/to/compile');
+        $builder->setBuildPath('path/to/build');
 
-        $compiler->compile($collection, 'styles');
+        $builder->build($collection, 'styles');
     }
 
     /**
-     * @expectedException JasonLewis\Basset\Exceptions\CollectionExistsException
+     * @expectedException Basset\Exception\CollectionExistsException
      */
-    public function testFilesystemCompilerFailsWithNoChanges()
+    public function testFilesystemBuilderFailsWithNoChanges()
     {
         $assets = array($this->getAssetMock());
         $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('compile')->once()->andReturn('body { background-color: #fff; }');
-
-        $fingerprint = md5('body { background-color: #fff; }');
-
-        $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $collection->shouldReceive('getName')->twice()->andReturn('foo');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/compile')->andReturn(true);
-        $files->shouldReceive('exists')->once()->with("path/to/compile/foo-{$fingerprint}.css")->andReturn(true);
-
-        $compiler = new FilesystemCompiler($files, $config);
-
-        $compiler->setCompilePath('path/to/compile');
-
-        $compiler->compile($collection, 'styles');
-    }
-
-
-    public function testFilesystemCompilerWithForce()
-    {
-        $assets = array($this->getAssetMock());
-        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('compile')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
 
         $fingerprint = md5('body { background-color: #fff; }');
 
@@ -92,23 +66,52 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
         $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
         $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
         $config = $this->getConfigMock();
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/compile')->andReturn(true);
-        $files->shouldReceive('exists')->once()->with("path/to/compile/foo-{$fingerprint}.css")->andReturn(true);
-        $files->shouldReceive('put')->once()->with("path/to/compile/foo-{$fingerprint}.css", 'body { background-color: #fff; }');
+        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
 
-        $compiler = new FilesystemCompiler($files, $config);
+        $builder = new FilesystemBuilder($files, $config);
 
-        $compiler->setCompilePath('path/to/compile');
+        $builder->setBuildPath('path/to/build');
 
-        $compiler->force();
-
-        $compiler->compile($collection, 'styles');
+        $builder->build($collection, 'styles');
     }
 
 
-    public function testFilesystemCompilerAsDevelopment()
+    public function testFilesystemBuilderWithForce()
+    {
+        $assets = array($this->getAssetMock());
+        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
+        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
+
+        $fingerprint = md5('body { background-color: #fff; }');
+
+        $collection = $this->getCollectionMock();
+        $collection->shouldReceive('processCollection')->once();
+        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
+        $config = $this->getConfigMock();
+        $files = $this->getFilesMock();
+        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
+        $files->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", 'body { background-color: #fff; }');
+
+        $builder = new FilesystemBuilder($files, $config);
+
+        $builder->setBuildPath('path/to/build');
+
+        $builder->force();
+
+        $builder->build($collection, 'styles');
+    }
+
+
+    public function testFilesystemBuilderAsDevelopment()
     {
         $assets = array(
             $this->getAssetMock(),
@@ -117,41 +120,42 @@ class FilesystemCompilerTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('compile')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
         $assets[1]->shouldReceive('isIgnored')->once()->andReturn(false);
         $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
-        $assets[1]->shouldReceive('compile')->once()->andReturn('a { text-decoration: none; }');
+        $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
         $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
         $config = $this->getConfigMock();
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/compile/foo')->andReturn(false);
-        $files->shouldReceive('makeDirectory')->once()->with('path/to/compile/foo');
-        $files->shouldReceive('exists')->twice()->with("path/to/compile/foo")->andReturn(true);
-        $files->shouldReceive('put')->once()->with("path/to/compile/foo/foo.css", 'body { background-color: #fff; }');
-        $files->shouldReceive('put')->once()->with("path/to/compile/foo/bar.css", 'a { text-decoration: none; }');
+        $files->shouldReceive('exists')->once()->with('path/to/build/foo')->andReturn(false);
+        $files->shouldReceive('makeDirectory')->once()->with('path/to/build/foo');
+        $files->shouldReceive('exists')->twice()->with("path/to/build/foo")->andReturn(true);
+        $files->shouldReceive('put')->once()->with("path/to/build/foo/foo.css", 'body { background-color: #fff; }');
+        $files->shouldReceive('put')->once()->with("path/to/build/foo/bar.css", 'a { text-decoration: none; }');
 
-        $compiler = new FilesystemCompiler($files, $config);
+        $builder = new FilesystemBuilder($files, $config);
 
-        $compiler->setCompilePath('path/to/compile');
+        $builder->setBuildPath('path/to/build');
 
-        $compiler->compileDevelopment($collection, 'styles');
+        $builder->buildDevelopment($collection, 'styles');
     }
 
 
     protected function getCollectionMock()
     {
-        return m::mock('JasonLewis\Basset\Collection');
+        return m::mock('Basset\Collection');
     }
 
 
     protected function getAssetMock()
     {
-        return m::mock('JasonLewis\Basset\Asset');
+        return m::mock('Basset\Asset');
     }
 
 
