@@ -134,6 +134,27 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testBlankAssetInstanceReturnedForNonExistentAssets()
+    {
+        $files = $this->getFilesMock();
+        $files->shouldReceive('exists')->once()->with('path/to/public/bar.css')->andReturn(false);
+        $config = $this->getConfigMock();
+        $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
+        $config->shouldReceive('get')->once()->with('basset::directories')->andReturn(array());
+        $filterFactory = $this->getFilterFactoryMock();
+        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+
+        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+
+        $asset = $collection->add('bar.css');
+
+        $assets = $collection->getAssets();
+
+        $this->assertEmpty($assets);
+        $this->assertEquals(null, $asset->getAbsolutePath());
+    }
+
+
     public function testFiltersAreAppliedToEntireCollection()
     {
         $files = $this->getFilesMock();
