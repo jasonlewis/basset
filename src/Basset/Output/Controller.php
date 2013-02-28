@@ -4,6 +4,7 @@ use Basset\Asset;
 use Basset\Basset;
 use Basset\Collection;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Routing\Controllers\Controller as IlluminateController;
 
 class Controller extends IlluminateController {
@@ -43,6 +44,8 @@ class Controller extends IlluminateController {
                 return $this->buildResponse($asset);
             }
         }
+
+        throw new NotFoundHttpException("Basset was unable to process asset [{$path}]");
     }
 
     /**
