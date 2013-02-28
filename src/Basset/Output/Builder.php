@@ -136,11 +136,11 @@ class Builder {
         $path = $this->parseBuildPath("{$collectionName}-{$fingerprint}.{$extension}");
 
         // We'll get the response of the original fingerprinted collection first. Then we'll need to
-        // spin through any of the ignored assets and append them to the response as well. Ignored
-        // assets are only ignored by the builder, but they still need to be fetched.
+        // spin through any of the excluded assets and append them to the response as well. Excluded
+        // assets are only excluded by the builder, but they still need to be fetched.
         $response = $this->{'build'.camel_case($group).'Element'}($path);
 
-        return $this->buildIgnoredAssets($collection, $group, array($response));
+        return $this->buildExcludedAssets($collection, $group, array($response));
     }
 
     /**
@@ -192,18 +192,18 @@ class Builder {
     }
 
     /**
-     * Build a collections ignored assets.
+     * Build a collections excluded assets.
      *
      * @param  Basset\Collection  $collection
      * @param  string  $group
      * @param  array  $responses
      * @return array
      */
-    protected function buildIgnoredAssets(Collection $collection, $group, array $responses)
+    protected function buildExcludedAssets(Collection $collection, $group, array $responses)
     {
         $name = $collection->getName();
 
-        $assets = $collection->getIgnoredAssets($group);
+        $assets = $collection->getExcludedAssets($group);
 
         return $this->buildDynamicAssets($name, $group, $assets, $responses);
     }

@@ -19,9 +19,7 @@ class StringBuilder extends Builder {
 
         foreach ($collection->getAssets($group) as $asset)
         {
-            // If the asset is ignored or is a remote asset and the building of remotes is disabled then we'll
-            // skip to the next asset.
-            if ($asset->isIgnored() or ($asset->isRemote() and ! $this->config->get('basset::build_remotes', false)))
+            if ($asset->isExcluded())
             {
                 continue;
             }

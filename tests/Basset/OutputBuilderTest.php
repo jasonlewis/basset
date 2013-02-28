@@ -17,7 +17,7 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getName')->twice()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->with('styles')->andReturn('css');
-        $collection->shouldReceive('getIgnoredAssets')->once()->with('styles')->andReturn(array());
+        $collection->shouldReceive('getExcludedAssets')->once()->with('styles')->andReturn(array());
 
         $resolver = $this->getResolverMock();
         $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn('bar');
@@ -65,7 +65,7 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testOuputtingCollectionWithIgnoredAssets()
+    public function testOuputtingCollectionWithExcludedAssets()
     {
         $asset = $this->getAssetMock();
         $asset->shouldReceive('getRelativePath')->once()->andReturn('foo.scss');
@@ -75,7 +75,7 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getName')->twice()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->with('styles')->andReturn('css');
-        $collection->shouldReceive('getIgnoredAssets')->once()->with('styles')->andReturn(array($asset));
+        $collection->shouldReceive('getExcludedAssets')->once()->with('styles')->andReturn(array($asset));
 
         $resolver = $this->getResolverMock();
         $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn('baz');
@@ -151,7 +151,7 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getName')->twice()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->with('styles')->andReturn('css');
-        $collection->shouldReceive('getIgnoredAssets')->once()->with('styles')->andReturn(array($asset));
+        $collection->shouldReceive('getExcludedAssets')->once()->with('styles')->andReturn(array($asset));
 
         $resolver = $this->getResolverMock();
         $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn('bar');

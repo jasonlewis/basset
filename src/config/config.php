@@ -20,7 +20,7 @@ return array(
     |
     */
 
-    'production' => 'production',
+    'production' => array('production', 'prod'),
 
     /*
     |--------------------------------------------------------------------------

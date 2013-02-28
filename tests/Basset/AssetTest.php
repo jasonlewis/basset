@@ -25,11 +25,11 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAssetsCanBeIgnored()
+    public function testAssetsCanBeExcluded()
     {
         $asset = $this->getAssetInstance();
 
-        $this->assertTrue($asset->ignore()->isIgnored());
+        $this->assertTrue($asset->exclude()->isExcluded());
     }
 
 

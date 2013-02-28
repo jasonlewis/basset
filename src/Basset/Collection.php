@@ -180,6 +180,8 @@ class Collection implements FilterableInterface {
 
             if ($asset->isRemote() or $this->files->exists($assetPath))
             {
+                $asset->isRemote() and $asset->exclude();
+
                 return $this->assets[] = $asset;
             }
         }
@@ -411,18 +413,18 @@ class Collection implements FilterableInterface {
     }
 
     /**
-     * Get an array of ignored assets filtered by a group.
+     * Get an array of excluded assets filtered by a group.
      *
      * @param  string  $group
      * @return array
      */
-    public function getIgnoredAssets($group = null)
+    public function getExcludedAssets($group = null)
     {
         $assets = array();
 
         foreach ($this->assets as $asset)
         {
-            if ($asset->isIgnored() and (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}()))
+            if ($asset->isExcluded() and (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}()))
             {
                 $key = $asset->getPosition() ?: count($assets) + 1;
 

@@ -80,6 +80,25 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testRemoteAssetIsExcludedByDefault()
+    {
+        $files = $this->getFilesMock();
+        $config = $this->getConfigMock();
+        $config->shouldReceive('has')->once()->with('basset::assets.http://foo.com/bar.css')->andReturn(false);
+        $filterFactory = $this->getFilterFactoryMock();
+        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+
+        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+
+        $collection->add('http://foo.com/bar.css');
+
+        $assets = $collection->getAssets();
+        $asset = array_pop($assets);
+
+        $this->assertTrue($asset->isExcluded());
+    }
+
+
     public function testAddAssetsFromDefinedDirectory()
     {
         $files = $this->getFilesMock();
@@ -182,7 +201,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testGetIgnoredAssets()
+    public function testGetExcludedAssets()
     {
         $files = $this->getFilesMock();
         $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
@@ -195,15 +214,15 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
 
-        $collection->add('bar.css')->ignore();
+        $collection->add('bar.css')->exclude();
         $collection->add('foo.css');
 
-        $this->assertCount(1, $collection->getIgnoredAssets());
+        $this->assertCount(1, $collection->getExcludedAssets());
         $this->assertCount(2, $collection->getAssets());
     }
 
 
-    public function testGetIgnoredAssetsByGroup()
+    public function testGetExcludedAssetsByGroup()
     {
         $files = $this->getFilesMock();
         $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
@@ -219,10 +238,10 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
 
-        $collection->add('bar.css')->ignore();
-        $collection->add('foo.js')->ignore();
+        $collection->add('bar.css')->exclude();
+        $collection->add('foo.js')->exclude();
 
-        $this->assertCount(1, $collection->getIgnoredAssets('styles'));
+        $this->assertCount(1, $collection->getExcludedAssets('styles'));
     }
 
 
@@ -241,7 +260,6 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $config->shouldReceive('has')->once()->with('basset::assets.js/example.js')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.../css/baz.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.http://foo.com/bar.css')->andReturn(false);
-        $config->shouldReceive('get')->once()->with('basset::build_remotes', false)->andReturn(true);
 
         $filterFactory = new FilterFactory($config);
 
@@ -273,7 +291,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->add('css/example.css');
         $collection->add('js/example.js');
         $collection->add('../css/baz.css');
-        $collection->add('http://foo.com/bar.css');
+        $collection->add('http://foo.com/bar.css')->include();
 
         $collection->apply($filter);
 

@@ -18,12 +18,10 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
             $this->getAssetMock(),
             $this->getAssetMock()
         );
-        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
         $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
-        $assets[1]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[1]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
         $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
@@ -55,8 +53,7 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
     public function testFilesystemBuilderFailsWithNoChanges()
     {
         $assets = array($this->getAssetMock());
-        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
         $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
 
@@ -83,8 +80,7 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
     public function testFilesystemBuilderWithForce()
     {
         $assets = array($this->getAssetMock());
-        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
         $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
 

@@ -1,6 +1,7 @@
 <?php namespace Basset;
 
 use Closure;
+use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
@@ -43,11 +44,11 @@ class Asset implements FilterableInterface {
     protected $filters = array();
 
     /**
-     * Indicates if the asset is to be ignored.
+     * Indicates if the asset is to be excluded.
      *
      * @var bool
      */
-    protected $ignored = false;
+    protected $excluded = false;
 
     /**
      * Position of the asset.
@@ -199,36 +200,59 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Alias for Basset\Asset::setIgnored(true)
+     * Alias for Basset\Asset::setExcluded(true)
      *
      * @return Basset\Asset
      */
-    public function ignore()
+    public function exclude()
     {
-        return $this->setIgnored(true);
+        return $this->setExcluded(true);
     }
 
     /**
-     * Sets the asset to be ignored.
+     * Sets the asset to be excluded.
      *
-     * @param  bool  $ignored
+     * @param  bool  $excluded
      * @return Basset\Asset
      */
-    public function setIgnored($ignored)
+    public function setExcluded($excluded)
     {
-        $this->ignored = $ignored;
+        $this->excluded = $excluded;
 
         return $this;
     }
 
     /**
-     * Determine if the asset is ignored.
+     * Determine if the asset is excluded.
      *
      * @return bool
      */
-    public function isIgnored()
+    public function isExcluded()
     {
-        return $this->ignored;
+        return $this->excluded;
+    }
+
+    /**
+     * Sets the asset to be included.
+     *
+     * @param  bool  $included
+     * @return Basset\Asset
+     */
+    public function setIncluded($included)
+    {
+        $this->excluded = ! $included;
+
+        return $this;
+    }
+
+    /**
+     * Determine if the asset is included.
+     *
+     * @return bool
+     */
+    public function isIncluded()
+    {
+        return ! $this->excluded;
     }
 
     /**
@@ -334,6 +358,23 @@ class Asset implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * Dynamically handle the "include" method as we can't set the method on the class.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if ($method == 'include')
+        {
+            return $this->setIncluded(true);
+        }
+
+        throw new InvalidArgumentException("Call to undefined method [{$method}] on Basset\Asset.");
     }
 
 }
