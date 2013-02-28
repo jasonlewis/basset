@@ -14,7 +14,7 @@ class ManifestEntryTest extends PHPUnit_Framework_TestCase {
 
     public function testDefaultArrayIsParsedCorrectly()
     {
-        $data = array('development' => array('foo' => 'bar'), 'fingerprints' => array());
+        $data = array('fingerprints' => array());
         $entry = new Entry($data);
         $this->assertEquals($data, $entry->toArray());
     }
@@ -29,17 +29,9 @@ class ManifestEntryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAddingDevelopmentAssetToEntry()
-    {
-        $entry = new Entry;
-        $entry->addDevelopment('path/to/foo.scss', 'path/to/foo.css', 'styles');
-        $this->assertEquals(array('path/to/foo.scss' => 'path/to/foo.css'), $entry->getDevelopment('styles'));
-    }
-
-
     public function testEntryCanBeConvertedToJson()
     {
-        $data = array('development' => array('foo' => 'bar'), 'fingerprints' => array());
+        $data = array('fingerprints' => array());
         $entry = new Entry($data);
         $this->assertEquals(json_encode($data), $entry->toJson());
     }

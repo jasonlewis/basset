@@ -63,52 +63,6 @@ class FilesystemBuilder extends StringBuilder {
     }
 
     /**
-     * Builds the assets of a collection to individual files for development.
-     *
-     * @return void
-     */
-    public function buildDevelopment(Collection $collection, $group)
-    {
-        $responses = parent::build($collection, $group);
-
-        $collectionName = $collection->getName();
-
-        // Development assets are stored in a sub-directory so as to avoid any possible double-ups
-        // between collections.
-        $buildPath = "{$this->buildPath}/{$collectionName}";
-
-        if ( ! $this->files->exists($buildPath))
-        {
-            $this->files->makeDirectory($buildPath);
-        }
-
-        $extension = $collection->determineExtension($group);
-
-        // Spin through each of the responses and create the required directories. Each asset that is
-        // to be built will then have its contents dumped to a file.
-        foreach ($responses as $relativePath => $assetContents)
-        {
-            list($directoryName, $fileName) = array(pathinfo($relativePath, PATHINFO_DIRNAME), pathinfo($relativePath, PATHINFO_FILENAME));
-
-            $outputPath = $buildPath;
-
-            // If we're not in the base directory of our build path then we'll add the assets directory
-            // to the path. We're essentially mimicking the directory structure of the collection.
-            if ( ! in_array($directoryName, array('.', '..')))
-            {
-                $outputPath = "{$outputPath}/{$directoryName}";
-            }
-
-            if ( ! $this->files->exists($outputPath))
-            {
-                $this->files->makeDirectory($outputPath);
-            }
-
-            $this->files->put("{$outputPath}/{$fileName}.{$extension}", $assetContents);
-        }
-    }
-
-    /**
      * Set the build path.
      *
      * @param  string  $path

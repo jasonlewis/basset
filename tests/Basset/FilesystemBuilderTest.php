@@ -111,42 +111,6 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testFilesystemBuilderAsDevelopment()
-    {
-        $assets = array(
-            $this->getAssetMock(),
-            $this->getAssetMock()
-        );
-        $assets[0]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
-        $assets[1]->shouldReceive('isIgnored')->once()->andReturn(false);
-        $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
-        $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
-
-        $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
-        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/build/foo')->andReturn(false);
-        $files->shouldReceive('makeDirectory')->once()->with('path/to/build/foo');
-        $files->shouldReceive('exists')->twice()->with("path/to/build/foo")->andReturn(true);
-        $files->shouldReceive('put')->once()->with("path/to/build/foo/foo.css", 'body { background-color: #fff; }');
-        $files->shouldReceive('put')->once()->with("path/to/build/foo/bar.css", 'a { text-decoration: none; }');
-
-        $builder = new FilesystemBuilder($files, $config);
-
-        $builder->setBuildPath('path/to/build');
-
-        $builder->buildDevelopment($collection, 'styles');
-    }
-
-
     protected function getCollectionMock()
     {
         return m::mock('Basset\Collection');

@@ -132,7 +132,7 @@ class BuildCommand extends Command {
 
             // Once a collection has been built we need to register the collection with the manifest repository. The
             // repository will store details about the collection in the manifest.
-            $this->manifest->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
+            $this->manifest->register($collection, $this->builder->getFingerprint());
         }
 
         // After building all the collections we'll let the cleaner tidy up any unnecessary asset files.
@@ -148,14 +148,7 @@ class BuildCommand extends Command {
      */
     protected function build(Collection $collection, $group)
     {
-        if ($this->input->getOption('dev'))
-        {
-            $this->builder->buildDevelopment($collection, $group);
-        }
-        else
-        {
-            $this->builder->{'build'.camel_case($group)}($collection);
-        }
+        $this->builder->{'build'.camel_case($group)}($collection);
     }
 
     /**
@@ -208,8 +201,7 @@ class BuildCommand extends Command {
     protected function getOptions()
     {
         return array(
-            array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-build of the collection'),
-            array('dev', null, InputOption::VALUE_NONE, 'Build assets individually for development'),
+            array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-build of the collection')
         );
     }
 

@@ -109,14 +109,6 @@ class Builder {
             $response = $this->buildFingerprintedCollection($collection, $fingerprint, $group);
         }
 
-        // Next we'll attempt to resolve a development collection. If a collection has been
-        // built with the develop switch then each of the statically built assets will
-        // be fetched.
-        elseif ($development = $this->resolver->resolveDevelopmentCollection($collection, $group))
-        {
-            $response = $this->buildDevelopmentCollection($collection, $development, $group);
-        }
-
         // Lastly we'll attempt to dynamically route to each of the assets in the collection with
         // a built-in controller.
         else
@@ -149,48 +141,6 @@ class Builder {
         $response = $this->{'build'.camel_case($group).'Element'}($path);
 
         return $this->buildIgnoredAssets($collection, $group, array($response));
-    }
-
-    /**
-     * Build a development collection.
-     *
-     * @param  Basset\Collection  $collection
-     * @param  array  $development
-     * @param  string  $group
-     * @return array
-     */
-    protected function buildDevelopmentCollection(Collection $collection, array $development, $group)
-    {
-        $name = $collection->getName();
-
-        // Spin through all the assets for the supplied group and add them to the array of
-        // responses. If the asset is remotely hosted or has been ignored then we'll use
-        // the correct relative paths for them.
-        $responses = array();
-
-        foreach ($collection->getAssets($group) as $asset)
-        {
-            $path = $asset->getRelativePath();
-
-            if ( ! isset($development[$path]))
-            {
-                continue;
-            }
-
-            // The manifest stores the original relative paths in the key and the corrosponding
-            // value will represent the builed location path. Generally the only thing that will
-            // differ is the extension.
-            $path = $development[$path];
-
-            if ( ! $asset->isRemote() and ! $asset->isIgnored())
-            {
-                $path = $this->parseBuildPath("{$name}/{$path}");
-            }
-
-            $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
-        }
-
-        return $responses;
     }
 
     /**

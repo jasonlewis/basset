@@ -37,35 +37,6 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testOutputtingDevelopmentCollection()
-    {
-        $asset = $this->getAssetMock();
-        $asset->shouldReceive('getRelativePath')->once()->andReturn('baz/bar.scss');
-        $asset->shouldReceive('isIgnored')->once()->andReturn(false);
-        $asset->shouldReceive('isRemote')->once()->andReturn(false);
-
-        $collection = $this->getCollectionMock();
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn(array($asset));
-
-        $resolver = $this->getResolverMock();
-        $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn(null);
-        $resolver->shouldReceive('resolveDevelopmentCollection')->once()->with($collection, 'styles')->andReturn(array('baz/bar.scss' => 'baz/bar.css'));
-
-        $config = $this->getConfigMock();
-        $config->shouldReceive('get')->once()->with('basset::build_path')->andReturn('assets');
-
-        $session = $this->getSessionMock();
-
-        $url = $this->getUrlMock();
-        $url->shouldReceive('asset')->once()->with('assets/foo/baz/bar.css')->andReturn('localhost/assets/foo/baz/bar.css');
-
-        $builder = new Builder($resolver, $config, $session, $url, array('foo' => $collection));
-
-        $this->assertEquals('<link rel="stylesheet" type="text/css" href="localhost/assets/foo/baz/bar.css" />', $builder->styles('foo'));
-    }
-
-
     public function testOutputtingDynamicCollection()
     {
         $asset = $this->getAssetMock();
@@ -79,7 +50,6 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
 
         $resolver = $this->getResolverMock();
         $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn(null);
-        $resolver->shouldReceive('resolveDevelopmentCollection')->once()->with($collection, 'styles')->andReturn(null);
 
         $config = $this->getConfigMock();
 
@@ -150,7 +120,6 @@ class OutputBuilderTest extends PHPUnit_Framework_TestCase {
 
         $resolver = $this->getResolverMock();
         $resolver->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'styles')->andReturn(null);
-        $resolver->shouldReceive('resolveDevelopmentCollection')->once()->with($collection, 'styles')->andReturn(null);
 
         $config = $this->getConfigMock();
 

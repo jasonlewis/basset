@@ -71,22 +71,6 @@ class Resolver {
     }
 
     /**
-     * Resolve a development collection.
-     *
-     * @param  Basset\Collection  $collection
-     * @return string
-     */
-    public function resolveDevelopmentCollection(Collection $collection, $group)
-    {
-        $name = $collection->getName();
-
-        if ($this->manifest->hasEntry($name) and $this->manifest->getEntry($name)->hasFingerprint($group))
-        {
-            return $this->manifest->getEntry($name)->getDevelopment($group);
-        }
-    }
-
-    /**
      * Determine if running in production environment.
      *
      * @return bool

@@ -83,7 +83,7 @@ class Repository {
      * @param  bool  $development
      * @return void
      */
-    public function register(Collection $collection, $fingerprints, $development = false)
+    public function register(Collection $collection, $fingerprints)
     {
         $collectionName = $collection->getName();
 
@@ -94,34 +94,6 @@ class Repository {
         foreach ($fingerprints as $group => $fingerprint)
         {
             $entry->setFingerprint($fingerprint, $group);
-        }
-
-        // If the collection has been compiled for development then we'll spin through all
-        // the assets within the collection and add their corrosponding development locations
-        // so Basset can find them.
-        if ($development)
-        {
-            foreach ($collection->getAssets() as $asset)
-            {
-                $path = $asset->getRelativePath();
-
-                $group = $asset->getGroup();
-
-                if ($asset->isRemote())
-                {
-                    $entry->addDevelopment($path, $path, $group);
-
-                    continue;
-                }
-
-                // We'll get the path info for the relative path to the asset so we can correctly
-                // build the path to the development asset.
-                list($directoryName, $fileName) = array(pathinfo($path, PATHINFO_DIRNAME), pathinfo($path, PATHINFO_FILENAME));
-
-                $extension = $asset->getUsableExtension();
-
-                $entry->addDevelopment($path, "{$directoryName}/{$fileName}.{$extension}", $group);
-            }
         }
 
         // Make the manifest a variable with the methods scope so that we don't turn the manifest property
