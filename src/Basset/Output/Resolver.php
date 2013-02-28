@@ -1,7 +1,6 @@
 <?php namespace Basset\Output;
 
 use Basset\Collection;
-use Illuminate\Routing\Router;
 use Basset\Compiler\StringCompiler;
 use Basset\Compiler\FilesystemCompiler;
 use Illuminate\Config\Repository as ConfigRepository;
@@ -15,13 +14,6 @@ class Resolver {
      * @var Basset\Manifest\Repository
      */
     protected $manifest;
-
-    /**
-     * Illuminate router instance.
-     *
-     * @var Illuminate\Routing\Router
-     */
-    protected $router;
 
     /**
      * Illuminate config repository instance.
@@ -41,15 +33,13 @@ class Resolver {
      * Create a new output resolver instance.
      *
      * @param  Basset\Manifest\Repository  $manifest
-     * @param  Illuminate\Routing\Router  $router
      * @param  Illuminate\Config\Repository  $config
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(ManifestRepository $manifest, Router $router, ConfigRepository $config, $appEnvironment)
+    public function __construct(ManifestRepository $manifest, ConfigRepository $config, $appEnvironment)
     {
         $this->manifest = $manifest;
-        $this->router = $router;
         $this->config = $config;
         $this->appEnvironment = $appEnvironment;
     }
