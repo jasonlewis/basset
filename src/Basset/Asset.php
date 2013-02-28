@@ -50,6 +50,13 @@ class Asset implements FilterableInterface {
     protected $ignored = false;
 
     /**
+     * Position of the asset.
+     *
+     * @var int
+     */
+    protected $position;
+
+    /**
      * Create a new asset instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
@@ -125,6 +132,70 @@ class Asset implements FilterableInterface {
     public function isRemote()
     {
         return (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL);
+    }
+
+    /**
+     * Alias for Basset\Asset::setPosition(1)
+     *
+     * @return Basset\Asset
+     */
+    public function first()
+    {
+        return $this->setPosition(1);
+    }
+
+    /**
+     * Alias for Basset\Asset::setPosition(2)
+     *
+     * @return Basset\Asset
+     */
+    public function second()
+    {
+        return $this->setPosition(2);
+    }
+
+    /**
+     * Alias for Basset\Asset::setPosition(3)
+     *
+     * @return Basset\Asset
+     */
+    public function third()
+    {
+        return $this->setPosition(3);
+    }
+
+    /**
+     * Alias for Basset\Asset::setPosition()
+     *
+     * @param  int  $position
+     * @return Basset\Asset
+     */
+    public function position($position)
+    {
+        return $this->setPosition($position);
+    }
+
+    /**
+     * Set the position of the outputted asset.
+     *
+     * @param  int  $position
+     * @return Basset\Asset
+     */
+    public function setPosition($position)
+    {
+        $this->position = $position;
+
+        return $this;
+    }
+
+    /**
+     * Get the assets position.
+     *
+     * @return int|null
+     */
+    public function getPosition()
+    {
+        return $this->position;
     }
 
     /**

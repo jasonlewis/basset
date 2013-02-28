@@ -148,9 +148,7 @@ class Builder {
         // assets are only ignored by the builder, but they still need to be fetched.
         $response = $this->{'build'.camel_case($group).'Element'}($path);
 
-        $responses = array_merge(array($response), $this->buildIgnoredAssets($collection, $group));
-
-        return $responses;
+        return $this->buildIgnoredAssets($collection, $group, array($response));
     }
 
     /**
@@ -208,7 +206,7 @@ class Builder {
 
         $assets = $collection->getAssets($group);
 
-        return $this->buildDynamicAssets($name, $group, $assets);
+        return $this->buildDynamicAssets($name, $group, $assets, array());
     }
 
     /**
@@ -219,10 +217,8 @@ class Builder {
      * @param  array  $assets
      * @return array
      */
-    protected function buildDynamicAssets($name, $group, array $assets)
+    protected function buildDynamicAssets($name, $group, array $assets, array $responses)
     {
-        $responses = array();
-
         // The path to dynamically generated assets includes a random hash that's been
         // stored in each session. We'll prefix assets that aren't remotely hosted with
         // this hash.
@@ -237,7 +233,9 @@ class Builder {
                 $path = "{$hash}/{$name}/{$path}";
             }
 
-            $responses[] = $this->{'build'.camel_case($group).'Element'}($path);
+            $key = $asset->getPosition() ?: count($responses) + 1;
+
+            array_splice($responses, $key - 1, 0, array($this->{'build'.camel_case($group).'Element'}($path)));
         }
 
         return $responses;
@@ -248,15 +246,16 @@ class Builder {
      *
      * @param  Basset\Collection  $collection
      * @param  string  $group
+     * @param  array  $responses
      * @return array
      */
-    protected function buildIgnoredAssets(Collection $collection, $group)
+    protected function buildIgnoredAssets(Collection $collection, $group, array $responses)
     {
         $name = $collection->getName();
 
         $assets = $collection->getIgnoredAssets($group);
 
-        return $this->buildDynamicAssets($name, $group, $assets);
+        return $this->buildDynamicAssets($name, $group, $assets, $responses);
     }
 
     /**
