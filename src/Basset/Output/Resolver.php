@@ -77,7 +77,7 @@ class Resolver {
      */
     protected function runningInProduction()
     {
-        return $this->appEnvironment == $this->config->get('basset::production');
+        return in_array($this->appEnvironment, (array) $this->config->get('basset::production', array()));
     }
 
 }

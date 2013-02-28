@@ -10,30 +10,17 @@ return array(
     | Basset needs to know what your production environment is so that it can
     | respond with the correct assets. When in production Basset will attempt
     | to return any built collections. If a collection has not been built
-    | Basset will look for development assets that may have been built. If
-    | neither can be found Basset will dynamically route to each asset in the
-    | collection and apply the filters.
+    | Basset will dynamically route to each asset in the collection and apply
+    | the filters.
     |
     | The last method can be very taxing so it's highly recommended that
     | collections are built when deploying to a production environment.
     |
+    | You can supply an array of production environment names if you need to.
+    |
     */
 
     'production' => 'production',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Build Remote Assets
-    |--------------------------------------------------------------------------
-    |
-    | Remote assets are often stored on a CDN. This means you normally wouldn't
-    | want to build the remote assets as part of your collection. Disabling
-    | this will result in all remote assets to still be included but as
-    | separate HTML tags.
-    |
-    */
-
-    'build_remotes' => true,
 
     /*
     |--------------------------------------------------------------------------
