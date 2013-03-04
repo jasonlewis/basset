@@ -53,13 +53,13 @@ class Directory implements FilterableInterface {
     /**
      * Create a new directory instance.
      *
+     * @param  string  $path
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Basset\AssetFactory  $assetFactory
      * @param  Basset\FilterFactory  $filterFactory
-     * @param  string  $path
      * @return void
      */
-    public function __construct(Filesystem $files, AssetFactory $assetFactory, FilterFactory $filterFactory, $path)
+    public function __construct($path, Filesystem $files, AssetFactory $assetFactory, FilterFactory $filterFactory)
     {
         $this->files = $files;
         $this->assetFactory = $assetFactory;

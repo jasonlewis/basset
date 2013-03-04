@@ -233,7 +233,7 @@ class Collection implements FilterableInterface {
         }
         catch (RuntimeException $error)
         {
-            return new Directory($this->files, $this->assetFactory, $this->filterFactory, null);
+            return new Directory(null, $this->files, $this->assetFactory, $this->filterFactory);
         }
 
         return $this->directories[] = $directory->requireDirectory();
@@ -326,7 +326,7 @@ class Collection implements FilterableInterface {
 
         if ($this->files->exists($path))
         {
-            return new Directory($this->files, $this->assetFactory, $this->filterFactory, $path);
+            return new Directory($path, $this->files, $this->assetFactory, $this->filterFactory);
         }
     }
 

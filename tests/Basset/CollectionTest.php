@@ -113,7 +113,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
 
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array($files, $assetFactory, $filterFactory, 'path/to/public/nested'));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('path/to/public/nested', $files, $assetFactory, $filterFactory));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('path/to/public/nested')->andReturn(array($file));
 
         $collection = m::mock('Basset\Collection[parseDirectoryPath]', array('foo', $files, $config, $assetFactory, $filterFactory));

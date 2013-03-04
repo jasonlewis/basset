@@ -34,7 +34,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[2]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
 
-        $directory = m::mock('Basset\Directory[iterateDirectory]', array($files, $assetFactory, $filterFactory, 'baz'));
+        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
         $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireDirectory();
 
@@ -66,7 +66,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/qux/bar.css');
 
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array($files, $assetFactory, $filterFactory, 'baz'));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireTree();
 
@@ -97,7 +97,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/qux/bar.css');
 
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array($files, $assetFactory, $filterFactory, 'baz'));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireTree()->only('baz/foo.css');
 
@@ -133,7 +133,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
 
-        $directory = m::mock('Basset\Directory[iterateDirectory]', array($files, $assetFactory, $filterFactory, 'baz'));
+        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
         $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireDirectory()->apply('FooFilter');
 
