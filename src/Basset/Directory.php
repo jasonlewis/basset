@@ -61,10 +61,10 @@ class Directory implements FilterableInterface {
      */
     public function __construct($path, Filesystem $files, AssetFactory $assetFactory, FilterFactory $filterFactory)
     {
+        $this->path = $path;
         $this->files = $files;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
-        $this->path = $path;
     }
 
     /**

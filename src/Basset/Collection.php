@@ -253,7 +253,7 @@ class Collection implements FilterableInterface {
         }
         catch (RuntimeException $error)
         {
-            return new Directory($this->files, $this->assetFactory, $this->filterFactory, null);
+            return new Directory(null, $this->files, $this->assetFactory, $this->filterFactory);
         }
 
         return $this->directories[] = $directory->requireTree();
