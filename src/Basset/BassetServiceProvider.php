@@ -27,12 +27,11 @@ class BassetServiceProvider extends ServiceProvider {
      * @var array
      */
     protected $components = array(
-        'Cleaner',
         'OutputBuilder',
-        'Factories',
         'Repository',
-        'Basset',
-        'Commands'
+        'Factories',
+        'Commands',
+        'Basset'
     );
 
     /**
@@ -98,21 +97,6 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the build cleaner.
-     *
-     * @return void
-     */
-    protected function registerCleaner()
-    {
-        $this->app['basset.cleaner'] = $this->app->share(function($app)
-        {
-            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
-
-            return new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
-        });
-    }
-
-    /**
      * Register the collection output builder.
      *
      * @return void
@@ -121,7 +105,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.output'] = $this->app->share(function($app)
         {
-            $resolver = new OutputResolver($app['basset.manifest'], $app['router'], $app['config'], $app['env']);
+            $resolver = new OutputResolver($app['basset.manifest'], $app['config'], $app['env']);
 
             return new OutputBuilder($resolver, $app['config'], $app['session'], $app['url'], $app['basset']->getCollections());
         });
@@ -185,17 +169,21 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app['command.basset.build'] = $this->app->share(function($app)
         {
-            $builder = new FilesystemBuilder($app['files'], $app['config']);
-
-            // The build path is where the built collections are saved. This path is relative
-            // to the public directory, so we'll join the public path and the build path together.
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
 
-            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $app['basset.cleaner'], $buildPath);
+            $builder = new FilesystemBuilder($app['files'], $app['config']);
+
+            $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
+
+            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $cleaner, $buildPath);
         });
 
         $this->app['command.basset.clean'] = $this->app->share(function($app)
         {
+            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
+
+            $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
+
             return new CleanCommand($app['basset.cleaner']);
         });
 
@@ -213,6 +201,8 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $session = $this->app['session'];
 
+        // Get the hash from the session. If the hash does not exist then we'll generate a random
+        // string and store that in the session.
         $hash = $session->get('basset_hash', str_random());
 
         if ( ! $session->has('basset_hash'))
@@ -230,7 +220,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('basset', 'basset.manifest', 'basset.renderer', 'basset.factory.asset', 'basset.factory.filter');
+        return array('basset', 'basset.manifest', 'basset.output', 'basset.factory.asset', 'basset.factory.filter');
     }
 
 }
