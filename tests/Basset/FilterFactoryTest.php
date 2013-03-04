@@ -19,7 +19,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
         $filter = $filterFactory->make('FooFilter', null, $resource);
 
-        $this->assertInstanceOf('Basset\Filter', $filter);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filter);
     }
 
 
@@ -105,13 +105,13 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterMock()
     {
-        return m::mock('Basset\Filter');
+        return m::mock('Basset\Filter\Filter');
     }
 
 
     protected function getResourceMock()
     {
-        return m::mock('Basset\FilterableInterface');
+        return m::mock('Basset\Filter\FilterableInterface');
     }
 
 

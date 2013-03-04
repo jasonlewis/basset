@@ -5,6 +5,7 @@ use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
+use Basset\Filter\FilterableInterface;
 
 class Asset implements FilterableInterface {
 

@@ -1,4 +1,4 @@
-<?php namespace Basset;
+<?php namespace Basset\Filter;
 
 use Closure;
 use ReflectionClass;
@@ -51,7 +51,7 @@ class Filter {
      * Create a new filter instance.
      *
      * @param  string  $filter
-     * @param  Basset\FilterableInterface  $resource
+     * @param  Basset\Filter\FilterableInterface  $resource
      * @return void
      */
     public function __construct($filter, FilterableInterface $resource)
@@ -64,7 +64,7 @@ class Filter {
      * Add a before filtering callback.
      *
      * @param  Closure  $callback
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function beforeFiltering(Closure $callback)
     {
@@ -76,7 +76,7 @@ class Filter {
     /**
      * Set the filters instantiation arguments
      *
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function setArguments()
     {
@@ -89,7 +89,7 @@ class Filter {
      * Add an environment to apply the filter on.
      *
      * @param  string  $environment
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function onEnvironment($environment)
     {
@@ -101,7 +101,7 @@ class Filter {
     /**
      * Add an array of environments to apply the filter on.
      *
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function onEnvironments()
     {
@@ -113,7 +113,7 @@ class Filter {
     /**
      * Apply filter to only styles.
      *
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function onlyStyles()
     {
@@ -125,7 +125,7 @@ class Filter {
     /**
      * Apply filter to only scripts.
      *
-     * @return asset\Filter
+     * @return Basset\Filter\Filter
      */
     public function onlyScripts()
     {

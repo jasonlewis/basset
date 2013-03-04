@@ -142,10 +142,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets = $directory->getAssets();
 
         $filters = $assets[0]->getFilters();
-        $this->assertInstanceOf('Basset\Filter', $filters['FooFilter']);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filters['FooFilter']);
 
         $filters = $assets[1]->getFilters();
-        $this->assertInstanceOf('Basset\Filter', $filters['FooFilter']);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filters['FooFilter']);
     }
 
 

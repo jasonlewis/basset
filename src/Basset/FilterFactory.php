@@ -1,6 +1,8 @@
 <?php namespace Basset;
 
+use Basset\Filter\Filter;
 use Illuminate\Config\Repository;
+use Basset\Filter\FilterableInterface;
 
 class FilterFactory {
 
@@ -25,10 +27,10 @@ class FilterFactory {
     /**
      * Make a new filter instance.
      *
-     * @param  Basset\Filter|string  $filter
+     * @param  Basset\Filter\Filter|string  $filter
      * @param  Closure  $callback
-     * @param  Basset\FilterableInterface  $resource
-     * @return Basset\Filter
+     * @param  Basset\Filter\FilterableInterface  $resource
+     * @return Basset\Filter\Filter
      */
     public function make($filter, $callback, FilterableInterface $resource)
     {

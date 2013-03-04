@@ -365,7 +365,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterMock()
     {
-        return m::mock('Basset\Filter');
+        return m::mock('Basset\Filter\Filter');
     }
 
 

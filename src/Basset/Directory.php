@@ -5,6 +5,7 @@ use FilesystemIterator;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use Illuminate\Filesystem\Filesystem;
+use Basset\Filter\FilterableInterface;
 
 class Directory implements FilterableInterface {
 

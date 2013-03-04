@@ -70,8 +70,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $filters = $asset->getFilters();
 
-        $this->assertInstanceOf('Basset\Filter', $filters['FooFilter']);
-        $this->assertInstanceOf('Basset\Filter', $filters['BarFilter']);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filters['FooFilter']);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filters['BarFilter']);
     }
 
 
@@ -165,7 +165,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterMock()
     {
-        return m::mock('Basset\Filter');
+        return m::mock('Basset\Filter\Filter');
     }
 
 

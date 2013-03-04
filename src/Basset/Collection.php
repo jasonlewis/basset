@@ -3,8 +3,9 @@
 use Closure;
 use RuntimeException;
 use Illuminate\Config\Repository;
-use Illuminate\Filesystem\Filesystem;
 use Basset\Compiler\StringCompiler;
+use Illuminate\Filesystem\Filesystem;
+use Basset\Filter\FilterableInterface;
 
 class Collection implements FilterableInterface {
 
