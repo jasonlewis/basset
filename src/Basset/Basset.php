@@ -29,13 +29,6 @@ class Basset {
     protected $config;
 
     /**
-     * Illuminate url generator instance.
-     *
-     * @var Illuminate\Routing\UrlGenerator
-     */
-    protected $url;
-
-    /**
      * Basset asset factory instance.
      *
      * @var Basset\AssetFactory

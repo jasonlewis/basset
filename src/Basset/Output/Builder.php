@@ -47,6 +47,8 @@ class Builder {
      *
      * @param  Basset\Output\Resolver  $resolver
      * @param  Illuminate\Config\Repository  $config
+     * @param  Illuminate\Session\Store  $session
+     * @param  Illuminate\Routing\UrlGenerator  $url
      * @param  array  $collections
      * @return void
      */
@@ -60,35 +62,35 @@ class Builder {
     }
 
     /**
-     * Output the styles for a given collection.
+     * Build the styles for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
     public function styles($collection)
     {
-        return $this->outputCollection($collection, 'styles');
+        return $this->buildCollection($collection, 'styles');
     }
 
     /**
-     * Output the scripts for a given collection.
+     * Build the scripts for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
     public function scripts($collection)
     {
-        return $this->outputCollection($collection, 'scripts');
+        return $this->buildCollection($collection, 'scripts');
     }
 
     /**
-     * Output a given group for a collection.
+     * Build a given group for a collection.
      *
      * @param  string  $collection
      * @param  string  $group
      * @return string
      */
-    public function outputCollection($collection, $group)
+    public function buildCollection($collection, $group)
     {
         if ( ! isset($this->collections[$collection]))
         {

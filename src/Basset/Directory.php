@@ -55,6 +55,7 @@ class Directory implements FilterableInterface {
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Basset\AssetFactory  $assetFactory
+     * @param  Basset\FilterFactory  $filterFactory
      * @param  string  $path
      * @return void
      */

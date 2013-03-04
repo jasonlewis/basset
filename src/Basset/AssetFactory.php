@@ -12,6 +12,13 @@ class AssetFactory {
     protected $files;
 
     /**
+     * Filter factory instance.
+     *
+     * @var Basset\FilterFactory
+     */
+    protected $filterFactory;
+
+    /**
      * Path to the public directory.
      *
      * @var string
@@ -29,6 +36,7 @@ class AssetFactory {
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
+     * @param  Basset\FilterFactory  $filterFactory
      * @param  string  $publicPath
      * @param  string  $appEnvironment
      * @return void

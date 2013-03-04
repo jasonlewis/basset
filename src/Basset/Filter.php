@@ -29,7 +29,7 @@ class Filter {
     /**
      * Resource being filtered.
      *
-     * @var asset\FilterableInterface
+     * @var Basset\FilterableInterface
      */
     protected $resource;
 
@@ -51,6 +51,7 @@ class Filter {
      * Create a new filter instance.
      *
      * @param  string  $filter
+     * @param  Basset\FilterableInterface  $resource
      * @return void
      */
     public function __construct($filter, FilterableInterface $resource)

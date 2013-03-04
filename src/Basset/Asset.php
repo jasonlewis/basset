@@ -16,6 +16,13 @@ class Asset implements FilterableInterface {
     protected $files;
 
     /**
+     * Filter factory instance.
+     *
+     * @var Basset\FilterFactory
+     */
+    protected $filterFactory;
+
+    /**
      * Absolute path to the asset.
      *
      * @var string
@@ -61,6 +68,7 @@ class Asset implements FilterableInterface {
      * Create a new asset instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
+     * @param  Basset\FilterFactory  $filterFactory
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @param  string  $appEnvironment

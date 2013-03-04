@@ -7,6 +7,27 @@ use Illuminate\Filesystem\Filesystem;
 class BuildCleaner {
 
     /**
+     * Manifest repository instance.
+     *
+     * @var Basset\Manifest\Repository
+     */
+    protected $manifest;
+
+    /**
+     * Illuminate filesystem instance.
+     *
+     * @var Illuminate\Filesystem\Filesystem
+     */
+    protected $files;
+
+    /**
+     * Path to built collections.
+     *
+     * @var string
+     */
+    protected $buildPath;
+
+    /**
      * Create a new build cleaner instance.
      *
      * @param  Basset\Manifest\Repository  $manifest
