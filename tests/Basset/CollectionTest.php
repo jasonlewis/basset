@@ -307,6 +307,27 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testBlankDirectoryInstanceReturnedForNonExistentDirectories()
+    {
+        $files = $this->getFilesMock();
+        $files->shouldReceive('exists')->twice()->with('foo/bar/baz/qux')->andReturn(false);
+        $config = $this->getConfigMock();
+        $assetFactory = $this->getAssetFactoryMock();
+        $assetFactory->shouldReceive('path')->twice()->with('foo/bar/baz/qux')->andReturn('foo/bar/baz/qux');
+        $filterFactory = $this->getFilterFactoryMock();
+
+        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+
+        $directory = $collection->requireDirectory('foo/bar/baz/qux');
+
+        $this->assertNull($directory->getPath());
+
+        $directory = $collection->requireTree('foo/bar/baz/qux');
+
+        $this->assertNull($directory->getPath());
+    }
+
+
     protected function getCollectionInstance()
     {
         $files = $this->getFilesMock();
