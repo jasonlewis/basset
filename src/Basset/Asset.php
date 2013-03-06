@@ -76,12 +76,13 @@ class Asset implements FilterableInterface {
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filter, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FilterFactory $filter, $absolutePath, $relativePath, $appEnvironment)
     {
         $this->files = $files;
         $this->filter = $filter;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
+        $this->appEnvironment = $appEnvironment;
     }
 
     /**
