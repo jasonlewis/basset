@@ -61,29 +61,7 @@ class AssetFactory {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath, $this->appEnvironment);
-    }
-
-    /**
-     * Determine if an asset exists relative from the public directory.
-     *
-     * @param  string  $path
-     * @return bool
-     */
-    public function find($path)
-    {
-        return $this->files->exists($this->publicPath.'/'.$path);
-    }
-
-    /**
-     * Get the absolute path to an asset relative to the public directory.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    public function path($path)
-    {
-        return $this->publicPath.'/'.$path;
+        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath);
     }
 
     /**

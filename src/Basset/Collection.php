@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Basset\Compiler\StringCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
+use Basset\Exception\AssetNotFoundException;
 
 class Collection implements FilterableInterface {
 
@@ -77,16 +78,15 @@ class Collection implements FilterableInterface {
      *
      * @param  string  $name
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Illuminate\Config\Repository  $config
      * @param  Basset\AssetFactory  $assetFactory
      * @param  Basset\FilterFactory  $filterFactory
      * @return void
      */
-    public function __construct($name, Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory)
+    public function __construct($name, Filesystem $files, AssetFinder $finder, AssetFactory $assetFactory, FilterFactory $filterFactory)
     {
         $this->name = $name;
         $this->files = $files;
-        $this->config = $config;
+        $this->finder = $finder;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
     }
@@ -109,87 +109,20 @@ class Collection implements FilterableInterface {
      */
     public function add($name)
     {
-        $assetPath = null;
-
-        // Determine if the asset has been given an alias. We'll use the alias as the name of
-        // the asset.
-        if ($this->config->has("basset::assets.{$name}"))
+        try
         {
-            $name = $this->config->get("basset::assets.{$name}");
+            $path = $this->finder->find($name);
+        }
+        catch (AssetNotFoundException $e)
+        {
+            return new Asset($this->files, $this->filterFactory, null, null);
         }
 
-        // Determine if the asset is a remotely hosted asset. We can check that by filtering
-        // the variable as a valid URL.
-        if (filter_var($name, FILTER_VALIDATE_URL))
-        {
-            $assetPath = $name;
-        }
+        $asset = $this->assetFactory->make($path);
 
-        // If the name of the asset is prefixed with 'path: ' then the absolute path to the asset
-        // is being provided. This is best avoided as assets should always be within the public
-        // directory.
-        elseif (starts_with($name, 'path: '))
-        {
-            $assetPath = substr($name, 6);
-        }
+        $asset->isRemote() and $asset->exclude();
 
-        // Determine if the asset exists within the current working directory.
-        elseif ($this->workingDirectory instanceof Directory and $this->files->exists($this->workingDirectory->getPath().'/'.$name))
-        {
-            $assetPath = $this->workingDirectory->getPath().'/'.$name;
-        }
-
-        // Determine if the asset exists within the public directory.
-        elseif ($this->assetFactory->find($name))
-        {
-            $assetPath = $this->assetFactory->path($name);
-        }
-
-        // Lastly we'll attempt to locate the asset by spinning through all of the named directories.
-        // If the asset cannot be found then we'll make no attempt to continue further.
-        else
-        {
-            foreach ($this->config->get('basset::directories') as $directoryName => $directoryPath)
-            {
-                $directory = $this->parseDirectoryPath($directoryPath);
-
-                if ( ! $directory instanceof Directory)
-                {
-                    continue;
-                }
-
-                // Recursively spin through each directory. We're simply looking for a file that has
-                // the same ending as the name of the file. Once we've found it we'll bail out of
-                // both loops.
-                foreach ($directory->recursivelyIterateDirectory($directory->getPath()) as $file)
-                {
-                    $filePath = $file->getRealPath();
-
-                    if (ends_with($this->normalizePath($filePath), $name))
-                    {
-                        $assetPath = $filePath;
-
-                        break 2;
-                    }
-                }
-            }
-        }
-
-        if ( ! is_null($assetPath))
-        {
-            $asset = $this->assetFactory->make($assetPath);
-
-            if ($asset->isRemote() or $this->files->exists($assetPath))
-            {
-                $asset->isRemote() and $asset->exclude();
-
-                return $this->assets[] = $asset;
-            }
-        }
-
-        // To avoid nasty errors being thrown when assets don't exist yet due to a package that is
-        // yet to be published we'l return a dummy asset instance so that methods are still chainable.
-        return new Asset($this->files, $this->filterFactory, null, null, null);
+        return $this->assets[] = $asset;
     }
 
     /**
@@ -201,134 +134,16 @@ class Collection implements FilterableInterface {
      */
     public function directory($path, Closure $callback)
     {
-        try
-        {
-            $this->workingDirectory = $this->parseDirectoryPath($path);
-        }
-        catch (RuntimeException $error)
-        {
-            return $this;
-        }
+        $this->finder->setWorkingDirectory($path);
 
         // Once we've set the working directory we'll fire the callback so that any added assets
         // are relative to the working directory. After the callback we can revert the working
         // directory.
         call_user_func($callback, $this);
 
-        $this->workingDirectory = null;
+        $this->finder->setWorkingDirectory(null);
 
         return $this;
-    }
-
-    /**
-     * Require all assets within a directory.
-     *
-     * @param  string  $path
-     * @return Basset\Directory
-     */
-    public function requireDirectory($path = null)
-    {
-        try
-        {
-            $directory = $this->parseRequirePath($path);
-        }
-        catch (RuntimeException $error)
-        {
-            return new Directory(null, $this->files, $this->assetFactory, $this->filterFactory);
-        }
-
-        return $this->directories[] = $directory->requireDirectory();
-    }
-
-    /**
-     * Require all assets within a directory tree.
-     *
-     * @param  string  $path
-     * @return Basset\Directory
-     */
-    public function requireTree($path = null)
-    {
-        try
-        {
-            $directory = $this->parseRequirePath($path);
-        }
-        catch (RuntimeException $error)
-        {
-            return new Directory(null, $this->files, $this->assetFactory, $this->filterFactory);
-        }
-
-        return $this->directories[] = $directory->requireTree();
-    }
-
-    /**
-     * Parse a require directory or tree path and return a directory instance.
-     *
-     * @param  string  $path
-     * @return Basset\Directory
-     */
-    protected function parseRequirePath($path)
-    {
-        // If no path was given then we'll check if we're working within a directory. If not then the
-        // method is not being used correctly.
-        $directory = null;
-
-        if (is_null($path))
-        {
-            if ($this->workingDirectory instanceof Directory)
-            {
-                $directory = $this->workingDirectory;
-            }
-        }
-        else
-        {
-            $directory = $this->parseDirectoryPath($path);
-        }
-
-        if ( ! $directory instanceof Directory)
-        {
-            throw new RuntimeException("Invalid path or working directory supplied.");
-        }
-
-        return $directory;
-    }
-
-    /**
-     * Parse a directory path and return a directory instance.
-     *
-     * @param  string  $directory
-     * @return Basset\Directory
-     */
-    public function parseDirectoryPath($path)
-    {
-        // Determine if the directory has been given an alias. We'll use the alias as the path to
-        // the directory.
-        if (starts_with($path, 'name: '))
-        {
-            $name = substr($path, 6);
-
-            if ($this->config->has("basset::directories.{$name}"))
-            {
-                $path = $this->config->get("basset::directories.{$name}");
-            }
-        }
-
-        // If the path to the directory is prefixed with 'path: ' then the absolute path to the
-        // directory is being provided.
-        if (starts_with($path, 'path: '))
-        {
-            $path = substr($path, 6);
-        }
-
-        // Lastly we'll prefix the directory path with the path to the public directory.
-        else
-        {
-            $path = $this->assetFactory->path($path);
-        }
-
-        if ($this->files->exists($path))
-        {
-            return new Directory($path, $this->files, $this->assetFactory, $this->filterFactory);
-        }
     }
 
     /**
@@ -361,17 +176,6 @@ class Collection implements FilterableInterface {
             // After applying all the filters to all the assets we'll reset the filters array.
             $this->filters = array();
         }
-    }
-
-    /**
-     * Normalize a give path.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    protected function normalizePath($path)
-    {
-        return str_replace('\\', '/', $path);
     }
 
     /**
@@ -455,6 +259,29 @@ class Collection implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    public function __call($method, $parameters)
+    {
+        if (starts_with($method, 'require'))
+        {
+            // If no path has been supplied then we'll use the working directory and require it
+            // or its tree, depending on what was called.
+            if (empty($parameters))
+            {
+                $path = $this->finder->getWorkingDirectory();
+
+                $directory = new Directory($path, $this->files, $this->assetFactory, $this->filterFactory);
+
+                return $this->directories[] = $directory->{$method}();
+            }
+
+            return $this->directory($parameters[0], function($directory) use ($method)
+            {
+                $directory->{$method}();
+            });
+
+        }
     }
 
 }

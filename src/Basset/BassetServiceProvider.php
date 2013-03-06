@@ -151,7 +151,9 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Basset($app['files'], $app['config'], $app['basset.factory.asset'], $app['basset.factory.filter']);
+            $finder = new AssetFinder($app['files'], $app['config'], $app['path.public']);
+
+            return new Basset($app['files'], $app['config'], $app['basset.factory.asset'], $app['basset.factory.filter'], $finder);
         });
     }
 

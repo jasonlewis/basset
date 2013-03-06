@@ -51,12 +51,13 @@ class Basset {
      * @param  Basset\FilterFactory  $filterFactory
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory)
+    public function __construct(Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder)
     {
         $this->files = $files;
         $this->config = $config;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
+        $this->finder = $finder;
     }
 
     /**
@@ -82,7 +83,7 @@ class Basset {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $collection = new Collection($name, $this->files, $this->config, $this->assetFactory, $this->filterFactory);
+            $collection = new Collection($name, $this->files, $this->finder, $this->assetFactory, $this->filterFactory);
 
             $this->collections[$name] = $collection;
         }
