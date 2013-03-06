@@ -179,11 +179,9 @@ class Collection implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->factory->filter->make($filter, $callback, $this);
+        $instance = $this->factory->filter->make($filter, $callback, $this);
 
-        $key = $filter->getFilter();
-
-        return $this->filters[$key] = $filter;
+        return $this->filters[$filter] = $instance;
     }
 
     /**
@@ -233,6 +231,16 @@ class Collection implements FilterableInterface {
     }
 
     /**
+     * Get the applied filters.
+     *
+     * @return array
+     */
+    public function getFilters()
+    {
+        return $this->filters;
+    }
+
+    /**
      * Determine the extension based on the group.
      *
      * @param  string  $group
@@ -244,35 +252,32 @@ class Collection implements FilterableInterface {
     }
 
     /**
-     * Get the applied filters.
+     * Dynamically handle calls for requiring a directory or a directory tree.
      *
-     * @return array
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
      */
-    public function getFilters()
-    {
-        return $this->filters;
-    }
-
     public function __call($method, $parameters)
     {
         if (starts_with($method, 'require'))
         {
             // If no path has been supplied then we'll use the working directory and require it
-            // or its tree, depending on what was called.
+            // or its tree, depending on what method has been called.
             if (empty($parameters))
             {
-                $path = $this->finder->getWorkingDirectory();
-
-                $directory = new Directory($path, $this->files, $this->factory);
+                $directory = new Directory($this->finder->getWorkingDirectory(), $this->files, $this->factory);
 
                 return $this->directories[] = $directory->{$method}();
             }
 
+            // If a path was supplied then we'll change to work within the directory and then
+            // re-call the method that was originally called to either require the directory
+            // or require its tree.
             return $this->directory($parameters[0], function($directory) use ($method)
             {
                 $directory->{$method}();
             });
-
         }
     }
 

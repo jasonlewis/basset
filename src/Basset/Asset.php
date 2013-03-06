@@ -275,35 +275,6 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Prepare the assets filters by removing those that have been restricted.
-     *
-     * @return void
-     */
-    public function prepareFilters()
-    {
-        foreach ($this->filters as $key => $filter)
-        {
-            // If there is a group restriction on the filter and the assets group is not that being
-            // restricted then we'll remove the filter from the asset.
-            $groupRestriction = $filter->getGroupRestriction();
-
-            if ($groupRestriction and ! $this->{'is'.ucfirst(str_singular($groupRestriction))}())
-            {
-                unset($this->filters[$key]);
-            }
-
-            // If the filter is being restricted to certain environments we'll make sure the application
-            // is running within one of the specified environments.
-            $possibleEnvironments = $filter->getEnvironments();
-
-            if ($possibleEnvironments and ! in_array($this->appEnvironment, $possibleEnvironments))
-            {
-                unset($this->filters[$key]);
-            }
-        }
-    }
-
-    /**
      * Apply a filter to the asset.
      *
      * @param  string|Filter  $filter
@@ -312,11 +283,9 @@ class Asset implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->filter->make($filter, $callback, $this);
+        $instance = $this->filter->make($filter, $callback, $this);
 
-        $key = $filter->getFilter();
-
-        return $this->filters[$key] = $filter;
+        return $this->filters[$filter] = $instance;
     }
 
     /**
@@ -340,23 +309,52 @@ class Asset implements FilterableInterface {
         // to be applied to this asset.
         $this->prepareFilters();
 
-        $appliedFilters = array();
+        $applyable = array();
 
         foreach ($this->filters as $filter)
         {
             // Attempt to instantiate each filter. If we can get an instance we'll add the filter
             // to the array of filters.
-            $filterInstance = $filter->instantiate();
+            $instance = $filter->instantiate();
 
-            if ($filterInstance instanceof FilterInterface)
+            if ($instance instanceof FilterInterface)
             {
-                $appliedFilters[] = $filterInstance;
+                $applyable[] = $instance;
             }
         }
 
-        $asset = new StringAsset($this->getContent(), $appliedFilters, dirname($this->absolutePath), basename($this->absolutePath));
+        $asset = new StringAsset($this->getContent(), $applyable, dirname($this->absolutePath), basename($this->absolutePath));
 
         return $asset->dump();
+    }
+
+    /**
+     * Prepare the assets filters by removing those that have been restricted.
+     *
+     * @return void
+     */
+    protected function prepareFilters()
+    {
+        foreach ($this->filters as $key => $filter)
+        {
+            // If there is a group restriction on the filter and the assets group is not that being
+            // restricted then we'll remove the filter from the asset.
+            $groupRestriction = $filter->getGroupRestriction();
+
+            if ($groupRestriction and ! $this->{'is'.ucfirst(str_singular($groupRestriction))}())
+            {
+                unset($this->filters[$key]);
+            }
+
+            // If the filter is being restricted to certain environments we'll make sure the application
+            // is running within one of the specified environments.
+            $possibleEnvironments = $filter->getEnvironments();
+
+            if ($possibleEnvironments and ! in_array($this->appEnvironment, $possibleEnvironments))
+            {
+                unset($this->filters[$key]);
+            }
+        }
     }
 
     /**
