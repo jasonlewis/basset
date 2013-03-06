@@ -158,5 +158,32 @@ class Basset {
 			$this->collection($name, $callback);
 		}
 	}
+	
+	/**
+	 * Check if all collections are compiled
+	 *
+	 * @return bool
+	 */
+	public function isCompiled()
+	{
+		if ($this->collections)
+		{
+			foreach ($this->collections as $collection)
+			{
+				$assets = $collection->getAssets();
+
+				if (isset($assets['style']))
+				{
+					if ( ! $collection->isCompiled('style')) return false;
+				}
+				elseif (isset($assets['script']))
+				{
+					if ( ! $collection->isCompiled('script')) return false;
+				}
+			}
+		}
+
+		return true;
+	}
 
 }
