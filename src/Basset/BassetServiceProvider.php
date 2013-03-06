@@ -3,7 +3,10 @@
 use Basset\Manifest\Repository;
 use Basset\Console\BuildCommand;
 use Basset\Console\CleanCommand;
+use Basset\Factory\AssetFactory;
+use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
+use Basset\Factory\FactoryManager;
 use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
 use Basset\Output\Builder as OutputBuilder;
@@ -27,9 +30,9 @@ class BassetServiceProvider extends ServiceProvider {
      * @var array
      */
     protected $components = array(
+        'FactoryManager',
         'OutputBuilder',
         'Repository',
-        'Factories',
         'Commands',
         'Basset'
     );
@@ -112,20 +115,23 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the factories.
+     * Register the factory manager.
      *
      * @return void
      */
-    protected function registerFactories()
+    protected function registerFactoryManager()
     {
-        $this->app['basset.factory.asset'] = $this->app->share(function($app)
+        $this->app['basset.factory'] = $this->app->share(function($app)
         {
-            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['path.public'], $app['env']);
-        });
+            $manager = new FactoryManager;
 
-        $this->app['basset.factory.filter'] = $this->app->share(function($app)
-        {
-            return new FilterFactory($app['config']);
+            // Register the filter factory and the asset factory with the factory manager so that
+            // other classes can inject the factory manager to handle factory dependencies.
+            $manager->register('filter', new FilterFactory($app['config']));
+
+            $manager->register('asset', new AssetFactory($app['files'], $manager->filter, $app['path.public']));
+
+            return $manager;
         });
     }
 
@@ -153,7 +159,7 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $finder = new AssetFinder($app['files'], $app['config'], $app['path.public']);
 
-            return new Basset($app['files'], $app['config'], $app['basset.factory.asset'], $app['basset.factory.filter'], $finder);
+            return new Basset($app['files'], $app['config'], $app['basset.factory'], $finder);
         });
     }
 

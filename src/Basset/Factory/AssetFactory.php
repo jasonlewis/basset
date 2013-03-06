@@ -1,5 +1,6 @@
-<?php namespace Basset;
+<?php namespace Basset\Factory;
 
+use Basset\Asset;
 use Illuminate\Filesystem\Filesystem;
 
 class AssetFactory {
@@ -14,9 +15,9 @@ class AssetFactory {
     /**
      * Filter factory instance.
      *
-     * @var Basset\FilterFactory
+     * @var Basset\Factory\FilterFactory
      */
-    protected $filterFactory;
+    protected $filter;
 
     /**
      * Path to the public directory.
@@ -26,27 +27,18 @@ class AssetFactory {
     protected $publicPath;
 
     /**
-     * Application working environment.
-     *
-     * @var string
-     */
-    protected $appEnvironment;
-
-    /**
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\FilterFactory  $filterFactory
+     * @param  Basset\Factory\FilterFactory  $filter
      * @param  string  $publicPath
-     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, $publicPath, $appEnvironment)
+    public function __construct(Filesystem $files, FilterFactory $filter, $publicPath)
     {
         $this->files = $files;
-        $this->filterFactory = $filterFactory;
+        $this->filter = $filter;
         $this->publicPath = $publicPath;
-        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -61,7 +53,7 @@ class AssetFactory {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        return new Asset($this->files, $this->filterFactory, $absolutePath, $relativePath);
+        return new Asset($this->files, $this->filter, $absolutePath, $relativePath);
     }
 
     /**

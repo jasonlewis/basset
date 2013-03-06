@@ -3,6 +3,7 @@
 use Closure;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
+use Basset\Factory\FilterFactory;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
@@ -19,9 +20,9 @@ class Asset implements FilterableInterface {
     /**
      * Filter factory instance.
      *
-     * @var Basset\FilterFactory
+     * @var Basset\Factory\FilterFactory
      */
-    protected $filterFactory;
+    protected $filter;
 
     /**
      * Absolute path to the asset.
@@ -69,16 +70,16 @@ class Asset implements FilterableInterface {
      * Create a new asset instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\FilterFactory  $filterFactory
+     * @param  Basset\FilterFactory  $filter
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FilterFactory $filter, $absolutePath, $relativePath)
     {
         $this->files = $files;
-        $this->filterFactory = $filterFactory;
+        $this->filter = $filter;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
     }
@@ -311,7 +312,7 @@ class Asset implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->filterFactory->make($filter, $callback, $this);
+        $filter = $this->filter->make($filter, $callback, $this);
 
         $key = $filter->getFilter();
 

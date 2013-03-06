@@ -2,7 +2,7 @@
 
 use Closure;
 use RuntimeException;
-use Illuminate\Config\Repository;
+use Basset\Factory\FactoryManager;
 use Basset\Compiler\StringCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
@@ -25,25 +25,18 @@ class Collection implements FilterableInterface {
     protected $files;
 
     /**
-     * Illuminate config repository instance.
+     * Asset finder instance.
      *
-     * @var Illuminate\Config\Repository
+     * @var Basset\AssetFinder
      */
-    protected $config;
+    protected $finder;
 
     /**
-     * Basset asset factory instance.
+     * Factory manager instance.
      *
-     * @var Basset\AssetFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $assetFactory;
-
-    /**
-     * Basset filter factory instance.
-     *
-     * @var Basset\FilterFactory
-     */
-    protected $filterFactory;
+    protected $factory;
 
     /**
      * Array of assets.
@@ -78,17 +71,16 @@ class Collection implements FilterableInterface {
      *
      * @param  string  $name
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\AssetFactory  $assetFactory
-     * @param  Basset\FilterFactory  $filterFactory
+     * @param  Basset\AssetFinder  $finder
+     * @param  Basset\Factory\FactoryManager  $factory
      * @return void
      */
-    public function __construct($name, Filesystem $files, AssetFinder $finder, AssetFactory $assetFactory, FilterFactory $filterFactory)
+    public function __construct($name, Filesystem $files, AssetFinder $finder, FactoryManager $factory)
     {
         $this->name = $name;
         $this->files = $files;
         $this->finder = $finder;
-        $this->assetFactory = $assetFactory;
-        $this->filterFactory = $filterFactory;
+        $this->factory = $factory;
     }
 
     /**
@@ -115,10 +107,10 @@ class Collection implements FilterableInterface {
         }
         catch (AssetNotFoundException $e)
         {
-            return new Asset($this->files, $this->filterFactory, null, null);
+            return $this->factory->asset->make(null);
         }
 
-        $asset = $this->assetFactory->make($path);
+        $asset = $this->factory->asset->make($path);
 
         $asset->isRemote() and $asset->exclude();
 
@@ -187,7 +179,7 @@ class Collection implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->filterFactory->make($filter, $callback, $this);
+        $filter = $this->factory->filter->make($filter, $callback, $this);
 
         $key = $filter->getFilter();
 
@@ -271,7 +263,7 @@ class Collection implements FilterableInterface {
             {
                 $path = $this->finder->getWorkingDirectory();
 
-                $directory = new Directory($path, $this->files, $this->assetFactory, $this->filterFactory);
+                $directory = new Directory($path, $this->files, $this->factory);
 
                 return $this->directories[] = $directory->{$method}();
             }

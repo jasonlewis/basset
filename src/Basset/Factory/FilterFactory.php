@@ -1,4 +1,4 @@
-<?php namespace Basset;
+<?php namespace Basset\Factory;
 
 use Basset\Filter\Filter;
 use Illuminate\Config\Repository;

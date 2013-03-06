@@ -2,6 +2,7 @@
 
 use Closure;
 use Illuminate\Config\Repository;
+use Basset\Factory\FactoryManager;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Filesystem\Filesystem;
 
@@ -29,34 +30,33 @@ class Basset {
     protected $config;
 
     /**
-     * Basset asset factory instance.
+     * Factory manager instance.
      *
-     * @var Basset\AssetFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $assetFactory;
+    protected $factory;
 
     /**
-     * Basset filter factory instance.
+     * Asset finder instance.
      *
-     * @var Basset\FilterFactory
+     * @var Basset\AssetFinder
      */
-    protected $filterFactory;
+    protected $finder;
 
     /**
      * Create a new factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  Basset\AssetFactory  $assetFactory
-     * @param  Basset\FilterFactory  $filterFactory
+     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\AssetFinder  $finder
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder)
+    public function __construct(Filesystem $files, Repository $config, FactoryManager $factory, AssetFinder $finder)
     {
         $this->files = $files;
         $this->config = $config;
-        $this->assetFactory = $assetFactory;
-        $this->filterFactory = $filterFactory;
+        $this->factory = $factory;
         $this->finder = $finder;
     }
 
@@ -83,7 +83,7 @@ class Basset {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $collection = new Collection($name, $this->files, $this->finder, $this->assetFactory, $this->filterFactory);
+            $collection = new Collection($name, $this->files, $this->finder, $this->factory);
 
             $this->collections[$name] = $collection;
         }

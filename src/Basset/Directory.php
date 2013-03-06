@@ -4,6 +4,7 @@ use Closure;
 use FilesystemIterator;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use Basset\Factory\FactoryManager;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
 
@@ -24,18 +25,11 @@ class Directory implements FilterableInterface {
     protected $files;
 
     /**
-     * Basset asset factory instance.
+     * Factory manager instance.
      *
-     * @var Basset\AssetFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $assetFactory;
-
-    /**
-     * Basset filter factory instance.
-     *
-     * @var Basset\FilterFactory
-     */
-    protected $filterFactory;
+    protected $factory;
 
     /**
      * Array of assets.
@@ -56,16 +50,14 @@ class Directory implements FilterableInterface {
      *
      * @param  string  $path
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\AssetFactory  $assetFactory
-     * @param  Basset\FilterFactory  $filterFactory
+     * @param  Basset\Factory\FactoryManager  $factory
      * @return void
      */
-    public function __construct($path, Filesystem $files, AssetFactory $assetFactory, FilterFactory $filterFactory)
+    public function __construct($path, Filesystem $files, FactoryManager $factory)
     {
         $this->path = $path;
         $this->files = $files;
-        $this->assetFactory = $assetFactory;
-        $this->filterFactory = $filterFactory;
+        $this->factory = $factory;
     }
 
     /**
@@ -101,7 +93,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->assetFactory->make($file->getPathname());
+                $this->assets[] = $this->factory->asset->make($file->getPathname());
             }
         }
 
@@ -119,7 +111,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->assetFactory->make($file->getPathname());
+                $this->assets[] = $this->factory->asset->make($file->getPathname());
             }
         }
 
@@ -212,7 +204,7 @@ class Directory implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->filterFactory->make($filter, $callback, $this);
+        $filter = $this->factory->filter->make($filter, $callback, $this);
 
         $key = $filter->getFilter();
 
