@@ -11,7 +11,7 @@ use Basset\Exception\DirectoryNotFoundException;
 class Collection implements FilterableInterface {
 
     /**
-     * Name of the collection.
+     * Name of collection.
      *
      * @var string
      */
@@ -60,11 +60,11 @@ class Collection implements FilterableInterface {
     protected $filters = array();
 
     /**
-     * Collection working directory.
+     * Indicates if a collection has been prepared.
      *
-     * @var Basset\Directory
+     * @var bool
      */
-    protected $workingDirectory;
+    protected $prepared = false;
 
     /**
      * Create a new collection instance.
@@ -123,6 +123,9 @@ class Collection implements FilterableInterface {
 
         $asset = $this->factory->asset->make($path);
 
+        // If an asset is detected as being remotely hosted then by default the asset is to be
+        // excluded from the build process. This is to prevent assets being hosted on CDNs
+        // being built with a collection.
         $asset->isRemote() and $asset->exclude();
 
         return $this->assets[] = $asset;
@@ -133,7 +136,7 @@ class Collection implements FilterableInterface {
      *
      * @param  string  $path
      * @param  Closure  $callback
-     * @return Basset\Collection
+     * @return Basset\Collection|Basset\Directory
      */
     public function directory($path, Closure $callback)
     {
@@ -211,52 +214,6 @@ class Collection implements FilterableInterface {
     }
 
     /**
-     * Process the collection by retrieving all assets for each directory and then applying
-     * any collection filters to every asset.
-     *
-     * @return void
-     */
-    public function processCollection()
-    {
-        foreach ($this->directories as $directory)
-        {
-            $directory->processFilters();
-
-            $this->assets = array_merge($this->assets, $directory->getAssets());
-        }
-
-        // If there are filters applied to the collection then these filters must be applied tp
-        // each asset within the collection. Spin through all the assets and apply the filter!
-        if ( ! empty($this->filters))
-        {
-            foreach ($this->assets as $key => $asset)
-            {
-                foreach ($this->filters as $filter)
-                {
-                    $this->assets[$key]->apply($filter);
-                }
-            }
-
-            // After applying all the filters to all the assets we'll reset the filters array.
-            $this->filters = array();
-        }
-    }
-
-    /**
-     * Apply a filter to the entire collection.
-     *
-     * @param  string  $filter
-     * @param  Closure  $callback
-     * @return Basset\Filter
-     */
-    public function apply($filter, Closure $callback = null)
-    {
-        $instance = $this->factory->filter->make($filter, $callback, $this);
-
-        return $this->filters[$instance->getFilter()] = $instance;
-    }
-
-    /**
      * Get an array of assets filtered by a group.
      *
      * @param  string  $group
@@ -264,6 +221,11 @@ class Collection implements FilterableInterface {
      */
     public function getAssets($group = null)
     {
+        $this->prepareCollection();
+
+        // Spin through all the assets and build a new array of assets containing only those
+        // belonging to the specific group that might have been applied. We'll also order
+        // the assets here based on any positioning that was set when adding.
         $assets = array();
 
         foreach ($this->assets as $asset)
@@ -287,6 +249,11 @@ class Collection implements FilterableInterface {
      */
     public function getExcludedAssets($group = null)
     {
+        $this->prepareCollection();
+
+        // Spin through all the assets and build a new array of assets containing only those
+        // belonging to the specific group that might have been applied and only those that
+        // have been excluded.
         $assets = array();
 
         foreach ($this->assets as $asset)
@@ -303,6 +270,44 @@ class Collection implements FilterableInterface {
     }
 
     /**
+     * Prepare a collection by merging in directory assets and applying collection wide filters.
+     *
+     * @return void
+     */
+    protected function prepareCollection()
+    {
+        if ($this->prepared)
+        {
+            return;
+        }
+
+        $this->prepared = true;
+
+        // Spin through each of the directories that have been set on the collection and merge
+        // their assets with the collections assets.
+        foreach ($this->directories as $directory)
+        {
+            $this->assets = array_merge($this->assets, $directory->getAssets());
+        }
+
+        // If there are filters applied to the collection then these filters must be applied tp
+        // each asset within the collection. Now that we have all the directory assets we can
+        // apply each filter to each of the assets within the collection.
+        if ( ! empty($this->filters))
+        {
+            foreach ($this->assets as $key => $asset)
+            {
+                foreach ($this->filters as $filter)
+                {
+                    $this->assets[$key]->apply($filter);
+                }
+            }
+
+            $this->filters = array();
+        }
+    }
+
+    /**
      * Get the applied filters.
      *
      * @return array
@@ -310,6 +315,30 @@ class Collection implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * Determine if the collection has been prepared.
+     *
+     * @return bool
+     */
+    public function isPrepared()
+    {
+        return $this->prepared;
+    }
+
+    /**
+     * Apply a filter to the entire collection.
+     *
+     * @param  string  $filter
+     * @param  Closure  $callback
+     * @return Basset\Filter
+     */
+    public function apply($filter, Closure $callback = null)
+    {
+        $instance = $this->factory->filter->make($filter, $callback, $this);
+
+        return $this->filters[$instance->getFilter()] = $instance;
     }
 
 }
