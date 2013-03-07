@@ -67,11 +67,11 @@ class FactoryManager implements ArrayAccess {
      *
      * @param  string  $offset
      * @param  mixed  $value
-     * @return mixed
+     * @return void
      */
     public function offsetSet($offset, $value)
     {
-        return $this->register($offset ?: $this->count(), $value);
+        $this->register($offset ?: $this->count(), $value);
     }
 
     /**
