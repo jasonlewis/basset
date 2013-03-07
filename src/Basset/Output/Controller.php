@@ -45,7 +45,7 @@ class Controller extends IlluminateController {
             }
         }
 
-        throw new NotFoundHttpException("Basset was unable to process asset [{$path}]");
+        throw new NotFoundHttpException("Asset [{$path}] was unable to be processed.");
     }
 
     /**

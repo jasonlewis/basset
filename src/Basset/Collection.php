@@ -101,7 +101,7 @@ class Collection implements FilterableInterface {
      */
     public function determineExtension($group)
     {
-        return str_plural($group) == 'styles' ? 'css' : 'js';
+        return str_plural($group) == 'stylesheets' ? 'css' : 'js';
     }
 
     /**

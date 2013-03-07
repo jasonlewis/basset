@@ -92,7 +92,7 @@ class Asset implements FilterableInterface {
      */
     public function getUsableExtension()
     {
-        return $this->isScript() ? 'js' : 'css';
+        return $this->isJavascript() ? 'js' : 'css';
     }
 
     /**
@@ -116,23 +116,23 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Determine if asset is a script.
+     * Determine if asset is a javascript.
      *
      * @return bool
      */
-    public function isScript()
+    public function isJavascript()
     {
         return in_array(pathinfo($this->absolutePath, PATHINFO_EXTENSION), array('js', 'coffee'));
     }
 
     /**
-     * Determine if asset is a style.
+     * Determine if asset is a stylesheet.
      *
      * @return bool
      */
-    public function isStyle()
+    public function isStylesheet()
     {
-        return ! $this->isScript();
+        return ! $this->isJavascript();
     }
 
     /**
@@ -377,6 +377,9 @@ class Asset implements FilterableInterface {
      */
     public function __call($method, $parameters)
     {
+        // Because PHP doesn't allow us to name a method as "include" we'll revert to magically
+        // capturing it when the method can't be resolved. If the method is "include" then we'll
+        // simply set the asset to be included.
         if ($method == 'include')
         {
             return $this->setIncluded(true);

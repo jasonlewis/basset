@@ -48,6 +48,7 @@ class Resolver {
      * Resolve a fingerprinted collection.
      *
      * @param  Basset\Collection  $collection
+     * @param  string  $group
      * @return string
      */
     public function resolveFingerprintedCollection(Collection $collection, $group)

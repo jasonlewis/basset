@@ -62,25 +62,25 @@ class Builder {
     }
 
     /**
-     * Build the styles for a given collection.
+     * Build the stylesheets for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
-    public function styles($collection)
+    public function stylesheets($collection)
     {
-        return $this->buildCollection($collection, 'styles');
+        return $this->buildCollection($collection, 'stylesheets');
     }
 
     /**
-     * Build the scripts for a given collection.
+     * Build the javascripts for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
-    public function scripts($collection)
+    public function javascripts($collection)
     {
-        return $this->buildCollection($collection, 'scripts');
+        return $this->buildCollection($collection, 'javascripts');
     }
 
     /**
@@ -98,10 +98,9 @@ class Builder {
         }
 
         // Get the collection instance from the array of collections. This instance will be used
-        // throughout the yielding process to fetch assets and compare manifests.
+        // throughout the building process to fetch assets and compare against the stored
+        // manfiest of fingerprints.
         $collection = $this->collections[$collection];
-
-        $response = array();
 
         // Firstly we'll attempt to resolve a fingerprinted collection. If a collection has an
         // existing fingerprint and the application is running within the correct environment
@@ -111,8 +110,9 @@ class Builder {
             $response = $this->buildFingerprintedCollection($collection, $fingerprint, $group);
         }
 
-        // Lastly we'll attempt to dynamically route to each of the assets in the collection with
-        // a built-in controller.
+        // Lastly we'll dynamically build each of the assets within the collection by using
+        // an internal controller to process and build each asset. This is fine during
+        // development, although it may impact page load times.
         else
         {
             $response = $this->buildDynamicCollection($collection, $group);
@@ -135,12 +135,17 @@ class Builder {
 
         $extension = $collection->determineExtension($group);
 
-        $path = $this->parseBuildPath("{$collectionName}-{$fingerprint}.{$extension}");
+        $path = "{$collectionName}-{$fingerprint}.{$extension}";
+
+        if ($buildPath = $this->config->get('basset::build_path'))
+        {
+            $path = "{$buildPath}/{$path}";
+        }
 
         // We'll get the response of the original fingerprinted collection first. Then we'll need to
         // spin through any of the excluded assets and append them to the response as well. Excluded
         // assets are only excluded by the builder, but they still need to be fetched.
-        $response = $this->{'build'.camel_case($group).'Element'}($path);
+        $response = $this->{'build'.studly_case($group).'Element'}($path);
 
         return $this->buildExcludedAssets($collection, $group, array($response));
     }
@@ -154,11 +159,7 @@ class Builder {
      */
     protected function buildDynamicCollection(Collection $collection, $group)
     {
-        $name = $collection->getName();
-
-        $assets = $collection->getAssets($group);
-
-        return $this->buildDynamicAssets($name, $group, $assets, array());
+        return $this->buildDynamicAssets($collection->getName(), $group, $collection->getAssets($group), array());
     }
 
     /**
@@ -167,6 +168,7 @@ class Builder {
      * @param  string  $name
      * @param  string  $group
      * @param  array  $assets
+     * @param  array  $responses
      * @return array
      */
     protected function buildDynamicAssets($name, $group, array $assets, array $responses)
@@ -187,7 +189,7 @@ class Builder {
 
             $key = $asset->getPosition() ?: count($responses) + 1;
 
-            array_splice($responses, $key - 1, 0, array($this->{'build'.camel_case($group).'Element'}($path)));
+            array_splice($responses, $key - 1, 0, array($this->{'build'.studly_case($group).'Element'}($path)));
         }
 
         return $responses;
@@ -203,47 +205,27 @@ class Builder {
      */
     protected function buildExcludedAssets(Collection $collection, $group, array $responses)
     {
-        $name = $collection->getName();
-
-        $assets = $collection->getExcludedAssets($group);
-
-        return $this->buildDynamicAssets($name, $group, $assets, $responses);
+        return $this->buildDynamicAssets($collection->getName(), $group, $collection->getExcludedAssets($group), $responses);
     }
 
     /**
-     * Prefix the build path to the existing path if one exists.
+     * Build a stylesheets element for the specified path.
      *
      * @param  string  $path
      * @return string
      */
-    protected function parseBuildPath($path)
-    {
-        if ($buildPath = $this->config->get('basset::build_path'))
-        {
-            $path = "{$buildPath}/{$path}";
-        }
-
-        return $path;
-    }
-
-    /**
-     * Build a stylesheet element for the specified path.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    protected function buildStylesElement($path)
+    protected function buildStylesheetsElement($path)
     {
         return '<link rel="stylesheet" type="text/css" href="'.$this->url->asset($path).'" />';
     }
 
     /**
-     * Build a scripts element for the specified path.
+     * Build a javascripts element for the specified path.
      *
      * @param  string  $path
      * @return string
      */
-    protected function buildScriptsElement($path)
+    protected function buildJavascriptsElement($path)
     {
         return '<script src="'.$this->url->asset($path).'"></script>';
     }
