@@ -14,9 +14,14 @@ use Basset\Output\Builder as OutputBuilder;
 use Basset\Output\Resolver as OutputResolver;
 use Basset\Output\Controller as OutputController;
 
-define('BASSET_VERSION', '4.0.0');
-
 class BassetServiceProvider extends ServiceProvider {
+
+    /**
+     * Basset version.
+     *
+     * @var string
+     */
+    const VERSION = '4.0.0';
 
     /**
      * Indicates if loading of the provider is deferred.
@@ -195,7 +200,7 @@ class BassetServiceProvider extends ServiceProvider {
 
             $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
 
-            return new CleanCommand($app['basset.cleaner']);
+            return new CleanCommand($cleaner);
         });
 
         // Resolve the commands with Artisan by attaching the event listener to Artisan's

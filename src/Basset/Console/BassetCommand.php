@@ -1,6 +1,7 @@
 <?php namespace Basset\Console;
 
 use Illuminate\Console\Command;
+use Basset\BassetServiceProvider as Basset;
 
 class BassetCommand extends Command {
 
@@ -25,7 +26,7 @@ class BassetCommand extends Command {
      */
     public function fire()
     {
-        $this->line('<info>Basset</info> version <comment>'.BASSET_VERSION.'</comment>');
+        $this->line('<info>Basset</info> version <comment>'.Basset::VERSION.'</comment>');
     }
 
 }
