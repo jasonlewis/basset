@@ -3,10 +3,9 @@
 use Closure;
 use Illuminate\Config\Repository;
 use Basset\Factory\FactoryManager;
-use Illuminate\Routing\UrlGenerator;
 use Illuminate\Filesystem\Filesystem;
 
-class Basset {
+class Environment {
 
     /**
      * Asset collections.
@@ -44,7 +43,7 @@ class Basset {
     protected $finder;
 
     /**
-     * Create a new factory instance.
+     * Create a new environment instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config

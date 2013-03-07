@@ -2,9 +2,11 @@
 
 use Mockery as m;
 use Basset\Collection;
-use Basset\AssetFactory;
-use Basset\FilterFactory;
+use Basset\AssetFinder;
+use Basset\Factory\AssetFactory;
+use Basset\Factory\FilterFactory;
 use Basset\Builder\StringBuilder;
+use Basset\Factory\FactoryManager;
 
 class CollectionTest extends PHPUnit_Framework_TestCase {
 
@@ -28,10 +30,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+        $finder = $this->getAssetFinderMock();
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $config, $finder, $manager);
 
         $collection->add('bar.css');
 
@@ -48,10 +51,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.foo')->andReturn(true);
         $config->shouldReceive('get')->once()->with('basset::assets.foo')->andReturn('bar.css');
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+        $finder = $this->getAssetFinderMock();
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $config, $finder, $manager);
 
         $collection->add('foo');
 
@@ -66,10 +70,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $files = $this->getFilesMock();
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.http://foo.com/bar.css')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+        $finder = $this->getAssetFinderMock();
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $config, $finder, $manager);
 
         $collection->add('http://foo.com/bar.css');
 
@@ -85,10 +90,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $files = $this->getFilesMock();
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.http://foo.com/bar.css')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+        $finder = $this->getAssetFinderMock();
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $config, $finder, $manager);
 
         $collection->add('http://foo.com/bar.css');
 
@@ -106,18 +112,17 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $files->shouldReceive('exists')->once()->with('path/to/public/nested/bar.css')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
-        $config->shouldReceive('get')->once()->with('basset::directories')->andReturn(array('nested' => 'path/to/public/nested'));
-        $filterFactory = $this->getFilterFactoryMock();
+        $config->shouldReceive('get')->once()->with('basset::directories')->andReturn(array('nested' => 'nested'));
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
         $file = m::mock('SplFileInfo');
         $file->shouldReceive('getRealPath')->once()->andReturn('path/to/public/nested/bar.css');
 
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
-
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('path/to/public/nested', $files, $assetFactory, $filterFactory));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('path/to/public/nested', $files, $manager));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('path/to/public/nested')->andReturn(array($file));
 
-        $collection = m::mock('Basset\Collection[parseDirectoryPath]', array('foo', $files, $config, $assetFactory, $filterFactory));
-        $collection->shouldReceive('parseDirectoryPath')->with('path/to/public/nested')->andReturn($directory);
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $collection->add('bar.css');
 
@@ -130,16 +135,16 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testAddAssetFromWithinWorkingDirectory()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('path/to/public/nested/bar.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/nested/bar.css')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
         $directory = $this->getDirectoryMock();
         $directory->shouldReceive('getPath')->twice()->andReturn('path/to/public/nested');
 
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
-
-        $collection = m::mock('Basset\Collection[parseDirectoryPath]', array('foo', $files, $config, $assetFactory, $filterFactory));
+        $collection = m::mock('Basset\Collection[parseDirectoryPath]', array('foo', $files, $finder, $manager));
         $collection->shouldReceive('parseDirectoryPath')->with('nested')->andReturn($directory);
 
         $collection->directory('nested', function($collection)
@@ -160,10 +165,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
         $config->shouldReceive('get')->once()->with('basset::directories')->andReturn(array());
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $asset = $collection->add('bar.css');
 
@@ -177,14 +183,16 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testFiltersAreAppliedToEntireCollection()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/bar.css')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::filters.FooFilter')->andReturn(false);
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('filter', new FilterFactory($config));
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
 
-        $filterFactory = new FilterFactory($config);
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $collection->apply('FooFilter');
         $collection->add('bar.css');
@@ -204,15 +212,17 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGetExcludedAssets()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
-        $files->shouldReceive('exists')->twice()->with('path/to/public/foo.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/bar.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.foo.css')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, 'path/to/public', 'testing');
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', new AssetFactory($files, $manager->filter, 'path/to/public', 'testing'));
+
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $collection->add('bar.css')->exclude();
         $collection->add('foo.css');
@@ -225,18 +235,19 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGetExcludedAssetsByGroup()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('path/to/public/bar.css')->andReturn(true);
-        $files->shouldReceive('exists')->twice()->with('path/to/public/foo.js')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/bar.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/foo.js')->andReturn(true);
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::assets.bar.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.foo.js')->andReturn(false);
-        $filterFactory = $this->getFilterFactoryMock();
 
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('path/to/public/bar.css')->andReturn('path/to/public/bar.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('path/to/public/foo.js')->andReturn('path/to/public/foo.js');
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath]', array($files, $manager->filter, 'path/to/public', 'testing')));
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('path/to/public/bar.css')->andReturn('path/to/public/bar.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('path/to/public/foo.js')->andReturn('path/to/public/foo.js');
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $collection->add('bar.css')->exclude();
         $collection->add('foo.js')->exclude();
@@ -248,9 +259,9 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testCollectionIsBuilt()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('path/to/public/css/example.css')->andReturn(true);
-        $files->shouldReceive('exists')->twice()->with('path/to/public/js/example.js')->andReturn(true);
-        $files->shouldReceive('exists')->twice()->with('path/to/public/../css/baz.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/css/example.css')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/js/example.js')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with('path/to/public/../css/baz.css')->andReturn(true);
         $files->shouldReceive('getRemote')->once()->with('path/to/public/css/example.css')->andReturn('html { background-color: #fff; }');
         $files->shouldReceive('getRemote')->once()->with('path/to/public/js/example.js')->andReturn('alert("hello world")');
         $files->shouldReceive('getRemote')->once()->with('path/to/css/baz.css')->andReturn('p { font-weight: bold; }');
@@ -261,17 +272,23 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $config->shouldReceive('has')->once()->with('basset::assets.../css/baz.css')->andReturn(false);
         $config->shouldReceive('has')->once()->with('basset::assets.http://foo.com/bar.css')->andReturn(false);
 
-        $filterFactory = new FilterFactory($config);
-
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath,buildRelativePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('path/to/public/css/example.css')->andReturn('path/to/public/css/example.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('path/to/public/js/example.js')->andReturn('path/to/public/js/example.js');
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('path/to/public/../css/baz.css')->andReturn('path/to/css/baz.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->with('http://foo.com/bar.css')->andReturn('http://foo.com/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->with('path/to/public/css/example.css')->andReturn('css/example.css');
-        $assetFactory->shouldReceive('buildRelativePath')->with('path/to/public/js/example.js')->andReturn('js/example.js');
-        $assetFactory->shouldReceive('buildRelativePath')->with('http://foo.com/bar.css')->andReturn('http://foo.com/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->with('path/to/css/baz.css')->andReturn(md5('path/to/css').'/baz.css');
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+        $manager->register('filter', new FilterFactory($config));
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath,buildRelativePath]', array(
+            $files,
+            $manager->filter,
+            'path/to/public',
+            'testing'
+        )));
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('path/to/public/css/example.css')->andReturn('path/to/public/css/example.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('path/to/public/js/example.js')->andReturn('path/to/public/js/example.js');
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('path/to/public/../css/baz.css')->andReturn('path/to/css/baz.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->with('http://foo.com/bar.css')->andReturn('http://foo.com/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->with('path/to/public/css/example.css')->andReturn('css/example.css');
+        $manager->asset->shouldReceive('buildRelativePath')->with('path/to/public/js/example.js')->andReturn('js/example.js');
+        $manager->asset->shouldReceive('buildRelativePath')->with('http://foo.com/bar.css')->andReturn('http://foo.com/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->with('path/to/css/baz.css')->andReturn(md5('path/to/css').'/baz.css');
 
         $instantiatedFilter = m::mock('Assetic\Filter\FilterInterface');
         $instantiatedFilter->shouldReceive('filterLoad')->times(3)->andReturn(null);
@@ -286,7 +303,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $filter->shouldReceive('getEnvironments')->times(4)->andReturn(array());
         $filter->shouldReceive('instantiate')->times(3)->andReturn($instantiatedFilter);
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $collection->add('css/example.css');
         $collection->add('js/example.js');
@@ -310,13 +327,13 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testBlankDirectoryInstanceReturnedForNonExistentDirectories()
     {
         $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->twice()->with('foo/bar/baz/qux')->andReturn(false);
+        $files->shouldReceive('exists')->twice()->with('path/to/public/foo/bar/baz/qux')->andReturn(false);
         $config = $this->getConfigMock();
-        $assetFactory = $this->getAssetFactoryMock();
-        $assetFactory->shouldReceive('path')->twice()->with('foo/bar/baz/qux')->andReturn('foo/bar/baz/qux');
-        $filterFactory = $this->getFilterFactoryMock();
 
-        $collection = new Collection('foo', $files, $config, $assetFactory, $filterFactory);
+        $finder = new AssetFinder($files, $config, 'path/to/public');
+        $manager = $this->getFactoryManager();
+
+        $collection = new Collection('foo', $files, $finder, $manager);
 
         $directory = $collection->requireDirectory('foo/bar/baz/qux');
 
@@ -351,15 +368,21 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    protected function getAssetFinderMock()
+    {
+        return m::mock('Basset\AssetFinder');
+    }
+
+
     protected function getAssetFactoryMock()
     {
-        return m::mock('Basset\AssetFactory');
+        return m::mock('Basset\Factory\AssetFactory');
     }
 
 
     protected function getFilterFactoryMock()
     {
-        return m::mock('Basset\FilterFactory');
+        return m::mock('Basset\Factory\FilterFactory');
     }
 
 
@@ -372,6 +395,17 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     protected function getDirectoryMock()
     {
         return m::mock('Basset\Directory');
+    }
+
+
+    protected function getFactoryManager()
+    {
+        $manager = new FactoryManager;
+
+        $manager->register('asset', $this->getAssetFactoryMock());
+        $manager->register('filter', $this->getFilterFactoryMock());
+
+        return $manager;
     }
 
 

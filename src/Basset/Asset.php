@@ -3,7 +3,7 @@
 use Closure;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
-use Basset\Factory\FilterFactory;
+use Basset\Factory\FactoryManager;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
@@ -18,11 +18,11 @@ class Asset implements FilterableInterface {
     protected $files;
 
     /**
-     * Filter factory instance.
+     * Factory manager instance.
      *
-     * @var Basset\Factory\FilterFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $filter;
+    protected $factory;
 
     /**
      * Absolute path to the asset.
@@ -70,16 +70,16 @@ class Asset implements FilterableInterface {
      * Create a new asset instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\FilterFactory  $filter
+     * @param  Basset\Factory\FactoryManager  $factory
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filter, $absolutePath, $relativePath, $appEnvironment)
+    public function __construct(Filesystem $files, FactoryManager $factory, $absolutePath, $relativePath, $appEnvironment)
     {
         $this->files = $files;
-        $this->filter = $filter;
+        $this->factory = $factory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->appEnvironment = $appEnvironment;
@@ -284,9 +284,9 @@ class Asset implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $instance = $this->filter->make($filter, $callback, $this);
+        $instance = $this->factory['filter']->make($filter, $callback, $this);
 
-        return $this->filters[$filter] = $instance;
+        return $this->filters[$instance->getFilter()] = $instance;
     }
 
     /**

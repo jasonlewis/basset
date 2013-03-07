@@ -1,7 +1,7 @@
 <?php
 
 use Mockery as m;
-use Basset\FilterFactory;
+use Basset\Factory\FilterFactory;
 
 class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 

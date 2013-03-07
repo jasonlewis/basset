@@ -1,7 +1,7 @@
 <?php namespace Basset\Output;
 
 use Basset\Asset;
-use Basset\Basset;
+use Basset\Environment;
 use Basset\Collection;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -12,12 +12,12 @@ class Controller extends IlluminateController {
     /**
      * Create a new output controller instance.
      *
-     * @param  Basset\Basset  $basset
+     * @param  Basset\Environment  $env
      * @return void
      */
-    public function __construct(Basset $basset)
+    public function __construct(Environment $env)
     {
-        $this->basset = $basset;
+        $this->env = $env;
     }
 
     /**
@@ -28,9 +28,9 @@ class Controller extends IlluminateController {
      */
     public function processAsset($collection, $path)
     {
-        if ($this->basset->hasCollection($collection))
+        if ($this->env->hasCollection($collection))
         {
-            $collection = $this->basset->collection($collection);
+            $collection = $this->env->collection($collection);
 
             // Before we attempt to find the asset within the collection any directories
             // need to be processed and filters applied. Then we'll find the asset and return

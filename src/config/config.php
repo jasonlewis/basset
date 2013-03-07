@@ -38,59 +38,23 @@ return array(
 
     /*
     |--------------------------------------------------------------------------
-    | Named Directories
+    | Asset and Filter Aliases
     |--------------------------------------------------------------------------
     |
-    | These directories are a convenience when requiring a directory or tree.
-    | Basset will also revert to recursively scanning these directories if it
-    | cannot locate an asset.
+    | You can define aliases for commonly used assets or filters.
+    | An example of an asset alias:
     |
-    | Directory paths should be relative to the public directory.
+    |   'layout' => 'stylesheets/layout/master.css'
     |
-    | You can specifiy an absolute path to a directory by prefixing it with
-    | 'path: '.
-    |
-    | array(
-    |    'js' => 'javascripts',
-    |    'css' => 'path: /absolute/path/to/your/css'
-    | )
-    |
-    */
-
-    'directories' => array(
-        'css' => 'css'
-    ),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Asset Aliases
-    |--------------------------------------------------------------------------
-    |
-    | Adding the same asset to a number of collections can be a pain when you
-    | have to define its path every time. With aliases you can give your assets
-    | a name and simply use that name when adding an asset.
-    |
-    | array(
-    |    'layout' => 'css/layout.css'
-    | )
-    |
-    */
-
-    'assets' => array(),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Named Filters
-    |--------------------------------------------------------------------------
-    |
-    | A named filter can be used to quickly apply a filter to a collection of
-    | assets or an individual asset.
+    | Filter aliases are slightly different. You can define a simple alias
+    | similar to an asset alias.
     |
     |   'YuiCss' => 'Yui\CssCompressorFilter'
     |
-    | If you'd like to specify options for a named filter you can define the
-    | filter as an array, the value should be a closure where you can set
-    | arguments for the constructor, etc.
+    | However if you want to pass in options to an aliased filter then define
+    | the alias as a nested array. The key should be the filter and the value
+    | should be a callback closure where you can set arguments for a filters
+    | constructor, etc.
     |
     |   'YuiCss' => array(
     |       'Yui\CssCompressorFilter' => function($filter)
@@ -99,10 +63,15 @@ return array(
     |       }
     |   )
     |
-    | The filter can then be referenced by its name when applying.
     |
     */
 
-    'filters' => array()
+    'aliases' => array(
+
+        'assets' => array(),
+
+        'filters' => array()
+
+    )
 
 );

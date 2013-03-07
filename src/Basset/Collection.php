@@ -1,12 +1,12 @@
 <?php namespace Basset;
 
 use Closure;
-use RuntimeException;
 use Basset\Factory\FactoryManager;
 use Basset\Compiler\StringCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
 use Basset\Exception\AssetNotFoundException;
+use Basset\Exception\DirectoryNotFoundException;
 
 class Collection implements FilterableInterface {
 
@@ -94,7 +94,18 @@ class Collection implements FilterableInterface {
     }
 
     /**
-     * Add an asset to the collection.
+     * Determine an extension based on the group.
+     *
+     * @param  string  $group
+     * @return string
+     */
+    public function determineExtension($group)
+    {
+        return str_plural($group) == 'styles' ? 'css' : 'js';
+    }
+
+    /**
+     * Find and add an asset to the collection.
      *
      * @param  string  $name
      * @return Basset\Asset
@@ -126,16 +137,77 @@ class Collection implements FilterableInterface {
      */
     public function directory($path, Closure $callback)
     {
-        $this->finder->setWorkingDirectory($path);
+        try
+        {
+            $this->finder->setWorkingDirectory($path);
+        }
+        catch (DirectoryNotFoundException $e)
+        {
+            return $this->factory['directory']->make(null);
+        }
 
         // Once we've set the working directory we'll fire the callback so that any added assets
         // are relative to the working directory. After the callback we can revert the working
         // directory.
-        call_user_func($callback, $this);
+        $response = call_user_func($callback, $this);
 
-        $this->finder->setWorkingDirectory(null);
+        $this->finder->resetWorkingDirectory();
 
-        return $this;
+        // If we received a response from the callback then we'll return the response as it may
+        // be a directory instance that users can apply filters to.
+        return $response ?: $this;
+    }
+
+    /**
+     * Require a directory.
+     *
+     * @param  string  $path
+     * @return Basset\Collection|Basset\Directory
+     */
+    public function requireDirectory($path = null)
+    {
+        return $this->processRequire('directory', $path);
+    }
+
+    /**
+     * Recursively require a directory tree.
+     *
+     * @param  string  $path
+     * @return Basset\Collection|Basset\Directory
+     */
+    public function requireTree($path = null)
+    {
+        return $this->processRequire('tree', $path);
+    }
+
+    /**
+     * Process a directory require.
+     *
+     * @param  string  $method
+     * @param  string  $path
+     * @return Basset\Collection|Basset\Directory
+     */
+    protected function processRequire($method, $path)
+    {
+        $method = ucfirst($method);
+
+        // If a path has been supplied to the require then we'll change to work within that directory.
+        // Once we're working within the directory we can require the tree or the directory again
+        // and it'll perform the correct actions on the working directory.
+        if ( ! is_null($path))
+        {
+            return $this->directory($path, function($directory) use ($method)
+            {
+                return $collection->{"require{$method}"}();
+            });
+        }
+
+        // Now that no path has been supplied we can safely assume that we're working within the
+        // original directory that was given. We'll now make the directory with the factory and
+        // then perform the original require request that was given.
+        $directory = $this->factory['directory']->make($this->finder->getWorkingDirectory());
+
+        return $this->directories[] = $directory->{"require{$method}"}();
     }
 
     /**
@@ -181,7 +253,7 @@ class Collection implements FilterableInterface {
     {
         $instance = $this->factory->filter->make($filter, $callback, $this);
 
-        return $this->filters[$filter] = $instance;
+        return $this->filters[$instance->getFilter()] = $instance;
     }
 
     /**
@@ -238,47 +310,6 @@ class Collection implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
-    }
-
-    /**
-     * Determine the extension based on the group.
-     *
-     * @param  string  $group
-     * @return string
-     */
-    public function determineExtension($group)
-    {
-        return str_plural($group) == 'styles' ? 'css' : 'js';
-    }
-
-    /**
-     * Dynamically handle calls for requiring a directory or a directory tree.
-     *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        if (starts_with($method, 'require'))
-        {
-            // If no path has been supplied then we'll use the working directory and require it
-            // or its tree, depending on what method has been called.
-            if (empty($parameters))
-            {
-                $directory = new Directory($this->finder->getWorkingDirectory(), $this->files, $this->factory);
-
-                return $this->directories[] = $directory->{$method}();
-            }
-
-            // If a path was supplied then we'll change to work within the directory and then
-            // re-call the method that was originally called to either require the directory
-            // or require its tree.
-            return $this->directory($parameters[0], function($directory) use ($method)
-            {
-                $directory->{$method}();
-            });
-        }
     }
 
 }

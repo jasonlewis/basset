@@ -7,6 +7,7 @@ use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
 use Basset\Factory\FactoryManager;
+use Basset\Factory\DirectoryFactory;
 use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
 use Basset\Output\Builder as OutputBuilder;
@@ -123,15 +124,17 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.factory'] = $this->app->share(function($app)
         {
-            $manager = new FactoryManager;
+            $factory = new FactoryManager;
 
-            // Register the filter factory and the asset factory with the factory manager so that
-            // other classes can inject the factory manager to handle factory dependencies.
-            $manager->register('filter', new FilterFactory($app['config']));
+            // Register the filter, asset, and directory factories with the factory manager so that other
+            // classes don't have multiple dependencies for the factories.
+            $factory['filter'] = new FilterFactory($app['config']);
 
-            $manager->register('asset', new AssetFactory($app['files'], $manager->filter, $app['path.public']));
+            $factory['asset'] = new AssetFactory($app['files'], $factory, $app['path.public'], $app['env']);
 
-            return $manager;
+            $factory['directory'] = new DirectoryFactory($app['files'], $factory);
+
+            return $factory;
         });
     }
 
@@ -159,7 +162,7 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $finder = new AssetFinder($app['files'], $app['config'], $app['path.public']);
 
-            return new Basset($app['files'], $app['config'], $app['basset.factory'], $finder);
+            return new Environment($app['files'], $app['config'], $app['basset.factory'], $finder);
         });
     }
 

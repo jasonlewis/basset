@@ -3,6 +3,7 @@
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Exception\AssetNotFoundException;
+use Basset\Exception\DirectoryNotFoundException;
 
 class AssetFinder {
 
@@ -43,27 +44,20 @@ class AssetFinder {
     }
 
     /**
-     * Find an asset.
+     * Find and return an assets path.
      *
      * @param  string  $name
      * @return string
      */
     public function find($name)
     {
-        // Determine if the asset has been given an alias. We'll use the alias as the name of
-        // the asset.
-        if ($this->config->has("basset::assets.{$name}"))
+        $name = $this->config->get("basset::assets.{$name}", $name);
+
+        // Spin through an array of methods ordered by the priority of how an asset should be found.
+        // Once we find a non-null path we'll return that path breaking from the loop.
+        foreach (array('RemotelyHosted', 'PackagedAsset', 'AbsolutePath', 'WorkingDirectory', 'PublicPath') as $method)
         {
-            $name = $this->config->get("basset::assets.{$name}");
-        }
-
-        $possibilities = array('RemotelyHosted', 'PackagedAsset', 'AbsolutePath', 'WorkingDirectory', 'PublicPath', 'NamedDirectories');
-
-        foreach ($possibilities as $posibility)
-        {
-            $path = $this->{'findBy'.$posibility}($name);
-
-            if ( ! is_null($path))
+            if ($path = $this->{"find{$method}"}($name))
             {
                 return $path;
             }
@@ -73,12 +67,12 @@ class AssetFinder {
     }
 
     /**
-     * Find an asset by being remotely hosted.
+     * Find a remotely hosted asset.
      *
      * @param  string  $name
      * @return null|string
      */
-    public function findByRemotelyHosted($name)
+    public function findRemotelyHosted($name)
     {
         if (filter_var($name, FILTER_VALIDATE_URL))
         {
@@ -92,7 +86,7 @@ class AssetFinder {
      * @param  string  $name
      * @return null|string
      */
-    public function findByPackagedAsset($name)
+    public function findPackagedAsset($name)
     {
         if (str_contains($name, '::'))
         {
@@ -106,7 +100,7 @@ class AssetFinder {
      * @param  string  $name
      * @return null|string
      */
-    public function findByAbsolutePath($name)
+    public function findAbsolutePath($name)
     {
         // If the name of the asset is prefixed with 'path: ' then the absolute path to the asset
         // is being provided. This is best avoided as assets should always be within the public
@@ -123,12 +117,13 @@ class AssetFinder {
      * @param  string  $name
      * @return null|string
      */
-    public function findByWorkingDirectory($name)
+    public function findWorkingDirectory($name)
     {
-        // Determine if the asset exists within the current working directory.
-        if ( ! is_null($this->workingDirectory) and $this->files->exists($this->workingDirectory.'/'.$name))
+        $path = $this->workingDirectory.'/'.$name;
+
+        if ( ! is_null($this->workingDirectory) and $this->files->exists($path))
         {
-            return $this->workingDirectory.'/'.$name;
+            return $path;
         }
     }
 
@@ -138,7 +133,7 @@ class AssetFinder {
      * @param  string  $name
      * @return null|string
      */
-    public function findByPublicPath($name)
+    public function findPublicPath($name)
     {
         $path = $this->prefixPublicPath($name);
 
@@ -149,46 +144,31 @@ class AssetFinder {
     }
 
     /**
-     * Find an asset by searching through the named directories.
-     *
-     * @param  string  $name
-     * @return null|string
-     */
-    public function findByNamedDirectories($name)
-    {
-        foreach ($this->config->get('basset::directories') as $directoryName => $directoryPath)
-        {
-            $directory = $this->parseDirectoryPath($directoryPath);
-
-            if ( ! $directory instanceof Directory)
-            {
-                continue;
-            }
-
-            // Recursively spin through each directory. We're simply looking for a file that has
-            // the same ending as the name of the file. Once we've found it we'll bail out of
-            // both loops.
-            foreach ($directory->recursivelyIterateDirectory($directory->getPath()) as $file)
-            {
-                $filePath = $file->getRealPath();
-
-                if (ends_with(str_replace('\\', '/', $filePath), $name))
-                {
-                    return $filePath;
-                }
-            }
-        }
-    }
-
-    /**
      * Set the working directory path.
      *
      * @param  string  $path
-     * @return void
+     * @return string
      */
     public function setWorkingDirectory($path)
     {
-        $this->workingDirectory = $path;
+        $path = $this->prefixPublicPath($path);
+
+        if ($this->files->exists($path))
+        {
+            return $this->workingDirectory = $path;
+        }
+
+        throw new DirectoryNotFoundException("Directory [{$path}] could not be found.");
+    }
+
+    /**
+     * Reset the working directory path.
+     *
+     * @return void
+     */
+    public function resetWorkingDirectory()
+    {
+        $this->workingDirectory = null;
     }
 
     /**
@@ -202,42 +182,12 @@ class AssetFinder {
     }
 
     /**
-     * Parse a directory path.
-     *
-     * @param  string  $directory
-     * @return string
-     */
-    public function parseDirectoryPath($path)
-    {
-        if (starts_with($path, 'name: '))
-        {
-            $name = substr($path, 6);
-
-            if ($this->config->has("basset::directories.{$name}"))
-            {
-                $path = $this->config->get("basset::directories.{$name}");
-            }
-        }
-
-        if (starts_with($path, 'path: '))
-        {
-            $path = substr($path, 6);
-        }
-        else
-        {
-            $path = $this->prefixPublicPath($path);
-        }
-
-        return $path;
-    }
-
-    /**
-     * Prefix the public path to a given path.
+     * Prefix the public path to a path.
      *
      * @param  string  $path
      * @return string
      */
-    public function prefixPublicPath($path)
+    protected function prefixPublicPath($path)
     {
         return $this->publicPath.'/'.$path;
     }

@@ -1,7 +1,7 @@
 <?php
 
 use Mockery as m;
-use Basset\AssetFactory;
+use Basset\Factory\AssetFactory;
 
 class AssetFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -22,16 +22,6 @@ class AssetFactoryTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals(basename(__FILE__), $asset->getRelativePath());
         $this->assertEquals(__FILE__, $asset->getAbsolutePath());
-    }
-
-
-    public function testGetPathRelativeFromPublic()
-    {
-        $files = $this->getFilesMock();
-        $filterFactory = $this->getFilterFactoryMock();
-        $assetFactory = new AssetFactory($files, $filterFactory, '/path/to/public', 'testing');
-
-        $this->assertEquals('/path/to/public/foo.css', $assetFactory->path('foo.css'));
     }
 
 
@@ -77,7 +67,7 @@ class AssetFactoryTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterFactoryMock()
     {
-        return m::mock('Basset\FilterFactory');
+        return m::mock('Basset\Factory\FilterFactory');
     }
 
 

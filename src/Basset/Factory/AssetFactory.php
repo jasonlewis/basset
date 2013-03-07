@@ -13,11 +13,11 @@ class AssetFactory {
     protected $files;
 
     /**
-     * Filter factory instance.
+     * Factory manager instance.
      *
-     * @var Basset\Factory\FilterFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $filter;
+    protected $factory;
 
     /**
      * Path to the public directory.
@@ -37,21 +37,21 @@ class AssetFactory {
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\FilterFactory  $filter
+     * @param  Basset\Factory\FactoryManager  $factory
      * @param  string  $publicPath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filter, $publicPath, $appEnvironment)
+    public function __construct(Filesystem $files, FactoryManager $factory, $publicPath, $appEnvironment)
     {
         $this->files = $files;
-        $this->filter = $filter;
+        $this->factory = $factory;
         $this->publicPath = $publicPath;
         $this->appEnvironment = $appEnvironment;
     }
 
     /**
-     * Make a new asset instance, resolving the absolute and relative paths.
+     * Make a new asset instance.
      *
      * @param  string  $path
      * @return Basset\Asset
@@ -62,7 +62,7 @@ class AssetFactory {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        return new Asset($this->files, $this->filter, $absolutePath, $relativePath, $this->appEnvironment);
+        return new Asset($this->files, $this->factory, $absolutePath, $relativePath, $this->appEnvironment);
     }
 
     /**
@@ -73,6 +73,11 @@ class AssetFactory {
      */
     public function buildAbsolutePath($path)
     {
+        if (is_null($path))
+        {
+            return $path;
+        }
+
         return filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
     }
 
@@ -84,6 +89,11 @@ class AssetFactory {
      */
     public function buildRelativePath($path)
     {
+        if (is_null($path))
+        {
+            return $path;
+        }
+
         $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $path), '/');
 
         // If we're not dealing with a remote asset and the relative and absolute paths are the

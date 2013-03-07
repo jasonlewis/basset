@@ -1,7 +1,8 @@
 <?php
 
 use Mockery as m;
-use Basset\FilterFactory;
+use Basset\Factory\FilterFactory;
+use Basset\Factory\FactoryManager;
 
 class DirectoryTest extends PHPUnit_Framework_TestCase {
 
@@ -15,13 +16,18 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testRequireDirectory()
     {
         $files = $this->getFilesMock();
-        $filterFactory = $this->getFilterFactoryMock();
+        $manager = $this->getFactoryManager();
 
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath,buildRelativePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/bar.css')->andReturn('path/to/public/baz/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/bar.css')->andReturn('baz/bar.css');
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath,buildRelativePath]', array(
+            $files,
+            $manager->filter,
+            'path/to/public',
+            'testing'
+        )));
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/bar.css')->andReturn('path/to/public/baz/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/bar.css')->andReturn('baz/bar.css');
 
         $assets = array(
             m::mock('SplFileInfo'),
@@ -34,7 +40,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[2]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
 
-        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
+        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $manager));
         $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireDirectory();
 
@@ -50,11 +56,18 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $files = $this->getFilesMock();
         $filterFactory = $this->getFilterFactoryMock();
 
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath,buildRelativePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/qux/bar.css')->andReturn('path/to/public/baz/qux/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/qux/bar.css')->andReturn('baz/qux/bar.css');
+        $manager = $this->getFactoryManager();
+
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath,buildRelativePath]', array(
+            $files,
+            $manager->filter,
+            'path/to/public',
+            'testing'
+        )));
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/qux/bar.css')->andReturn('path/to/public/baz/qux/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/qux/bar.css')->andReturn('baz/qux/bar.css');
 
         $assets = array(
             m::mock('SplFileInfo'),
@@ -66,7 +79,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/qux/bar.css');
 
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $manager));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireTree();
 
@@ -80,13 +93,18 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testExcludeAndRequireSpecificFilesInDirectory()
     {
         $files = $this->getFilesMock();
-        $filterFactory = $this->getFilterFactoryMock();
+        $manager = $this->getFactoryManager();
 
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath,buildRelativePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/qux/bar.css')->andReturn('path/to/public/baz/qux/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/qux/bar.css')->andReturn('baz/qux/bar.css');
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath,buildRelativePath]', array(
+            $files,
+            $manager->filter,
+            'path/to/public',
+            'testing'
+        )));
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/qux/bar.css')->andReturn('path/to/public/baz/qux/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/qux/bar.css')->andReturn('baz/qux/bar.css');
 
         $assets = array(
             m::mock('SplFileInfo'),
@@ -97,7 +115,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/qux/bar.css');
 
-        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
+        $directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('baz', $files, $manager));
         $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireTree()->only('baz/foo.css');
 
@@ -117,13 +135,20 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $config = $this->getConfigMock();
         $config->shouldReceive('has')->once()->with('basset::filters.FooFilter')->andReturn(false);
 
-        $filterFactory = new FilterFactory($config);
+        $manager = $this->getFactoryManager();
 
-        $assetFactory = m::mock('Basset\AssetFactory[buildAbsolutePath,buildRelativePath]', array($files, $filterFactory, 'path/to/public', 'testing'));
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
-        $assetFactory->shouldReceive('buildAbsolutePath')->once()->with('baz/bar.css')->andReturn('path/to/public/baz/bar.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
-        $assetFactory->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/bar.css')->andReturn('baz/bar.css');
+        $manager->register('filter', new FilterFactory($config));
+
+        $manager->register('asset', m::mock('Basset\Factory\AssetFactory[buildAbsolutePath,buildRelativePath]', array(
+            $files,
+            $manager->filter,
+            'path/to/public',
+            'testing'
+        )));
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/foo.css')->andReturn('path/to/public/baz/foo.css');
+        $manager->asset->shouldReceive('buildAbsolutePath')->once()->with('baz/bar.css')->andReturn('path/to/public/baz/bar.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/foo.css')->andReturn('baz/foo.css');
+        $manager->asset->shouldReceive('buildRelativePath')->once()->with('path/to/public/baz/bar.css')->andReturn('baz/bar.css');
         $assets = array(
             m::mock('SplFileInfo'),
             m::mock('SplFileInfo')
@@ -133,7 +158,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $assets[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
         $assets[1]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
 
-        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $assetFactory, $filterFactory));
+        $directory = m::mock('Basset\Directory[iterateDirectory]', array('baz', $files, $manager));
         $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($assets);
         $directory->requireDirectory()->apply('FooFilter');
 
@@ -163,13 +188,24 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     protected function getAssetFactoryMock()
     {
-        return m::mock('Basset\AssetFactory');
+        return m::mock('Basset\Factory\AssetFactory');
     }
 
 
     protected function getFilterFactoryMock()
     {
-        return m::mock('Basset\FilterFactory');
+        return m::mock('Basset\Factory\FilterFactory');
+    }
+
+
+    protected function getFactoryManager()
+    {
+        $manager = new FactoryManager;
+
+        $manager->register('asset', $this->getAssetFactoryMock());
+        $manager->register('filter', $this->getFilterFactoryMock());
+
+        return $manager;
     }
 
 

@@ -1,6 +1,9 @@
 <?php namespace Basset\Factory;
 
-class FactoryManager {
+use Countable;
+use ArrayAccess;
+
+class FactoryManager implements ArrayAccess {
 
     /**
      * Array of registered factories.
@@ -57,6 +60,61 @@ class FactoryManager {
         {
             return $this->get($key);
         }
+    }
+
+    /**
+     * Set a factory offset.
+     *
+     * @param  string  $offset
+     * @param  mixed  $value
+     * @return mixed
+     */
+    public function offsetSet($offset, $value)
+    {
+        return $this->register($offset ?: $this->count(), $value);
+    }
+
+    /**
+     * Determine if a factory offset exists.
+     *
+     * @param  string  $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return $this->has($offset);
+    }
+
+    /**
+     * Unset a factory offset.
+     *
+     * @param  string  $offset
+     * @return void
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->factories[$offset]);
+    }
+
+    /**
+     * Get a factory offset.
+     *
+     * @param  string  $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * Get the total number of factories.
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->factories);
     }
 
 }
