@@ -1,6 +1,8 @@
 <?php namespace Basset;
 
 use Closure;
+use ArrayAccess;
+use InvalidArgumentException;
 use Illuminate\Config\Repository;
 use Basset\Factory\FactoryManager;
 use Illuminate\Filesystem\Filesystem;
@@ -60,7 +62,7 @@ class Environment {
     }
 
     /**
-     * Alias of Basset::collection()
+     * Alias of Basset\Environment::collection()
      *
      * @param  string  $name
      * @param  Closure  $callback
@@ -87,8 +89,9 @@ class Environment {
             $this->collections[$name] = $collection;
         }
 
-        // If the collection was given a callable closure where assets can be
-        // added we'll fire it now.
+        // If the collection has been given a callable closure then we'll execute the closure with
+        // the collection instance being the only parameter given. This allows users to begin
+        // using the collection instance to add assets.
         if (is_callable($callback))
         {
             call_user_func($callback, $this->collections[$name]);
@@ -116,6 +119,56 @@ class Environment {
     public function hasCollection($name)
     {
         return isset($this->collections[$name]);
+    }
+
+    /**
+     * Set a collection offset.
+     *
+     * @param  string  $offset
+     * @param  mixed  $value
+     * @return void
+     */
+    public function offsetSet($offset, $value)
+    {
+        if (is_null($offset))
+        {
+            throw new InvalidArgumentException("No collection name given.");
+        }
+
+        $this->collection($offset, $value);
+    }
+
+    /**
+     * Get a collection offset.
+     *
+     * @param  string  $offset
+     * @return Basset\Collection|null
+     */
+    public function offsetGet($offset)
+    {
+        return $this->hasCollection($offset) ? $this->collection($offset) : null;
+    }
+
+    /**
+     * Unset a collection offset.
+     *
+     * @param  string  $offset
+     * @return void
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->collections[$offset]);
+    }
+
+    /**
+     * Determine if a collection offset exists.
+     *
+     * @param  string  $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return $this->hasCollection($offset);
     }
 
 }
