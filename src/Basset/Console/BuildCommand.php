@@ -1,8 +1,8 @@
 <?php namespace Basset\Console;
 
-use Basset\Basset;
 use RuntimeException;
 use Basset\Collection;
+use Basset\Environment;
 use Basset\BuildCleaner;
 use Illuminate\Console\Command;
 use Basset\Manifest\Repository;
@@ -29,11 +29,11 @@ class BuildCommand extends Command {
     protected $description = 'Build asset collections';
 
     /**
-     * Basset instance.
+     * Environment instance.
      *
-     * @var Basset\Basset
+     * @var Basset\Environment
      */
-    protected $basset;
+    protected $env;
 
     /**
      * Builder instance.
@@ -66,15 +66,15 @@ class BuildCommand extends Command {
     /**
      * Create a new basset compile command instance.
      *
-     * @param  Basset\Basset  $basset
+     * @param  Basset\Environment  $env
      * @param  Basset\Builder\BuilderInterface  $builder
      * @return void
      */
-    public function __construct(Basset $basset, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath)
+    public function __construct(Environment $env, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath)
     {
         parent::__construct();
 
-        $this->basset = $basset;
+        $this->env = $env;
         $this->builder = $builder;
         $this->manifest = $manifest;
         $this->cleaner = $cleaner;
@@ -104,30 +104,30 @@ class BuildCommand extends Command {
             {
                 $this->build($collection, 'styles');
 
-                $this->line("<info>Styles successfully built for collection:</info> {$collection->getName()}");
+                $this->line("<info>Stylesheets successfully built for collection:</info> {$collection->getName()}");
             }
             catch (EmptyResponseException $error)
             {
-                $this->line("<comment>There are no styles to build for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>There are no stylesheets to build for collection:</comment> {$collection->getName()}");
             }
             catch (CollectionExistsException $error)
             {
-                $this->line("<comment>Styles are up-to-date for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>Stylesheets are up-to-date for collection:</comment> {$collection->getName()}");
             }
 
             try
             {
                 $this->build($collection, 'scripts');
 
-                $this->line("<info>Scripts successfully built for collection:</info> {$collection->getName()}");
+                $this->line("<info>Javascripts successfully built for collection:</info> {$collection->getName()}");
             }
             catch (EmptyResponseException $error)
             {
-                $this->line("<comment>There are no scripts to build for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>There are no javascripts to build for collection:</comment> {$collection->getName()}");
             }
             catch (CollectionExistsException $error)
             {
-                $this->line("<comment>Scripts are up-to-date for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>Javascripts are up-to-date for collection:</comment> {$collection->getName()}");
             }
 
             // Once a collection has been built we need to register the collection with the manifest repository. The
@@ -160,7 +160,7 @@ class BuildCommand extends Command {
     {
         if ( ! is_null($collection = $this->input->getArgument('collection')))
         {
-            if ( ! $this->basset->hasCollection($collection))
+            if ( ! $this->env->hasCollection($collection))
             {
                 $this->error("Could not find collection: {$collection}");
 
@@ -169,13 +169,13 @@ class BuildCommand extends Command {
 
             $this->info("Gathering assets for collection...");
 
-            $collections = array($this->basset->collection($collection));
+            $collections = array($this->env->collection($collection));
         }
         else
         {
             $this->info("Gathering all collections to build...");
 
-            $collections = $this->basset->getCollections();
+            $collections = $this->env->getCollections();
         }
 
         return $collections;
