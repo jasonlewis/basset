@@ -11,7 +11,7 @@ use Basset\Filter\FilterableInterface;
 class Directory implements FilterableInterface {
 
     /**
-     * Path to the directory.
+     * Directory path.
      *
      * @var string
      */
@@ -61,7 +61,7 @@ class Directory implements FilterableInterface {
     }
 
     /**
-     * Recursively iterate through the directory.
+     * Recursively iterate through a given path.
      *
      * @param  string  $path
      * @return RecursiveIteratorIterator
@@ -72,7 +72,7 @@ class Directory implements FilterableInterface {
     }
 
     /**
-     * Iterate through the directory.
+     * Iterate through a given path.
      *
      * @param  string  $path
      * @return FilesystemIterator
@@ -93,7 +93,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->factory->asset->make($file->getPathname());
+                $this->assets[] = $this->factory['asset']->make($file->getPathname());
             }
         }
 
@@ -111,7 +111,7 @@ class Directory implements FilterableInterface {
         {
             if ($file->isFile())
             {
-                $this->assets[] = $this->factory->asset->make($file->getPathname());
+                $this->assets[] = $this->factory['asset']->make($file->getPathname());
             }
         }
 
@@ -167,21 +167,11 @@ class Directory implements FilterableInterface {
     }
 
     /**
-     * Get the array of assets.
+     * Get the assets after any directory applied filters are applied to each asset.
      *
      * @return array
      */
     public function getAssets()
-    {
-        return $this->assets;
-    }
-
-    /**
-     * Process the filters by applying each filter to every asset.
-     *
-     * @return void
-     */
-    public function processFilters()
     {
         foreach ($this->assets as $key => $asset)
         {
@@ -191,8 +181,9 @@ class Directory implements FilterableInterface {
             }
         }
 
-        // After applying all the filters to all the assets we'll reset the filters array.
         $this->filters = array();
+
+        return $this->assets;
     }
 
     /**
@@ -204,11 +195,9 @@ class Directory implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->factory->filter->make($filter, $callback, $this);
+        $instance = $this->factory['filter']->make($filter, $callback, $this);
 
-        $key = $filter->getFilter();
-
-        return $this->filters[$key] = $filter;
+        return $this->filters[$instance->getFilter()] = $instance;
     }
 
     /**
