@@ -2,12 +2,12 @@
 
 function basset_stylesheet($name)
 {
-    return app('basset.output')->styles($name);
+    return app('basset.output')->stylesheets($name);
 }
 
 function basset_scripts($name)
 {
-    return app('basset.output')->scripts($name);
+    return app('basset.output')->javascripts($name);
 }
 
 function array_to_newlines(array $array)

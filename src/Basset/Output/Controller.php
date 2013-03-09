@@ -32,11 +32,6 @@ class Controller extends IlluminateController {
         {
             $collection = $this->env->collection($collection);
 
-            // Before we attempt to find the asset within the collection any directories
-            // need to be processed and filters applied. Then we'll find the asset and return
-            // its built response to the browser with the correct headers.
-            $collection->processCollection();
-
             $asset = $this->findAsset($collection, $path);
 
             if ($asset instanceof Asset)
