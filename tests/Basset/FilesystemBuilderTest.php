@@ -14,6 +14,8 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testCollectionsAreBuiltWithFilesystemBuilder()
     {
+        $builder = $this->getFilesystemBuilderInstance();
+
         $assets = array(
             $this->getAssetMock(),
             $this->getAssetMock()
@@ -25,85 +27,84 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
         $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
-        $expectedResponse = 'body { background-color: #fff; }'.PHP_EOL.'a { text-decoration: none; }';
-        $fingerprint = md5($expectedResponse);
+        $response = 'body { background-color: #fff; }'.PHP_EOL.'a { text-decoration: none; }';
+        $fingerprint = md5($response);
+
+        $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build')->andReturn(false);
+        $builder->getFiles()->shouldReceive('makeDirectory')->once()->with('path/to/build');
+        $builder->getFiles()->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(false);
+        $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", $response);
 
         $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->andReturn('css');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(false);
-        $files->shouldReceive('makeDirectory')->once()->with('path/to/build');
-        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(false);
-        $files->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", $expectedResponse);
-
-        $builder = new FilesystemBuilder($files, $config);
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getAssets')->once()->andReturn($assets);
 
         $builder->setBuildPath('path/to/build');
 
-        $builder->build($collection, 'styles');
+        $builder->build($collection, 'stylesheets');
     }
+
 
     /**
      * @expectedException Basset\Exception\CollectionExistsException
      */
-    public function testFilesystemBuilderFailsWithNoChanges()
+    public function testFilesystemBuilderThrowsExceptionWhenNoChangesDetected()
     {
+        $builder = $this->getFilesystemBuilderInstance();
+
         $assets = array($this->getAssetMock());
         $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn($response = 'body { background-color: #fff; }');
 
-        $fingerprint = md5('body { background-color: #fff; }');
+        $fingerprint = md5($response);
+
+        $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
+        $builder->getFiles()->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
 
         $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->andReturn('css');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
-        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
-
-        $builder = new FilesystemBuilder($files, $config);
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getAssets')->once()->andReturn($assets);
 
         $builder->setBuildPath('path/to/build');
 
-        $builder->build($collection, 'styles');
+        $builder->build($collection, 'stylesheets');
     }
 
 
-    public function testFilesystemBuilderWithForce()
+    public function testFilesystemBuilderDoesNotThrowExceptionWhenForcingTheBuild()
     {
+        $builder = $this->getFilesystemBuilderInstance();
+
         $assets = array($this->getAssetMock());
         $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
-        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
+        $assets[0]->shouldReceive('build')->once()->andReturn($response = 'body { background-color: #fff; }');
 
-        $fingerprint = md5('body { background-color: #fff; }');
+        $fingerprint = md5($response);
+
+        $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
+        $builder->getFiles()->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
+        $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", $response);
 
         $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
-        $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
         $collection->shouldReceive('determineExtension')->once()->andReturn('css');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->once()->with('path/to/build')->andReturn(true);
-        $files->shouldReceive('exists')->once()->with("path/to/build/foo-{$fingerprint}.css")->andReturn(true);
-        $files->shouldReceive('put')->once()->with("path/to/build/foo-{$fingerprint}.css", 'body { background-color: #fff; }');
-
-        $builder = new FilesystemBuilder($files, $config);
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getAssets')->once()->andReturn($assets);
 
         $builder->setBuildPath('path/to/build');
 
         $builder->force();
 
-        $builder->build($collection, 'styles');
+        $builder->build($collection, 'stylesheets');
+    }
+
+
+    protected function getFilesystemBuilderInstance()
+    {
+        return new FilesystemBuilder($this->getFilesMock(), $this->getConfigMock());
     }
 
 
