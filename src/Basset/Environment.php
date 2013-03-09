@@ -7,7 +7,7 @@ use Illuminate\Config\Repository;
 use Basset\Factory\FactoryManager;
 use Illuminate\Filesystem\Filesystem;
 
-class Environment {
+class Environment implements ArrayAccess {
 
     /**
      * Asset collections.
