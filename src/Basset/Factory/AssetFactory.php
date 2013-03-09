@@ -3,7 +3,7 @@
 use Basset\Asset;
 use Illuminate\Filesystem\Filesystem;
 
-class AssetFactory {
+class AssetFactory implements FactoryInterface {
 
     /**
      * Illuminate filesystem instance.

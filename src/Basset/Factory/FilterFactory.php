@@ -4,7 +4,7 @@ use Basset\Filter\Filter;
 use Illuminate\Config\Repository;
 use Basset\Filter\FilterableInterface;
 
-class FilterFactory {
+class FilterFactory implements FactoryInterface {
 
     /**
      * Illuminate config repository.
@@ -28,34 +28,23 @@ class FilterFactory {
      * Make a new filter instance.
      *
      * @param  Basset\Filter\Filter|string  $filter
-     * @param  Closure  $callback
-     * @param  Basset\Filter\FilterableInterface  $resource
      * @return Basset\Filter\Filter
      */
-    public function make($filter, $callback, FilterableInterface $resource)
+    public function make($filter)
     {
         if ($filter instanceof Filter)
         {
             return $filter;
         }
-        elseif ($this->config->has("basset::filters.{$filter}"))
-        {
-            $filter = $this->config->get("basset::filters.{$filter}");
+        
+        $filter = $this->config->get("basset::filters.{$filter}", $filter);
 
-            if (is_array($filter))
-            {
-                list($filter, $callback) = array(key($filter), current($filter));
-            }
+        if (is_array($filter))
+        {
+            list($filter, $callback) = array(key($filter), current($filter));
         }
 
-        $filterInstance = new Filter($filter, $resource);
-
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $filterInstance);
-        }
-
-        return $filterInstance;
+        return new Filter($filter);
     }
 
 }

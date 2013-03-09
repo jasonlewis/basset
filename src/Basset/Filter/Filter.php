@@ -51,13 +51,11 @@ class Filter {
      * Create a new filter instance.
      *
      * @param  string  $filter
-     * @param  Basset\Filter\FilterableInterface  $resource
      * @return void
      */
-    public function __construct($filter, FilterableInterface $resource)
+    public function __construct($filter)
     {
         $this->filter = $filter;
-        $this->resource = $resource;
     }
 
     /**
@@ -135,6 +133,19 @@ class Filter {
     }
 
     /**
+     * Set the resource on the filter.
+     * 
+     * @param  Basset\Filter\FilterableInterface  $resource
+     * @return Basset\Filter\Filter
+     */
+    public function setResource(FilterableInterface $resource)
+    {
+        $this->resource = $resource;
+
+        return $this;
+    }
+
+    /**
      * Get the parent resource.
      *
      * @return mixed
@@ -182,6 +193,22 @@ class Filter {
     public function getArguments()
     {
         return $this->arguments;
+    }
+
+    /**
+     * Fire a callback passing in the filter instance as a parameter.
+     * 
+     * @param  Closure  $callback
+     * @return Basset\Filter\Filter
+     */
+    public function fireCallback(Closure $callback = null)
+    {
+        if (is_callable($callback))
+        {
+            call_user_func($callback, $this);
+        }
+
+        return $this;
     }
 
     /**
