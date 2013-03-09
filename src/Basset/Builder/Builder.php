@@ -34,25 +34,45 @@ abstract class Builder implements BuilderInterface {
     }
 
     /**
-     * Build the scripts of a collection.
+     * Build the javascripts of a collection.
      *
      * @param  Basset\Collection  $collection
      * @return mixed
      */
-    public function buildScripts(Collection $collection)
+    public function buildJavascripts(Collection $collection)
     {
-        return $this->build($collection, 'scripts');
+        return $this->build($collection, 'javascripts');
     }
 
     /**
-     * Build the styles of a collection.
+     * Build the stylesheets of a collection.
      *
      * @param  Basset\Collection  $collection
      * @return mixed
      */
-    public function buildStyles(Collection $collection)
+    public function buildStylesheets(Collection $collection)
     {
-        return $this->build($collection, 'styles');
+        return $this->build($collection, 'stylesheets');
+    }
+
+    /**
+     * Get the illumiante config repository instance.
+     * 
+     * @return Illuminate\Config\Repository
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Get the illumiante filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
     }
 
 }

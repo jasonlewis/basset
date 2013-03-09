@@ -13,8 +13,6 @@ class StringBuilder extends Builder {
      */
     public function build(Collection $collection, $group)
     {
-        $collection->processCollection();
-
         $responses = array();
 
         foreach ($collection->getAssets($group) as $asset)
