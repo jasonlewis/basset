@@ -37,14 +37,24 @@ class FilterFactory implements FactoryInterface {
             return $filter;
         }
         
-        $filter = $this->config->get("basset::filters.{$filter}", $filter);
+        $filter = $this->config->get("basset::aliases.filters.{$filter}", $filter);
 
         if (is_array($filter))
         {
             list($filter, $callback) = array(key($filter), current($filter));
         }
 
-        return new Filter($filter);
+        // If the filter was aliased and the value of the array was a callable closure then
+        // we'll return and fire the callback on the filter instance so that any arguments
+        // can be set for the filters constructor.
+        $filter = new Filter($filter);
+
+        if (isset($callback) and is_callable($callback))
+        {
+            return $filter->fireCallback($callback);
+        }
+
+        return $filter;
     }
 
 }
