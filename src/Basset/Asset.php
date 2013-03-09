@@ -60,11 +60,11 @@ class Asset implements FilterableInterface {
     protected $excluded = false;
 
     /**
-     * Position of the asset.
+     * Order of the asset.
      *
      * @var int
      */
-    protected $position;
+    protected $order;
 
     /**
      * Create a new asset instance.
@@ -160,67 +160,67 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Alias for Basset\Asset::setPosition(1)
+     * Alias for Basset\Asset::setOrder(1)
      *
      * @return Basset\Asset
      */
     public function first()
     {
-        return $this->setPosition(1);
+        return $this->setOrder(1);
     }
 
     /**
-     * Alias for Basset\Asset::setPosition(2)
+     * Alias for Basset\Asset::setOrder(2)
      *
      * @return Basset\Asset
      */
     public function second()
     {
-        return $this->setPosition(2);
+        return $this->setOrder(2);
     }
 
     /**
-     * Alias for Basset\Asset::setPosition(3)
+     * Alias for Basset\Asset::setOrder(3)
      *
      * @return Basset\Asset
      */
     public function third()
     {
-        return $this->setPosition(3);
+        return $this->setOrder(3);
     }
 
     /**
-     * Alias for Basset\Asset::setPosition()
+     * Alias for Basset\Asset::setOrder()
      *
-     * @param  int  $position
+     * @param  int  $order
      * @return Basset\Asset
      */
-    public function position($position)
+    public function order($order)
     {
-        return $this->setPosition($position);
+        return $this->setOrder($order);
     }
 
     /**
-     * Set the position of the outputted asset.
+     * Set the order of the outputted asset.
      *
-     * @param  int  $position
+     * @param  int  $order
      * @return Basset\Asset
      */
-    public function setPosition($position)
+    public function setOrder($order)
     {
-        $this->position = $position;
+        $this->order = $order;
 
         return $this;
     }
 
     /**
-     * Get the assets position.
+     * Get the assets order.
      *
      * @return int|null
      */
-    public function getPosition()
+    public function getOrder()
     {
-        return $this->position;
+        return $this->order;
     }
 
     /**

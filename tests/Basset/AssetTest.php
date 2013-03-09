@@ -54,21 +54,21 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testSettingOfAssetsPosition()
+    public function testSettingOfAssetsOrder()
     {
         $asset = $this->getAssetInstance();
 
         $asset->first();
-        $this->assertEquals(1, $asset->getPosition());
+        $this->assertEquals(1, $asset->getOrder());
 
         $asset->second();
-        $this->assertEquals(2, $asset->getPosition());
+        $this->assertEquals(2, $asset->getOrder());
 
         $asset->third();
-        $this->assertEquals(3, $asset->getPosition());
+        $this->assertEquals(3, $asset->getOrder());
 
-        $asset->position(10);
-        $this->assertEquals(10, $asset->getPosition());
+        $asset->order(10);
+        $this->assertEquals(10, $asset->getOrder());
     }
 
 
@@ -79,8 +79,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $filterFactory->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
         
-        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn($filter);
-        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn($filter);
+        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
 
         $asset->apply('FooFilter');
@@ -97,23 +97,23 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $asset = $this->getAssetInstance();
 
         $fooFilter = $this->getFilterMock();
-        $fooFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($fooFilter);
-        $fooFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($fooFilter);
+        $fooFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $fooFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $fooFilter->shouldReceive('instantiate')->once();
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
 
         $barFilter = $this->getFilterMock();
-        $barFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($barFilter);
-        $barFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($barFilter);
+        $barFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $barFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
         $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('javascript');
         $barFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
 
         $bazFilter = $this->getFilterMock();
-        $bazFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($bazFilter);
-        $bazFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($bazFilter);
+        $bazFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $bazFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
         $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
@@ -151,8 +151,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         });
 
         $filter = $this->getFilterMock();
-        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn($filter);
-        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn($filter);
+        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('BodyFilter');
         $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $filter->shouldReceive('getEnvironments')->once()->andReturn(array());

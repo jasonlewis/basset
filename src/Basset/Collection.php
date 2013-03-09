@@ -214,7 +214,7 @@ class Collection implements FilterableInterface {
         {
             if (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}())
             {
-                $key = $asset->getPosition() ?: count($assets) + 1;
+                $key = $asset->getOrder() ?: count($assets) + 1;
 
                 array_splice($assets, $key - 1, 0, array($asset));
             }
@@ -242,7 +242,7 @@ class Collection implements FilterableInterface {
         {
             if ($asset->isExcluded() and (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}()))
             {
-                $key = $asset->getPosition() ?: count($assets) + 1;
+                $key = $asset->getOrder() ?: count($assets) + 1;
 
                 array_splice($assets, $key - 1, 0, array($asset));
             }
