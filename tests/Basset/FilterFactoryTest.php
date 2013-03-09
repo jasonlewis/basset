@@ -12,88 +12,57 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testMakeNewFilterInstance()
+    public function testMakeNewFilterInstanceFromString()
     {
-        $filterFactory = $this->getFilterFactoryInstance();
-        $resource = $this->getResourceMock();
+        $factory = new FilterFactory($config = $this->getConfigMock());
 
-        $filter = $filterFactory->make('FooFilter', null, $resource);
+        $config->shouldReceive('get')->once()->with('basset::aliases.filters.FooFilter', 'FooFilter')->andReturn('FooFilter');
 
-        $this->assertInstanceOf('Basset\Filter\Filter', $filter);
+        $this->assertInstanceOf('Basset\Filter\Filter', $factory->make('FooFilter'));
     }
 
 
-    public function testFilterClosureIsFired()
+    public function testMakeFilterInstanceFromExistingInstance()
     {
-        $filterFactory = $this->getFilterFactoryInstance();
-        $resource = $this->getResourceMock();
+        $factory = new FilterFactory($config = $this->getConfigMock());
 
-        $fired = false;
+        $filter = $this->getFilterMock();
 
-        $filter = $filterFactory->make('FooFilter', function($filter) use (&$fired)
-        {
-            $fired = true;
-        }, $resource);
-
-        $this->assertTrue($fired);
+        $this->assertEquals($filter, $factory->make($filter));
     }
 
 
-    public function testMakeExistingFilter()
+    public function testMakeAliasedFilter()
     {
-        $filterFactory = $this->getFilterFactoryInstance();
-        $resource = $this->getResourceMock();
+        $factory = new FilterFactory($config = $this->getConfigMock());
 
-        $existingFilter = $this->getFilterMock();
+        $config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn('FooFilter');
 
-        $filter = $filterFactory->make($existingFilter, null, $resource);
-
-        $this->assertEquals($existingFilter, $filter);
-    }
-
-
-    public function testMakeNamedFilter()
-    {
-        $config = $this->getConfigMock();
-        $config->shouldReceive('has')->once()->with('basset::filters.Foo')->andReturn(true);
-        $config->shouldReceive('get')->once()->with('basset::filters.Foo')->andReturn('FooFilter');
-
-        $filterFactory = new FilterFactory($config);
-        $resource = $this->getResourceMock();
-
-        $filter = $filterFactory->make('Foo', null, $resource);
+        $filter = $factory->make('foo');
 
         $this->assertEquals('FooFilter', $filter->getFilter());
     }
 
 
-    public function testMakeNamedFilterWithCallback()
+    public function testMakedAliasedFilterWithCallback()
     {
+        $factory = new FilterFactory($config = $this->getConfigMock());
+
         $fired = false;
+        $tester = $this;
 
-        $config = $this->getConfigMock();
-        $config->shouldReceive('has')->once()->with('basset::filters.Foo')->andReturn(true);
-        $config->shouldReceive('get')->once()->with('basset::filters.Foo')->andReturn(array('FooFilter' => function($filter) use (&$fired)
-        {
-            $fired = true;
-        }));
+        $config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn(array(
+            'FooFilter' => function($filter) use (&$fired, $tester)
+            {
+                $fired = true;
 
-        $filterFactory = new FilterFactory($config);
-        $resource = $this->getResourceMock();
+                $tester->assertEquals('FooFilter', $filter->getFilter());
+            }
+        ));
 
-        $filter = $filterFactory->make('Foo', null, $resource);
+        $factory->make('foo');
 
-        $this->assertEquals('FooFilter', $filter->getFilter());
         $this->assertTrue($fired);
-    }
-
-
-    protected function getFilterFactoryInstance()
-    {
-        $config = $this->getConfigMock();
-        $config->shouldReceive('has')->with('basset::filters.FooFilter')->andReturn(false);
-
-        return new FilterFactory($config);
     }
 
 
@@ -106,12 +75,6 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
     protected function getFilterMock()
     {
         return m::mock('Basset\Filter\Filter');
-    }
-
-
-    protected function getResourceMock()
-    {
-        return m::mock('Basset\Filter\FilterableInterface');
     }
 
 
