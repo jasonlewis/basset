@@ -102,7 +102,7 @@ class BuildCommand extends Command {
         {
             try
             {
-                $this->build($collection, 'styles');
+                $this->build($collection, 'stylesheets');
 
                 $this->line("<info>Stylesheets successfully built for collection:</info> {$collection->getName()}");
             }
@@ -117,7 +117,7 @@ class BuildCommand extends Command {
 
             try
             {
-                $this->build($collection, 'scripts');
+                $this->build($collection, 'javascripts');
 
                 $this->line("<info>Javascripts successfully built for collection:</info> {$collection->getName()}");
             }
@@ -148,7 +148,7 @@ class BuildCommand extends Command {
      */
     protected function build(Collection $collection, $group)
     {
-        $this->builder->{'build'.camel_case($group)}($collection);
+        $this->builder->{'build'.studly_case($group)}($collection);
     }
 
     /**
