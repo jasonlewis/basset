@@ -36,14 +36,14 @@ class Directory implements FilterableInterface {
      *
      * @var array
      */
-    protected $assets;
+    protected $assets = array();
 
     /**
      * Array of filters.
      *
      * @var array
      */
-    protected $filters;
+    protected $filters = array();
 
     /**
      * Create a new directory instance.
@@ -130,7 +130,7 @@ class Directory implements FilterableInterface {
         {
             if (in_array($asset->getRelativePath(), (array) $assets))
             {
-                unset($this->assets[$key]);
+                array_splice($this->assets, $key, 1);
             }
         }
 
@@ -149,7 +149,7 @@ class Directory implements FilterableInterface {
         {
             if ( ! in_array($asset->getRelativePath(), (array) $assets))
             {
-                unset($this->assets[$key]);
+                array_splice($this->assets, $key, 1);
             }
         }
 
@@ -208,6 +208,26 @@ class Directory implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * Get the factory manager instance.
+     * 
+     * @return Basset\Factory\FactoryManager
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * Get the illuminate filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
     }
 
 }
