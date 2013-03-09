@@ -73,7 +73,7 @@ class Controller extends IlluminateController {
     {
         foreach ($collection->getAssets() as $asset)
         {
-            if ($asset->getRelativePath() == $path)
+            if ($asset->getUsablePath() == $path)
             {
                 return $asset;
             }

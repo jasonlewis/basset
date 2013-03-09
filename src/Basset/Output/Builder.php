@@ -180,7 +180,7 @@ class Builder {
 
         foreach ($assets as $asset)
         {
-            $path = $asset->getRelativePath();
+            $path = $asset->getUsablePath();
 
             if ( ! $asset->isRemote())
             {

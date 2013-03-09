@@ -86,6 +86,20 @@ class Asset implements FilterableInterface {
     }
 
     /**
+     * Get the usable path of the asset.
+     * 
+     * @return string
+     */
+    public function getUsablePath()
+    {
+        $extension = pathinfo($path = $this->getRelativePath(), PATHINFO_EXTENSION);
+
+        $path = strstr($path, ".{$extension}", true);
+
+        return "{$path}.{$this->getUsableExtension()}";
+    }
+
+    /**
      * Get the usable extension of the asset.
      *
      * @return string
