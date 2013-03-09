@@ -286,7 +286,7 @@ class Asset implements FilterableInterface {
      */
     public function getGroup()
     {
-        return $this->isScript() ? 'scripts' : 'styles';
+        return $this->isJavascript() ? 'scripts' : 'styles';
     }
 
     /**
@@ -380,6 +380,26 @@ class Asset implements FilterableInterface {
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * Get factory manager instance.
+     * 
+     * @return Basset\Factory\FactoryManager
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * Get illuminate filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
     }
 
     /**
