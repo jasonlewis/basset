@@ -118,10 +118,10 @@ class Collection implements FilterableInterface {
         }
         catch (AssetNotFoundException $e)
         {
-            return $this->factory->asset->make(null);
+            return $this->factory['asset']->make(null);
         }
 
-        $asset = $this->factory->asset->make($path);
+        $asset = $this->factory['asset']->make($path);
 
         // If an asset is detected as being remotely hosted then by default the asset is to be
         // excluded from the build process. This is to prevent assets being hosted on CDNs
@@ -138,7 +138,7 @@ class Collection implements FilterableInterface {
      * @param  Closure  $callback
      * @return Basset\Collection|Basset\Directory
      */
-    public function directory($path, Closure $callback)
+    public function directory($path, Closure $callback = null)
     {
         try
         {
@@ -152,13 +152,15 @@ class Collection implements FilterableInterface {
         // Once we've set the working directory we'll fire the callback so that any added assets
         // are relative to the working directory. After the callback we can revert the working
         // directory.
-        $response = call_user_func($callback, $this);
+        ! is_callable($callback) ?: call_user_func($callback, $this);
+
+        $directory = $this->makeWorkingDirectory();
 
         $this->finder->resetWorkingDirectory();
 
-        // If we received a response from the callback then we'll return the response as it may
-        // be a directory instance that users can apply filters to.
-        return $response ?: $this;
+        // Once the working directory has been made and reset on the finder we can return and
+        // add this directory to the array of directories.
+        return $this->directories[] = $directory;
     }
 
     /**
@@ -169,7 +171,7 @@ class Collection implements FilterableInterface {
      */
     public function requireDirectory($path = null)
     {
-        return $this->processRequire('directory', $path);
+        return $this->directory($path)->requireDirectory();
     }
 
     /**
@@ -180,37 +182,17 @@ class Collection implements FilterableInterface {
      */
     public function requireTree($path = null)
     {
-        return $this->processRequire('tree', $path);
+        return $this->directory($path)->requireTree();
     }
 
     /**
-     * Process a directory require.
-     *
-     * @param  string  $method
-     * @param  string  $path
-     * @return Basset\Collection|Basset\Directory
+     * Make a directory instance of the working directory.
+     * 
+     * @return Basset\Directory
      */
-    protected function processRequire($method, $path)
+    protected function makeWorkingDirectory()
     {
-        $method = ucfirst($method);
-
-        // If a path has been supplied to the require then we'll change to work within that directory.
-        // Once we're working within the directory we can require the tree or the directory again
-        // and it'll perform the correct actions on the working directory.
-        if ( ! is_null($path))
-        {
-            return $this->directory($path, function($directory) use ($method)
-            {
-                return $collection->{"require{$method}"}();
-            });
-        }
-
-        // Now that no path has been supplied we can safely assume that we're working within the
-        // original directory that was given. We'll now make the directory with the factory and
-        // then perform the original require request that was given.
-        $directory = $this->factory['directory']->make($this->finder->getWorkingDirectory());
-
-        return $this->directories[] = $directory->{"require{$method}"}();
+        return $this->factory['directory']->make($this->finder->getWorkingDirectory());
     }
 
     /**
@@ -318,6 +300,16 @@ class Collection implements FilterableInterface {
     }
 
     /**
+     * Get the added directories.
+     * 
+     * @return array
+     */
+    public function getDirectories()
+    {
+        return $this->directories;
+    }
+
+    /**
      * Determine if the collection has been prepared.
      *
      * @return bool
@@ -339,6 +331,36 @@ class Collection implements FilterableInterface {
         $instance = $this->factory['filter']->make($filter)->setResource($this)->fireCallback($callback);
 
         return $this->filters[$instance->getFilter()] = $instance;
+    }
+
+    /**
+     * Get the illuminate filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
+    }
+
+    /**
+     * Get the asset finder instance.
+     * 
+     * @return Basset\AssetFinder
+     */
+    public function getFinder()
+    {
+        return $this->finder;
+    }
+
+    /**
+     * Get the factory manager instance.
+     * 
+     * @return Basset\Factory\FactoryManager
+     */
+    public function getFactory()
+    {
+        return $this->factory;
     }
 
 }
