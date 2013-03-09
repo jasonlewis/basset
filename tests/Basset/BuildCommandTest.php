@@ -12,7 +12,7 @@ class BuildCommandTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testBuilderCallsScriptAndStyleBuildMethods()
+    public function testBuilderCallsJavascriptAndStylesheetBuildMethods()
     {
         $collections = array(
             m::mock('Basset\Collection'),
@@ -21,14 +21,14 @@ class BuildCommandTest extends PHPUnit_Framework_TestCase {
         $collections[0]->shouldReceive('getName')->twice()->andReturn('foo');
         $collections[1]->shouldReceive('getName')->twice()->andReturn('qux');
 
-        $basset = m::mock('Basset\Basset');
+        $basset = m::mock('Basset\Environment');
         $basset->shouldReceive('getCollections')->once()->andReturn($collections);
         $builder = m::mock('Basset\Builder\BuilderInterface');
         $builder->shouldReceive('setBuildPath')->with('path/to/build');
-        $builder->shouldReceive('buildStyles')->once()->with($collections[0]);
-        $builder->shouldReceive('buildStyles')->once()->with($collections[1]);
-        $builder->shouldReceive('buildScripts')->once()->with($collections[0]);
-        $builder->shouldReceive('buildScripts')->once()->with($collections[1]);
+        $builder->shouldReceive('buildStylesheets')->once()->with($collections[0]);
+        $builder->shouldReceive('buildStylesheets')->once()->with($collections[1]);
+        $builder->shouldReceive('buildJavascripts')->once()->with($collections[0]);
+        $builder->shouldReceive('buildJavascripts')->once()->with($collections[1]);
         $builder->shouldReceive('getFingerprint')->once()->andReturn(md5('bar'));
         $builder->shouldReceive('getFingerprint')->once()->andReturn(md5('baz'));
         $manifest = m::mock('Basset\Manifest\Repository');
