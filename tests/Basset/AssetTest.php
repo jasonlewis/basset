@@ -2,7 +2,7 @@
 
 use Mockery as m;
 use Basset\Asset;
-use Basset\FilterFactory;
+use Basset\Factory\FilterFactory;
 
 class AssetTest extends PHPUnit_Framework_TestCase {
 
@@ -17,8 +17,9 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $asset = $this->getAssetInstance();
 
-        $this->assertEquals('foo/bar.css', $asset->getRelativePath());
-        $this->assertEquals('path/to/foo/bar.css', $asset->getAbsolutePath());
+        $this->assertEquals('foo/bar.sass', $asset->getRelativePath());
+        $this->assertEquals('path/to/foo/bar.sass', $asset->getAbsolutePath());
+        $this->assertEquals('foo/bar.css', $asset->getUsablePath());
         $this->assertEquals('css', $asset->getUsableExtension());
         $this->assertEquals(array(), $asset->getFilters());
         $this->assertEquals('styles', $asset->getGroup());
@@ -37,72 +38,96 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $asset = $this->getAssetInstance();
 
-        $this->assertTrue($asset->isStyle());
-        $this->assertFalse($asset->isScript());
+        $this->assertTrue($asset->isStylesheet());
+        $this->assertFalse($asset->isJavascript());
     }
 
 
     public function testAssetCanBeRemotelyHosted()
     {
         $files = $this->getFilesMock();
-        $filterFactory = $this->getFilterFactoryMock();
+        $factory = $this->getFactoryManagerMock();
 
-        $asset = new Asset($files, $filterFactory, 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'testing');
+        $asset = new Asset($files, $factory, 'http://foo.com/bar.css', 'http://foo.com/bar.css', 'testing');
 
         $this->assertTrue($asset->isRemote());
     }
 
 
-    public function testFiltersAreAppliedToAssets()
+    public function testSettingOfAssetsPosition()
     {
-        $files = $this->getFilesMock();
-        $config = $this->getConfigMock();
-        $config->shouldReceive('has')->once()->with('basset::filters.FooFilter')->andReturn(false);
-        $filterFactory = new FilterFactory($config);
+        $asset = $this->getAssetInstance();
 
-        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+        $asset->first();
+        $this->assertEquals(1, $asset->getPosition());
 
-        $asset->apply('FooFilter');
+        $asset->second();
+        $this->assertEquals(2, $asset->getPosition());
 
-        $filter = $this->getFilterMock();
-        $filter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
-        $asset->apply($filter);
+        $asset->third();
+        $this->assertEquals(3, $asset->getPosition());
 
-        $filters = $asset->getFilters();
-
-        $this->assertInstanceOf('Basset\Filter\Filter', $filters['FooFilter']);
-        $this->assertInstanceOf('Basset\Filter\Filter', $filters['BarFilter']);
+        $asset->position(10);
+        $this->assertEquals(10, $asset->getPosition());
     }
 
 
-    public function testFiltersArePrepared()
+    public function testFiltersAreAppliedToAssets()
     {
-        $files = $this->getFilesMock();
-        $config = $this->getConfigMock();
-        $filterFactory = new Basset\FilterFactory($config);
+        $asset = $this->getAssetInstance();
+        $asset->getFactory()->shouldReceive('offsetGet')->once()->with('filter')->andReturn($filterFactory = $this->getFilterFactoryMock());
 
-        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+        $filterFactory->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
+        
+        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn($filter);
+        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn($filter);
+        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
+
+        $asset->apply('FooFilter');
+
+        $filters = $asset->getFilters();
+        
+        $this->assertArrayHasKey('FooFilter', $filters);
+        $this->assertInstanceOf('Basset\Filter\Filter', $filters['FooFilter']);
+    }
+
+
+    public function testFiltersArePreparedCorrectly()
+    {
+        $asset = $this->getAssetInstance();
 
         $fooFilter = $this->getFilterMock();
+        $fooFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($fooFilter);
+        $fooFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($fooFilter);
+        $fooFilter->shouldReceive('instantiate')->once();
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
 
         $barFilter = $this->getFilterMock();
+        $barFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($barFilter);
+        $barFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($barFilter);
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
-        $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('script');
+        $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('javascript');
         $barFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
 
         $bazFilter = $this->getFilterMock();
+        $bazFilter->shouldReceive('setResource')->once()->with($asset)->andReturn($bazFilter);
+        $bazFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn($bazFilter);
         $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
         $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
+
+        $config = $this->getConfigMock();
+
+        $asset->getFiles()->shouldReceive('getRemote')->once()->with('path/to/foo/bar.sass')->andReturn('');
+        $asset->getFactory()->shouldReceive('offsetGet')->times(3)->with('filter')->andReturn(new FilterFactory($config));
 
         $asset->apply($fooFilter);
         $asset->apply($barFilter);
         $asset->apply($bazFilter);
 
-        $asset->prepareFilters();
+        $asset->build();
 
         $filters = $asset->getFilters();
 
@@ -116,12 +141,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $contents = 'html { background-color: #fff; }';
 
-        $files = $this->getFilesMock();
-        $files->shouldReceive('getRemote')->once()->andReturn($contents);
-        $config = $this->getConfigMock();
-        $filterFactory = new FilterFactory($config);
-
-        $asset = new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+        $asset = $this->getAssetInstance();
 
         $instantiatedFilter = m::mock('Assetic\Filter\FilterInterface');
         $instantiatedFilter->shouldReceive('filterLoad')->once()->andReturn(null);
@@ -131,10 +151,18 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         });
 
         $filter = $this->getFilterMock();
+        $filter->shouldReceive('setResource')->once()->with($asset)->andReturn($filter);
+        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn($filter);
         $filter->shouldReceive('getFilter')->once()->andReturn('BodyFilter');
         $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $filter->shouldReceive('getEnvironments')->once()->andReturn(array());
         $filter->shouldReceive('instantiate')->once()->andReturn($instantiatedFilter);
+
+
+        $config = $this->getConfigMock();
+
+        $asset->getFiles()->shouldReceive('getRemote')->once()->with('path/to/foo/bar.sass')->andReturn($contents);
+        $asset->getFactory()->shouldReceive('offsetGet')->once()->with('filter')->andReturn(new FilterFactory($config));
 
         $asset->apply($filter);
 
@@ -145,9 +173,9 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     protected function getAssetInstance()
     {
         $files = $this->getFilesMock();
-        $filterFactory = $this->getFilterFactoryMock();
+        $factory = $this->getFactoryManagerMock();
 
-        return new Asset($files, $filterFactory, 'path/to/foo/bar.css', 'foo/bar.css', 'testing');
+        return new Asset($files, $factory, 'path/to/foo/bar.sass', 'foo/bar.sass', 'testing');
     }
 
 
@@ -157,9 +185,15 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    protected function getFactoryManagerMock()
+    {
+        return m::mock('Basset\Factory\FactoryManager');
+    }
+
+
     protected function getFilterFactoryMock()
     {
-        return m::mock('Basset\FilterFactory');
+        return m::mock('Basset\Factory\FilterFactory');
     }
 
 
