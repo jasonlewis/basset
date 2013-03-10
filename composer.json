@@ -30,6 +30,9 @@
         "psr-0": {
             "Basset": "src/"
         },
+        "classmap": [
+            "tests/Cases/FilterTestCase.php"
+        ],
         "files": ["src/helpers.php"]
     },
     "minimum-stability": "dev"
