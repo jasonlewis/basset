@@ -59,9 +59,9 @@ class Controller extends IlluminateController {
 
         // Using the assets usable extension we'll determine what the content type
         // for the response should be.
-        $contentType = $asset->getUsableExtension() == 'js' ? 'application/javascript' : 'text/css';
+        $headers['content-type'] = $asset->getUsableExtension() == 'js' ? 'application/javascript' : 'text/css';
 
-        return new Response($contents, 200, array('content-type' => $contentType));
+        return new Response($contents, 200, $headers);
     }
 
     /**
