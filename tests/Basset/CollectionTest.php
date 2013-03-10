@@ -99,10 +99,12 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($this->getDirectoryMock());
 
         $fired = false;
+        $tester = $this;
 
-        $this->assertInstanceOf('Basset\Directory', $directory = $collection->directory('foo', function($collection) use (&$fired)
+        $this->assertInstanceOf('Basset\Directory', $directory = $collection->directory('foo', function($collection) use (&$fired, $tester)
         {
             $fired = true;
+            $tester->assertEquals('foo', $collection->getName());
         }));
         $this->assertTrue($fired);
     }
