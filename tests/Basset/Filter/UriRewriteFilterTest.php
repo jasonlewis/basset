@@ -3,7 +3,7 @@
 use Assetic\Asset\StringAsset;
 use Basset\Filter\UriRewriteFilter;
 
-class UriRewriteTest extends FilterTestCase {
+class UriRewriteFilterTest extends FilterTestCase {
 
 
     public function testUriRewrite()
