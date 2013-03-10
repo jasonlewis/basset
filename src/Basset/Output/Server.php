@@ -53,13 +53,26 @@ class Server {
      * @param  array  $collections
      * @return void
      */
-    public function __construct(Resolver $resolver, Repository $config, Store $session, UrlGenerator $url, array $collections)
+    public function __construct(Resolver $resolver, Repository $config, Store $session, UrlGenerator $url, array $collections = array())
     {
         $this->resolver = $resolver;
         $this->config = $config;
         $this->session = $session;
         $this->url = $url;
         $this->collections = $collections;
+    }
+
+    /**
+     * Set the collections on the server.
+     * 
+     * @param  array  $collections
+     * @return Basset\Output\Server
+     */
+    public function setCollections(array $collections)
+    {
+        $this->collections = array_merge($this->collections, $collections);
+
+        return $this;
     }
 
     /**
@@ -228,6 +241,46 @@ class Server {
     protected function createJavascriptsElement($path)
     {
         return '<script src="'.$this->url->asset($path).'"></script>';
+    }
+
+    /**
+     * Get the output resolver instance.
+     * 
+     * @return Basset\Output\Resolver
+     */
+    public function getResolver()
+    {
+        return $this->resolver;
+    }
+
+    /**
+     * Get the illuminate config repository instance.
+     * 
+     * @return Illuminate\Config\Repository
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Get the illuminate session store instance.
+     * 
+     * @return Illuminate\Session\Store
+     */
+    public function getSession()
+    {
+        return $this->session;
+    }
+
+    /**
+     * Get the illuminate url generator instance.
+     * 
+     * @return Illuminate\Routing\UrlGenerator
+     */
+    public function getUrl()
+    {
+        return $this->url;
     }
 
 }
