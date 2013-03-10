@@ -12,7 +12,7 @@ class StringBuilderTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCollectionsAreBuiltWithStringBuilder()
+    public function testStringBuilderBuildsCollection()
     {
         $assets = array(
             $this->getAssetMock(),
@@ -26,38 +26,32 @@ class StringBuilderTest extends PHPUnit_Framework_TestCase {
         $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
 
         $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
 
-        $builder = new StringBuilder($files, $config);
+        $builder = new StringBuilder($this->getFilesMock(), $this->getConfigMock());
 
-        $expectedArray = array(
+        $expected = array(
             'foo.css' => 'body { background-color: #fff; }',
             'bar.css' => 'a { text-decoration: none; }'
         );
 
-        $this->assertEquals($expectedArray, $builder->build($collection, 'styles'));
+        $this->assertEquals($expected, $builder->build($collection, 'styles'));
     }
 
 
     /**
      * @expectedException Basset\Exception\EmptyResponseException
      */
-    public function testStringBuilderWithExcludedAssets()
+    public function testStringBuilderWithExcludedAssetsThrowsEmptyResponseException()
     {
         $asset = $this->getAssetMock();
         $asset->shouldReceive('isExcluded')->once()->andReturn(true);
 
         $collection = $this->getCollectionMock();
-        $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn(array($asset));
         $collection->shouldReceive('getName')->once()->andReturn('foo');
-        $config = $this->getConfigMock();
-        $files = $this->getFilesMock();
 
-        $builder = new StringBuilder($files, $config);
+        $builder = new StringBuilder($this->getFilesMock(), $this->getConfigMock());
 
         $builder->build($collection, 'styles');
     }
