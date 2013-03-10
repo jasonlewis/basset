@@ -3,7 +3,7 @@
 use Countable;
 use ArrayAccess;
 
-class Manager implements ArrayAccess {
+class Manager implements ArrayAccess, Countable {
 
     /**
      * Array of registered factories.
@@ -60,6 +60,18 @@ class Manager implements ArrayAccess {
         {
             return $this->get($key);
         }
+    }
+
+    /**
+     * Dynamically register a factory.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->register($key, $value);
     }
 
     /**
