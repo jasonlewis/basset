@@ -72,20 +72,20 @@ class BuildCleaner {
      * @param  array  $fingerprints
      * @return void
      */
-    protected function performCleanup($collection, $fingerprints)
+    protected function performCleanup($collection, array $fingerprints)
     {
         foreach ($this->getFilesystemIterator($this->buildPath) as $file)
         {
             $name = $file->getFilename();
 
-            if (isset($fingerprints['styles']) and str_is("{$collection}-*.css", $name) and ! str_is("{$collection}-{$fingerprints['styles']}.css", $name))
+            if (isset($fingerprints['stylesheets']) and ! str_is("{$collection}-{$fingerprints['stylesheets']}.css", $name))
             {
-                $this->files->delete($file->getPathname());
+                str_is("{$collection}-*.css", $name) and $this->files->delete($file->getPathname());
             }
 
-            if (isset($fingerprints['scripts']) and str_is("{$collection}-*.js", $name) and ! str_is("{$collection}-{$fingerprints['scripts']}.js", $name))
+            if (isset($fingerprints['javascripts']) and ! str_is("{$collection}-{$fingerprints['javascripts']}.js", $name))
             {
-                $this->files->delete($file->getPathname());
+                str_is("{$collection}-*.js", $name) and $this->files->delete($file->getPathname());
             }
         }
     }
