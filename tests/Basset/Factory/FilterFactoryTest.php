@@ -2,6 +2,7 @@
 
 use Mockery as m;
 use Basset\Factory\FilterFactory;
+use Illuminate\Config\Repository as Config;
 
 class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -14,9 +15,9 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakeNewFilterInstanceFromString()
     {
-        $factory = new FilterFactory($config = $this->getConfigMock());
+        $factory = new FilterFactory($config = $this->getConfigInstance());
 
-        $config->shouldReceive('get')->once()->with('basset::aliases.filters.FooFilter', 'FooFilter')->andReturn('FooFilter');
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
 
         $this->assertInstanceOf('Basset\Filter\Filter', $factory->make('FooFilter'));
     }
@@ -24,7 +25,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakeFilterInstanceFromExistingInstance()
     {
-        $factory = new FilterFactory($config = $this->getConfigMock());
+        $factory = new FilterFactory($this->getConfigInstance());
 
         $filter = $this->getFilterMock();
 
@@ -34,9 +35,13 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakeAliasedFilter()
     {
-        $factory = new FilterFactory($config = $this->getConfigMock());
+        $factory = new FilterFactory($config = $this->getConfigInstance());
 
-        $config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn('FooFilter');
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
+            'filters' => array(
+                'foo' => 'FooFilter'
+            )
+        ));
 
         $filter = $factory->make('foo');
 
@@ -46,18 +51,22 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakedAliasedFilterWithCallback()
     {
-        $factory = new FilterFactory($config = $this->getConfigMock());
+        $factory = new FilterFactory($config = $this->getConfigInstance());
 
         $fired = false;
         $tester = $this;
 
-        $config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn(array(
-            'FooFilter' => function($filter) use (&$fired, $tester)
-            {
-                $fired = true;
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
+            'filters' => array(
+                'foo' => array(
+                    'FooFilter' => function($filter) use (&$fired, $tester)
+                    {
+                        $fired = true;
 
-                $tester->assertEquals('FooFilter', $filter->getFilter());
-            }
+                        $tester->assertEquals('FooFilter', $filter->getFilter());
+                    }
+                )
+            )
         ));
 
         $factory->make('foo');
@@ -66,9 +75,9 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    protected function getConfigMock()
+    protected function getConfigInstance()
     {
-        return m::mock('Illuminate\Config\Repository');
+        return new Config(m::mock('Illuminate\Config\LoaderInterface'), 'testing');
     }
 
 

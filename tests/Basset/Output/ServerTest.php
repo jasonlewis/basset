@@ -2,6 +2,7 @@
 
 use Mockery as m;
 use Basset\Output\Server;
+use Illuminate\Config\Repository as Config;
 use Basset\BassetServiceProvider as Provider;
 
 class OutputServerTest extends PHPUnit_Framework_TestCase {
@@ -25,7 +26,7 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
         $server->setCollections(array('foo' => $collection));
 
         $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn('bar');
-        $server->getConfig()->shouldReceive('get')->once()->with('basset::build_path')->andReturn('assets');
+        $server->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'build_path', 'basset')->andReturn('assets');
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
         $server->getUrl()->shouldReceive('asset')->once()->with('assets/foo-bar.css')->andReturn('localhost/assets/foo-bar.css');
 
@@ -73,7 +74,7 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
         $server->setCollections(array('foo' => $collection));
 
         $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn('bar');
-        $server->getConfig()->shouldReceive('get')->once()->with('basset::build_path')->andReturn('assets');
+        $server->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'build_path', 'basset')->andReturn('assets');
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
 
         $server->getUrl()->shouldReceive('asset')->once()->with('assets/foo-bar.css')->andReturn('localhost/assets/foo-bar.css');
@@ -125,7 +126,7 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
 
     protected function getServerInstance()
     {
-        return new Server($this->getResolverMock(), $this->getConfigMock(), $this->getSessionMock(), $this->getUrlMock());
+        return new Server($this->getResolverMock(), $this->getConfigInstance(), $this->getSessionMock(), $this->getUrlMock());
     }
 
 
@@ -147,9 +148,9 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    protected function getConfigMock()
+    protected function getConfigInstance()
     {
-        return m::mock('Illuminate\Config\Repository');
+        return new Config(m::mock('Illuminate\Config\LoaderInterface'), 'testing');
     }
 
 

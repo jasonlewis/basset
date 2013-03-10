@@ -2,6 +2,7 @@
 
 use Mockery as m;
 use Basset\AssetFinder;
+use Illuminate\Config\Repository as Config;
 
 class AssetFinderTest extends PHPUnit_Framework_TestCase {
 
@@ -16,7 +17,7 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     {
         $finder = $this->getFinderInstance();
 
-        $finder->getConfig()->shouldReceive('get')->once()->with('basset::aliases.assets.http://foo.bar/baz.css', 'http://foo.bar/baz.css')->andReturn('http://foo.bar/baz.css');
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
 
         $this->assertEquals('http://foo.bar/baz.css', $finder->find('http://foo.bar/baz.css'));
     }
@@ -27,7 +28,7 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
         $finder = $this->getFinderInstance();
         $finder->addNamespace('bar', 'foo/bar');
 
-        $finder->getConfig()->shouldReceive('get')->once()->with('basset::aliases.assets.bar::baz.css', 'bar::baz.css')->andReturn('bar::baz.css');
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
         $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/packages/foo/bar/baz.css')->andReturn(true);
 
         $this->assertEquals('path/to/public/packages/foo/bar/baz.css', $finder->find('bar::baz.css'));
@@ -38,7 +39,7 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     {
         $finder = $this->getFinderInstance();
 
-        $finder->getConfig()->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
 
         $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
         $finder->setWorkingDirectory('working/directory');
@@ -53,10 +54,25 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     {
         $finder = $this->getFinderInstance();
 
-        $finder->getConfig()->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
         $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
 
         $this->assertEquals('path/to/public/foo.css', $finder->find('foo.css'));
+    }
+
+
+    public function testFindAliasedAsset()
+    {
+        $finder = $this->getFinderInstance();
+
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
+            'assets' => array(
+                'foo' => 'foo.css'
+            )
+        ));
+        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
+
+        $this->assertEquals('path/to/public/foo.css', $finder->find('foo'));
     }
 
 
@@ -99,7 +115,7 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
 
     protected function getConfigMock()
     {
-        return m::mock('Illuminate\Config\Repository');
+        return new Config(m::mock('Illuminate\Config\LoaderInterface'), 'testing');
     }
 
 
