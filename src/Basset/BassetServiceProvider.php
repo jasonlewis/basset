@@ -194,7 +194,7 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
 
-            $builder = new FilesystemBuilder($app['files'], $app['config']);
+            $builder = new FilesystemBuilder($app['files']);
 
             $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
 

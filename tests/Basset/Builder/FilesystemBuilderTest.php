@@ -104,7 +104,7 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilesystemBuilderInstance()
     {
-        return new FilesystemBuilder($this->getFilesMock(), $this->getConfigMock());
+        return new FilesystemBuilder($this->getFilesMock());
     }
 
 
@@ -117,12 +117,6 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
     protected function getAssetMock()
     {
         return m::mock('Basset\Asset');
-    }
-
-
-    protected function getConfigMock()
-    {
-        return m::mock('Illuminate\Config\Repository');
     }
 
 

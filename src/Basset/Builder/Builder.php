@@ -14,23 +14,14 @@ abstract class Builder implements BuilderInterface {
     protected $files;
 
     /**
-     * Illuminate config repository instance.
-     *
-     * @var Illuminate\Config\Repository
-     */
-    protected $config;
-
-    /**
      * Create a new builder instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Illuminate\Config\Repository  $config
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config)
+    public function __construct(Filesystem $files)
     {
         $this->files = $files;
-        $this->config = $config;
     }
 
     /**
@@ -53,16 +44,6 @@ abstract class Builder implements BuilderInterface {
     public function buildStylesheets(Collection $collection)
     {
         return $this->build($collection, 'stylesheets');
-    }
-
-    /**
-     * Get the illumiante config repository instance.
-     * 
-     * @return Illuminate\Config\Repository
-     */
-    public function getConfig()
-    {
-        return $this->config;
     }
 
     /**

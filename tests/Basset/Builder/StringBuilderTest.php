@@ -28,7 +28,7 @@ class StringBuilderTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn($assets);
 
-        $builder = new StringBuilder($this->getFilesMock(), $this->getConfigMock());
+        $builder = new StringBuilder($this->getFilesMock());
 
         $expected = array(
             'foo.css' => 'body { background-color: #fff; }',
@@ -51,7 +51,7 @@ class StringBuilderTest extends PHPUnit_Framework_TestCase {
         $collection->shouldReceive('getAssets')->once()->with('styles')->andReturn(array($asset));
         $collection->shouldReceive('getName')->once()->andReturn('foo');
 
-        $builder = new StringBuilder($this->getFilesMock(), $this->getConfigMock());
+        $builder = new StringBuilder($this->getFilesMock());
 
         $builder->build($collection, 'styles');
     }
@@ -66,12 +66,6 @@ class StringBuilderTest extends PHPUnit_Framework_TestCase {
     protected function getAssetMock()
     {
         return m::mock('Basset\Asset');
-    }
-
-
-    protected function getConfigMock()
-    {
-        return m::mock('Illuminate\Config\Repository');
     }
 
 
