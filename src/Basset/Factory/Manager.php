@@ -117,4 +117,14 @@ class Manager implements ArrayAccess {
         return count($this->factories);
     }
 
+    /**
+     * Get the registered factories.
+     * 
+     * @return array
+     */
+    public function getFactories()
+    {
+        return $this->factories;
+    }
+
 }
