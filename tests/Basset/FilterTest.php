@@ -14,79 +14,102 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testSettingOfFilterInstantiationArguments()
     {
-        $resource = $this->getResourceMock();
-        $filter = new Filter('FooFilter', $resource);
+        $filter = $this->getFilterInstance();
 
-        $filter->setArguments('Foo', 'Bar');
+        $filter->setArguments('bar', 'baz');
 
-        $this->assertContains('Foo', $filter->getArguments());
+        $arguments = $filter->getArguments();
+
+        $this->assertContains('bar', $arguments);
+        $this->assertContains('baz', $arguments);
     }
 
 
     public function testSettingOfFilterEnvironments()
     {
-        $resource = $this->getResourceMock();
-        $filter = new Filter('FooFilter', $resource);
+        $filter = $this->getFilterInstance();
 
-        $filter->onEnvironment('Foo');
+        $filter->onEnvironment('foo');
+        $this->assertContains('foo', $filter->getEnvironments());
 
-        $this->assertContains('Foo', $filter->getEnvironments());
-
-        $filter->onEnvironments('Bar', 'Baz');
-
-        $this->assertContains('Baz', $filter->getEnvironments());
-        $this->assertCount(3, $filter->getEnvironments());
+        $filter->onEnvironments('bar', 'baz');
+        $this->assertContains('bar', $filter->getEnvironments());
+        $this->assertContains('baz', $filter->getEnvironments());
     }
 
 
     public function testSettingOfFilterGroupRestriction()
     {
-        $resource = $this->getResourceMock();
-        $filter = new Filter('FooFilter', $resource);
+        $filter = $this->getFilterInstance();
 
-        $filter->onlyStyles();
+        $filter->onlyJavascripts();
+        $this->assertEquals('javascripts', $filter->getGroupRestriction());
 
-        $this->assertEquals('styles', $filter->getGroupRestriction());
-
-        $filter->onlyScripts();
-
-        $this->assertEquals('scripts', $filter->getGroupRestriction());
+        $filter->onlyStylesheets();
+        $this->assertEquals('stylesheets', $filter->getGroupRestriction());
     }
 
 
-    public function testFiltersCanBeInstantiated()
+    public function testInstantiationOfFiltersWithNoArguments()
     {
-        $resource = $this->getResourceMock();
-        $filter = m::mock('Basset\Filter\Filter[exists]', array('FooFilter', $resource));
-        $filter->shouldReceive('exists')->once()->andReturn('stdClass');
-        $filter->setArguments('Foo', 'Bar');
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('exists')->once()->andReturn('FilterStub');
 
-        $this->assertInstanceOf('stdClass', $filter->instantiate());
+        $instance = $filter->instantiate();
+
+        $this->assertInstanceOf('FilterStub', $instance);
     }
 
 
-    public function testFiltersCanBeInstantiatedWithBeforeFilteringEvents()
+    public function testInstantiationOfFiltersWithArguments()
     {
-        $resource = $this->getResourceMock();
-        $filter = m::mock('Basset\Filter\Filter[exists]', array('FooFilter', $resource));
-        $filter->shouldReceive('exists')->once()->andReturn('stdClass');
-        $filter->setArguments('Foo', 'Bar');
-        $filter->beforeFiltering(function($filter)
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('exists')->once()->andReturn('FilterWithConstructorStub');
+
+        $filter->setArguments('bar');
+
+        $instance = $filter->instantiate();
+
+        $this->assertEquals('bar', $instance->getFoo());
+    }
+
+
+    public function testInstantiationOfFiltersWithBeforeFilteringCallback()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('exists')->once()->andReturn('FilterStub');
+
+        $tester = $this;
+
+        $filter->beforeFiltering(function($filter) use ($tester)
         {
-            $filter->foo = 'bar';
+            $filter->setFoo('bar');
+
+            $tester->assertInstanceOf('FilterStub', $filter);
         });
 
-        $this->assertEquals('bar', $filter->instantiate()->foo);
+        $instance = $filter->instantiate();
+
+        $this->assertEquals('bar', $instance->getFoo());
     }
 
 
-    public function testInvalidMethodsCallsAreHandledByResource()
+    public function testInvalidMethodsAreHandledByResource()
     {
-        $resource = $this->getResourceMock();
-        $resource->shouldReceive('foo')->once()->andReturn('bar');
-        $filter = new Filter('FooFilter', $resource);
+        $filter = new Filter('FooFilter');
+        $filter->setResource($this->getResourceMock());
+        $filter->getResource()->shouldReceive('foo')->once()->andReturn('bar');
 
         $this->assertEquals('bar', $filter->foo());
+    }
+
+
+    protected function getFilterInstance()
+    {
+        $mock = m::mock('Basset\Filter\Filter', array('FooFilter'))->shouldDeferMissing();
+        $mock->setResource($this->getResourceMock());
+
+        return $mock;
     }
 
 
@@ -95,5 +118,39 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         return m::mock('Basset\Filter\FilterableInterface');
     }
 
+
+}
+
+
+class FilterStub {
+
+    protected $foo;
+
+    public function setFoo($foo)
+    {
+        $this->foo = $foo;
+    }
+
+    public function getFoo()
+    {
+        return $this->foo;
+    }
+
+}
+
+
+class FilterWithConstructorStub {
+
+    protected $foo;
+
+    public function __construct($foo)
+    {
+        $this->foo = $foo;
+    }
+
+    public function getFoo()
+    {
+        return $this->foo;
+    }
 
 }
