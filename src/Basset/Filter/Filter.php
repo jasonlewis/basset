@@ -109,25 +109,25 @@ class Filter {
     }
 
     /**
-     * Apply filter to only styles.
+     * Apply filter to only stylesheets.
      *
      * @return Basset\Filter\Filter
      */
-    public function onlyStyles()
+    public function onlyStylesheets()
     {
-        $this->groupRestriction = 'styles';
+        $this->groupRestriction = 'stylesheets';
 
         return $this;
     }
 
     /**
-     * Apply filter to only scripts.
+     * Apply filter to only javascripts.
      *
      * @return Basset\Filter\Filter
      */
-    public function onlyScripts()
+    public function onlyJavascripts()
     {
-        $this->groupRestriction = 'scripts';
+        $this->groupRestriction = 'javascripts';
 
         return $this;
     }
