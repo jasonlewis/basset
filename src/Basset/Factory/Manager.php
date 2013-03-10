@@ -16,10 +16,10 @@ class Manager implements ArrayAccess {
      * Register a factory with the manager.
      *
      * @param  string  $name
-     * @param  mixed  $factory
+     * @param  Basset\Factory\FactoryInterface  $factory
      * @return Basset\Factory\Manager
      */
-    public function register($name, $factory)
+    public function register($name, FactoryInterface $factory)
     {
         $this->factories[$name] = $factory;
 
