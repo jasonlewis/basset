@@ -23,9 +23,9 @@ class ManifestEntryTest extends PHPUnit_Framework_TestCase {
     public function testSettingOfFingerprint()
     {
         $entry = new Entry;
-        $entry->setFingerprint('foo', 'styles');
-        $this->assertTrue($entry->hasFingerprint('styles'));
-        $this->assertEquals('foo', $entry->getFingerprint('styles'));
+        $entry->setFingerprint('foo', 'stylesheets');
+        $this->assertTrue($entry->hasFingerprint('stylesheets'));
+        $this->assertEquals('foo', $entry->getFingerprint('stylesheets'));
     }
 
 
