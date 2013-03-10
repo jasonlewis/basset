@@ -59,6 +59,10 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
+        // Register the collections defined in the configuration. By default an "application"
+        // collection is provided with a clean installation of Basset.
+        $this->app['basset']->registerCollections($this->app['config']->get('basset::collections', array()));
+
         // When booting the application we need to load the collections stored within the manifest
         // repository. These collections indicate the fingerprints required to display the
         // collections correctly.
@@ -104,11 +108,9 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app->booting(function($app) use ($provider)
         {
-            $hash = $provider->getPatternHash();
+            $route = $app['router']->get("{$provider->getPatternHash()}/{collection}/{asset}", 'Basset\Output\Controller@processAsset');
 
-            $route = $app['router']->get("{$hash}/{collection}/{asset}", 'Basset\Output\Controller@processAsset');
-
-            $route->where('collection', '.*?')->where('asset', '.*');
+            $route->where('asset', '.*');
         });
     }
 

@@ -139,6 +139,20 @@ class Environment implements ArrayAccess {
     }
 
     /**
+     * Register an array of collections.
+     * 
+     * @param  array  $collections
+     * @return void
+     */
+    public function registerCollections(array $collections)
+    {
+        foreach ($collections as $name => $callback)
+        {
+            $this->make($name, $callback);
+        }
+    }
+
+    /**
      * Set a collection offset.
      *
      * @param  string  $offset
