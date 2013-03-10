@@ -12,17 +12,16 @@ class OutputControllerTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAssetIsProcessedAndCorrectResponseReturned()
+    public function testAssetIsProcessedAndCorrectResponseAndHeadersAreReturned()
     {
-        $controller = new Controller($basset = $this->getBassetMock());
+        $controller = new Controller($env = $this->getEnvMock());
 
-        $basset->shouldReceive('hasCollection')->once()->with('foo')->andReturn(true);
-        $basset->shouldReceive('collection')->once()->with('foo')->andReturn($collection = $this->getCollectionMock());
+        $env->shouldReceive('hasCollection')->once()->with('foo')->andReturn(true);
+        $env->shouldReceive('collection')->once()->with('foo')->andReturn($collection = $this->getCollectionMock());
 
-        $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->andReturn(array($asset = $this->getAssetMock()));
 
-        $asset->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.css');
+        $asset->shouldReceive('getUsablePath')->once()->andReturn('bar/baz.css');
         $asset->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
         $asset->shouldReceive('getUsableExtension')->once()->andReturn('css');
 
@@ -39,12 +38,11 @@ class OutputControllerTest extends PHPUnit_Framework_TestCase {
      */
     public function testInvalidCollectionThrowsNotFoundException()
     {
-        $controller = new Controller($basset = $this->getBassetMock());
+        $controller = new Controller($env = $this->getEnvMock());
 
-        $basset->shouldReceive('hasCollection')->once()->with('foo')->andReturn(true);
-        $basset->shouldReceive('collection')->once()->with('foo')->andReturn($collection = $this->getCollectionMock());
+        $env->shouldReceive('hasCollection')->once()->with('foo')->andReturn(true);
+        $env->shouldReceive('collection')->once()->with('foo')->andReturn($collection = $this->getCollectionMock());
 
-        $collection->shouldReceive('processCollection')->once();
         $collection->shouldReceive('getAssets')->once()->andReturn(array());
 
         $controller->processAsset('foo', 'bar/baz.css');
@@ -56,17 +54,17 @@ class OutputControllerTest extends PHPUnit_Framework_TestCase {
      */
     public function testInvalidAssetThrowsNotFoundException()
     {
-        $controller = new Controller($basset = $this->getBassetMock());
+        $controller = new Controller($env = $this->getEnvMock());
 
-        $basset->shouldReceive('hasCollection')->once()->with('foo')->andReturn(false);
+        $env->shouldReceive('hasCollection')->once()->with('foo')->andReturn(false);
 
         $controller->processAsset('foo', 'bar/baz.css');
     }
 
 
-    protected function getBassetMock()
+    protected function getEnvMock()
     {
-        return m::mock('Basset\Basset');
+        return m::mock('Basset\Environment');
     }
 
 
