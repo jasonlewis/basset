@@ -67,7 +67,7 @@ class CssoFilter extends BaseNodeFilter {
 
         if ($code !== 0)
         {
-            throw new FilterException::fromProcess($process)->setInput($asset->getContent());
+            throw FilterException::fromProcess($process)->setInput($asset->getContent());
         }
 
         $asset->setContent($process->getOutput());
