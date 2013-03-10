@@ -53,9 +53,9 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     public function testInstantiationOfFiltersWithNoArguments()
     {
         $filter = $this->getFilterInstance();
-        $filter->shouldReceive('exists')->once()->andReturn('FilterStub');
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
 
-        $instance = $filter->instantiate();
+        $instance = $filter->getInstance();
 
         $this->assertInstanceOf('FilterStub', $instance);
     }
@@ -64,11 +64,11 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     public function testInstantiationOfFiltersWithArguments()
     {
         $filter = $this->getFilterInstance();
-        $filter->shouldReceive('exists')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
 
         $filter->setArguments('bar');
 
-        $instance = $filter->instantiate();
+        $instance = $filter->getInstance();
 
         $this->assertEquals('bar', $instance->getFoo());
     }
@@ -77,7 +77,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     public function testInstantiationOfFiltersWithBeforeFilteringCallback()
     {
         $filter = $this->getFilterInstance();
-        $filter->shouldReceive('exists')->once()->andReturn('FilterStub');
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
 
         $tester = $this;
 
@@ -88,7 +88,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
             $tester->assertInstanceOf('FilterStub', $filter);
         });
 
-        $instance = $filter->instantiate();
+        $instance = $filter->getInstance();
 
         $this->assertEquals('bar', $instance->getFoo());
     }

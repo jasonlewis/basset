@@ -212,11 +212,11 @@ class Filter {
     }
 
     /**
-     * Check if the filter exists.
+     * Get the class name for the filter if it exists.
      *
      * @return string|bool
      */
-    public function exists()
+    public function getClassName()
     {
         if (class_exists("Assetic\\Filter\\{$this->filter}"))
         {
@@ -235,21 +235,23 @@ class Filter {
      *
      * @return mixed
      */
-    public function instantiate()
+    public function getInstance()
     {
-        if ($className = $this->exists())
+        $class = $this->getClassName();
+
+        if ($class)
         {
-            $reflection = new ReflectionClass($className);
+            $reflection = new ReflectionClass($class);
 
             // If no constructor is available on the filters class then we'll instantiate
             // the filter without passing in any arguments.
             if ( ! $reflection->getConstructor())
             {
-                $reflectionInstance = $reflection->newInstance();
+                $instance = $reflection->newInstance();
             }
             else
             {
-                $reflectionInstance = $reflection->newInstanceArgs($this->arguments);
+                $instance = $reflection->newInstanceArgs($this->arguments);
             }
 
             // Spin through each of the before filtering callbacks and fire each one. We'll
@@ -258,11 +260,11 @@ class Filter {
             {
                 if (is_callable($callback))
                 {
-                    call_user_func($callback, $reflectionInstance);
+                    call_user_func($callback, $instance);
                 }
             }
 
-            return $reflectionInstance;
+            return $instance;
         }
     }
 

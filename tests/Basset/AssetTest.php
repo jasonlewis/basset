@@ -99,7 +99,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $fooFilter = $this->getFilterMock();
         $fooFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
         $fooFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
-        $fooFilter->shouldReceive('instantiate')->once();
+        $fooFilter->shouldReceive('getInstance')->once();
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
@@ -156,7 +156,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $filter->shouldReceive('getFilter')->once()->andReturn('BodyFilter');
         $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $filter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $filter->shouldReceive('instantiate')->once()->andReturn($instantiatedFilter);
+        $filter->shouldReceive('getInstance')->once()->andReturn($instantiatedFilter);
 
 
         $config = $this->getConfigMock();

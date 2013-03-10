@@ -330,7 +330,7 @@ class Asset implements FilterableInterface {
         {
             // Attempt to instantiate each filter. If we can get an instance we'll add the filter
             // to the array of filters.
-            $instance = $filter->instantiate();
+            $instance = $filter->getInstance();
 
             if ($instance instanceof FilterInterface)
             {
