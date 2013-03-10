@@ -52,11 +52,11 @@ class BuildCleaner {
     {
         // If a collection was supplied and it exists in the manifest we'll only clean that
         // collection. Otherwise all the collections will be cleaned.
-        if ( ! is_null($collection) and $this->manifest->has($collection))
+        if ( ! is_null($collection) and $this->manifest->hasEntry($collection))
         {
-            $entry = $this->manifest->find($collection);
+            $entry = $this->manifest->getEntry($collection);
 
-            return $this->performCleanup($collection, $entry['fingerprint']);
+            return $this->performCleanup($collection, $entry->getFingerprints());
         }
 
         foreach ($this->manifest->getEntries() as $collection => $entry)
@@ -99,6 +99,26 @@ class BuildCleaner {
     public function getFilesystemIterator($path)
     {
         return new FilesystemIterator($path);
+    }
+
+    /**
+     * Get the manifest repository instance.
+     * 
+     * @return Basset\Manifest\Repository
+     */
+    public function getManifest()
+    {
+        return $this->manifest;
+    }
+
+    /**
+     * Get the illuminate filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
     }
 
 }
