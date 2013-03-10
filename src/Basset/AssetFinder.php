@@ -62,7 +62,7 @@ class AssetFinder {
 
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
-        foreach (array('RemotelyHosted', 'PackageAsset', 'AbsolutePath', 'WorkingDirectory', 'PublicPath') as $method)
+        foreach (array('RemotelyHosted', 'PackageAsset', 'WorkingDirectory', 'PublicPath') as $method)
         {
             if ($path = $this->{"find{$method}"}($name))
             {
@@ -110,23 +110,6 @@ class AssetFinder {
             {
                 return $path;
             }
-        }
-    }
-
-    /**
-     * Find an asset by its absolute path.
-     *
-     * @param  string  $name
-     * @return null|string
-     */
-    public function findAbsolutePath($name)
-    {
-        // If the name of the asset is prefixed with 'path: ' then the absolute path to the asset
-        // is being provided. This is best avoided as assets should always be within the public
-        // directory.
-        if (starts_with($name, 'path: '))
-        {
-            return substr($name, 6);
         }
     }
 
