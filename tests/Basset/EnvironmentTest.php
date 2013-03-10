@@ -66,8 +66,8 @@ class BassetTest extends PHPUnit_Framework_TestCase {
     {
         $env = $this->getEnvInstance();
 
-        $env->getFinder()->shouldReceive('addNamespace')->once()->with('foo/bar', 'bar');
-        $env->getFinder()->shouldReceive('addNamespace')->once()->with('foo/bar', 'baz');
+        $env->getFinder()->shouldReceive('addNamespace')->once()->with('bar', 'foo/bar');
+        $env->getFinder()->shouldReceive('addNamespace')->once()->with('baz', 'foo/bar');
 
         $env->package('foo/bar');
         $env->package('foo/bar', 'baz');

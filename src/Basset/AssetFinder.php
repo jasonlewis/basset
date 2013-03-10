@@ -62,7 +62,7 @@ class AssetFinder {
 
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
-        foreach (array('RemotelyHosted', 'PackagedAsset', 'AbsolutePath', 'WorkingDirectory', 'PublicPath') as $method)
+        foreach (array('RemotelyHosted', 'PackageAsset', 'AbsolutePath', 'WorkingDirectory', 'PublicPath') as $method)
         {
             if ($path = $this->{"find{$method}"}($name))
             {
@@ -93,7 +93,7 @@ class AssetFinder {
      * @param  string  $name
      * @return null|string
      */
-    public function findPackagedAsset($name)
+    public function findPackageAsset($name)
     {
         if (str_contains($name, '::'))
         {
@@ -203,11 +203,11 @@ class AssetFinder {
     /**
      * Add a package namespace.
      * 
-     * @param  string  $package
      * @param  string  $namespace
+     * @param  string  $package
      * @return void
      */
-    public function addNamespace($package, $namespace)
+    public function addNamespace($namespace, $package)
     {
         $this->hints[$namespace] = $package;
     }

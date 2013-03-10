@@ -135,7 +135,7 @@ class Environment implements ArrayAccess {
             list($vendor, $namespace) = explode('/', $package);
         }
 
-        $this->finder->addNamespace($package, $namespace);
+        $this->finder->addNamespace($namespace, $package);
     }
 
     /**
