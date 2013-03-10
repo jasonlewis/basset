@@ -68,7 +68,7 @@ class Directory implements FilterableInterface {
      */
     public function recursivelyIterateDirectory($path)
     {
-        return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
+        return $this->files->exists($path) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path)) : array();
     }
 
     /**
@@ -79,7 +79,7 @@ class Directory implements FilterableInterface {
      */
     public function iterateDirectory($path)
     {
-        return new FilesystemIterator($path);
+        return $this->files->exists($path) ? new FilesystemIterator($path) : array();
     }
 
     /**
