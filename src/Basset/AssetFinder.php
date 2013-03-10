@@ -29,6 +29,13 @@ class AssetFinder {
     protected $workingDirectory;
 
     /**
+     * Array of package namespace hints.
+     * 
+     * @var array
+     */
+    protected $hints = array();
+
+    /**
      * Create a new asset finder instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
@@ -51,7 +58,7 @@ class AssetFinder {
      */
     public function find($name)
     {
-        $name = $this->config->get("basset::assets.{$name}", $name);
+        $name = $this->config->get("basset::aliases.assets.{$name}", $name);
 
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
@@ -81,7 +88,7 @@ class AssetFinder {
     }
 
     /**
-     * Find an asset by looking for a prefixed package name.
+     * Find an asset by looking for a prefixed package namespace.
      *
      * @param  string  $name
      * @return null|string
@@ -90,7 +97,19 @@ class AssetFinder {
     {
         if (str_contains($name, '::'))
         {
+            list($namespace, $name) = explode('::', $name);
 
+            if ( ! isset($this->hints[$namespace]))
+            {
+                return;
+            }
+
+            $path = $this->prefixPublicPath("packages/{$this->hints[$namespace]}/{$name}");
+
+            if ($this->files->exists($path))
+            {
+                return $path;
+            }
         }
     }
 
@@ -182,6 +201,18 @@ class AssetFinder {
     }
 
     /**
+     * Add a package namespace.
+     * 
+     * @param  string  $package
+     * @param  string  $namespace
+     * @return void
+     */
+    public function addNamespace($package, $namespace)
+    {
+        $this->hints[$namespace] = $package;
+    }
+
+    /**
      * Prefix the public path to a path.
      *
      * @param  string  $path
@@ -190,6 +221,26 @@ class AssetFinder {
     protected function prefixPublicPath($path)
     {
         return $this->publicPath.'/'.$path;
+    }
+
+    /**
+     * Get the illuminate filesystem instance.
+     * 
+     * @return Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
+    }
+
+    /**
+     * Get the illuminate config repository instance.
+     * 
+     * @return Illuminate\Config\Repository
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 
 }

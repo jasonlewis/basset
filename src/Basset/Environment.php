@@ -122,6 +122,23 @@ class Environment implements ArrayAccess {
     }
 
     /**
+     * Register a package with the environment.
+     * 
+     * @param  string  $package
+     * @param  string  $namespace
+     * @return void
+     */
+    public function package($package, $namespace = null)
+    {
+        if (is_null($namespace))
+        {
+            list($vendor, $namespace) = explode('/', $package);
+        }
+
+        $this->finder->addNamespace($package, $namespace);
+    }
+
+    /**
      * Set a collection offset.
      *
      * @param  string  $offset
