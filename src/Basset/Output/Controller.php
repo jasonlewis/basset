@@ -32,6 +32,8 @@ class Controller extends IlluminateController {
         {
             $collection = $this->env->collection($collection);
 
+            // Attempt to locate the asset within the collection. If we can find the asset and we
+            // get an instance of Basset\Asset we'll return the built response to the browser.
             $asset = $this->findAsset($collection, $path);
 
             if ($asset instanceof Asset)
