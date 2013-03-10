@@ -188,4 +188,44 @@ class Environment implements ArrayAccess {
         return $this->hasCollection($offset);
     }
 
+    /**
+     * Get the illuminate filesystem instance.
+     * 
+     * @var Illuminate\Filesystem\Filesystem
+     */
+    public function getFiles()
+    {
+        return $this->files;
+    }
+
+    /**
+     * Get the illuminate config repository instance.
+     * 
+     * @var Illuminate\Config\Repository
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Get the factory manager instance.
+     * 
+     * @var Basset\Factory\FactoryManager
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * Get the asset finder instance.
+     * 
+     * @var Basset\AssetFinder
+     */
+    public function getFinder()
+    {
+        return $this->finder;
+    }
+
 }

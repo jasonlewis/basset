@@ -62,6 +62,18 @@ class BassetTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testAddingPackageNamespace()
+    {
+        $env = $this->getEnvInstance();
+
+        $env->getFinder()->shouldReceive('addNamespace')->once()->with('foo/bar', 'bar');
+        $env->getFinder()->shouldReceive('addNamespace')->once()->with('foo/bar', 'baz');
+
+        $env->package('foo/bar');
+        $env->package('foo/bar', 'baz');
+    }
+
+
     protected function getEnvInstance()
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
