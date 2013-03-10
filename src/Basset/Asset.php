@@ -1,9 +1,9 @@
 <?php namespace Basset;
 
 use Closure;
+use Basset\Factory\Manager;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
-use Basset\Factory\FactoryManager;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
@@ -20,7 +20,7 @@ class Asset implements FilterableInterface {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -70,13 +70,13 @@ class Asset implements FilterableInterface {
      * Create a new asset instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FactoryManager $factory, $absolutePath, $relativePath, $appEnvironment)
+    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $appEnvironment)
     {
         $this->files = $files;
         $this->factory = $factory;
@@ -385,7 +385,7 @@ class Asset implements FilterableInterface {
     /**
      * Get factory manager instance.
      * 
-     * @return Basset\Factory\FactoryManager
+     * @return Basset\Factory\Manager
      */
     public function getFactory()
     {

@@ -15,7 +15,7 @@ class DirectoryFactory implements FactoryInterface {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -23,10 +23,10 @@ class DirectoryFactory implements FactoryInterface {
      * Create a new directory factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @return void
      */
-    public function __construct(Filesystem $files, FactoryManager $factory)
+    public function __construct(Filesystem $files, Manager $factory)
     {
         $this->files = $files;
         $this->factory = $factory;

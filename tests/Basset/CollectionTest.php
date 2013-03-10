@@ -3,10 +3,10 @@
 use Mockery as m;
 use Basset\Collection;
 use Basset\AssetFinder;
+use Basset\Factory\Manager;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Builder\StringBuilder;
-use Basset\Factory\FactoryManager;
 
 class CollectionTest extends PHPUnit_Framework_TestCase {
 
@@ -354,7 +354,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     {
         $files = $this->getFilesMock();
         $finder = $this->getAssetFinderMock();
-        $factory = $this->getFactoryManager();
+        $factory = $this->getFactoryManagerInstance();
 
         return new Collection('foo', $files, $finder, $factory);
     }
@@ -408,9 +408,9 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    protected function getFactoryManager()
+    protected function getFactoryManagerInstance()
     {
-        $manager = new FactoryManager;
+        $manager = new Manager;
 
         $manager['asset'] = $this->getAssetFactoryMock();
         $manager['filter'] = $this->getFilterFactoryMock();

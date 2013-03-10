@@ -2,9 +2,9 @@
 
 use Closure;
 use ArrayAccess;
+use Basset\Factory\Manager;
 use InvalidArgumentException;
 use Illuminate\Config\Repository;
-use Basset\Factory\FactoryManager;
 use Illuminate\Filesystem\Filesystem;
 
 class Environment implements ArrayAccess {
@@ -33,7 +33,7 @@ class Environment implements ArrayAccess {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -49,11 +49,11 @@ class Environment implements ArrayAccess {
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Illuminate\Config\Repository  $config
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @param  Basset\AssetFinder  $finder
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, FactoryManager $factory, AssetFinder $finder)
+    public function __construct(Filesystem $files, Repository $config, Manager $factory, AssetFinder $finder)
     {
         $this->files = $files;
         $this->config = $config;
@@ -211,7 +211,7 @@ class Environment implements ArrayAccess {
     /**
      * Get the factory manager instance.
      * 
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     public function getFactory()
     {

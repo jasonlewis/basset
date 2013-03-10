@@ -1,12 +1,12 @@
 <?php namespace Basset;
 
+use Basset\Factory\Manager;
 use Basset\Manifest\Repository;
 use Basset\Console\BuildCommand;
 use Basset\Console\CleanCommand;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
-use Basset\Factory\FactoryManager;
 use Basset\Factory\DirectoryFactory;
 use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
@@ -136,7 +136,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.factory'] = $this->app->share(function($app)
         {
-            $factory = new FactoryManager;
+            $factory = new Manager;
 
             // Register the filter, asset, and directory factories with the factory manager so that other
             // classes don't have multiple dependencies for the factories.

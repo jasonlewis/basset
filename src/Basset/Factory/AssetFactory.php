@@ -15,7 +15,7 @@ class AssetFactory implements FactoryInterface {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -37,12 +37,12 @@ class AssetFactory implements FactoryInterface {
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @param  string  $publicPath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, FactoryManager $factory, $publicPath, $appEnvironment)
+    public function __construct(Filesystem $files, Manager $factory, $publicPath, $appEnvironment)
     {
         $this->files = $files;
         $this->factory = $factory;

@@ -78,7 +78,7 @@ class BassetTest extends PHPUnit_Framework_TestCase {
     {
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $config = m::mock('Illuminate\Config\Repository');
-        $factory = m::mock('Basset\Factory\FactoryManager');
+        $factory = m::mock('Basset\Factory\Manager');
         $finder = m::mock('Basset\AssetFinder');
 
         return new Environment($files, $config, $factory, $finder);

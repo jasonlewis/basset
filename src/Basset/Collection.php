@@ -1,7 +1,7 @@
 <?php namespace Basset;
 
 use Closure;
-use Basset\Factory\FactoryManager;
+use Basset\Factory\Manager;
 use Basset\Compiler\StringCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
@@ -34,7 +34,7 @@ class Collection implements FilterableInterface {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -72,10 +72,10 @@ class Collection implements FilterableInterface {
      * @param  string  $name
      * @param  Illuminate\Filesystem\Filesystem  $files
      * @param  Basset\AssetFinder  $finder
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @return void
      */
-    public function __construct($name, Filesystem $files, AssetFinder $finder, FactoryManager $factory)
+    public function __construct($name, Filesystem $files, AssetFinder $finder, Manager $factory)
     {
         $this->name = $name;
         $this->files = $files;
@@ -356,7 +356,7 @@ class Collection implements FilterableInterface {
     /**
      * Get the factory manager instance.
      * 
-     * @return Basset\Factory\FactoryManager
+     * @return Basset\Factory\Manager
      */
     public function getFactory()
     {

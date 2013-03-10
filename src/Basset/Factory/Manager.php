@@ -3,7 +3,7 @@
 use Countable;
 use ArrayAccess;
 
-class FactoryManager implements ArrayAccess {
+class Manager implements ArrayAccess {
 
     /**
      * Array of registered factories.
@@ -17,7 +17,7 @@ class FactoryManager implements ArrayAccess {
      *
      * @param  string  $name
      * @param  mixed  $factory
-     * @return Basset\Factory\FactoryManager
+     * @return Basset\Factory\Manager
      */
     public function register($name, $factory)
     {

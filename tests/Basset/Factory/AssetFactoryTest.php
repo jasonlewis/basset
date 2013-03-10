@@ -68,7 +68,7 @@ class AssetFactoryTest extends PHPUnit_Framework_TestCase {
 
     protected function getFactoryManagerMock()
     {
-        return m::mock('Basset\Factory\FactoryManager');
+        return m::mock('Basset\Factory\Manager');
     }
 
 

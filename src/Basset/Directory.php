@@ -2,9 +2,9 @@
 
 use Closure;
 use FilesystemIterator;
+use Basset\Factory\Manager;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Basset\Factory\FactoryManager;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Filter\FilterableInterface;
 
@@ -27,7 +27,7 @@ class Directory implements FilterableInterface {
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\FactoryManager
+     * @var Basset\Factory\Manager
      */
     protected $factory;
 
@@ -50,10 +50,10 @@ class Directory implements FilterableInterface {
      *
      * @param  string  $path
      * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\FactoryManager  $factory
+     * @param  Basset\Factory\Manager  $factory
      * @return void
      */
-    public function __construct($path, Filesystem $files, FactoryManager $factory)
+    public function __construct($path, Filesystem $files, Manager $factory)
     {
         $this->path = $path;
         $this->files = $files;
@@ -213,7 +213,7 @@ class Directory implements FilterableInterface {
     /**
      * Get the factory manager instance.
      * 
-     * @return Basset\Factory\FactoryManager
+     * @return Basset\Factory\Manager
      */
     public function getFactory()
     {

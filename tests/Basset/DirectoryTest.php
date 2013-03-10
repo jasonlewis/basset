@@ -1,8 +1,8 @@
 <?php
 
 use Mockery as m;
+use Basset\Factory\Manager;
 use Basset\Factory\FilterFactory;
-use Basset\Factory\FactoryManager;
 
 class DirectoryTest extends PHPUnit_Framework_TestCase {
 
@@ -186,7 +186,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     protected function getDirectoryPartialMock()
     {
         $files = $this->getFilesMock();
-        $factory = $this->getFactoryManager();
+        $factory = $this->getFactoryManagerInstance();
 
         return m::mock('Basset\Directory', array('baz', $files, $factory))->shouldDeferMissing();
     }
@@ -222,9 +222,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    protected function getFactoryManager()
+    protected function getFactoryManagerInstance()
     {
-        $factory = new FactoryManager;
+        $factory = new Manager;
 
         $factory['asset'] = $this->getAssetFactoryMock();
         $factory['filter'] = $this->getFilterFactoryMock();
