@@ -69,9 +69,13 @@ class UriRewriteFilter implements FilterInterface {
 
         $content = $asset->getContent();
 
-        // Spin through the symlinks and normalize them.
+        // Spin through the symlinks and normalize them. We'll first unset the original
+        // symlink so that it doesn't clash with the new symlinks once they are added
+        // back in.
         foreach ($this->symlinks as $link => $target)
         {
+            unset($this->symlinks[$link]);
+
             if ($link == '//')
             {
                 $link = $this->documentRoot;
