@@ -14,21 +14,20 @@ class ManifestRepositoryTest extends PHPUnit_Framework_TestCase {
 
     public function testLoadingOfManifest()
     {
-        $files = $this->getFilesMock();
-        $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"styles":"bar"}}}');
-        $repository = new Repository($files, 'path/to/meta');
+        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
 
-        $this->assertEquals(array('fingerprints' => array('styles' => 'bar')), $repository->load()->getEntry('foo')->toArray());
+        $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
+        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"}}}');
+
+        $this->assertEquals(array('fingerprints' => array('stylesheets' => 'bar')), $repository->load()->getEntry('foo')->toArray());
     }
 
 
-    public function testMethodsPassThruToManifestInstance()
+    public function testMethodsArePassedThroughToManifestInstance()
     {
-        $files = $this->getFilesMock();
+        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
         $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"styles":"bar"}}}');
-        $repository = new Repository($files, 'path/to/meta');
+        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"}}}');
 
         $repository->load();
 
@@ -36,21 +35,21 @@ class ManifestRepositoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testRegisteringOfCollectionWithRepository()
+    public function testRegisterCollectionWithRepository()
     {
-        $fingerprint = array('styles' => md5('baz'));
+        $fingerprint = array('stylesheets' => md5('baz'));
 
-        $manifestArray = array('qux' => array('fingerprints' => $fingerprint));
+        $manifest = array('qux' => array('fingerprints' => $fingerprint));
 
-        $files = $this->getFilesMock();
-        $files->shouldReceive('put')->once()->with('path/to/meta/collections.json', json_encode($manifestArray));
+        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
+        $files->shouldReceive('put')->once()->with('path/to/meta/collections.json', json_encode($manifest));
+
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getName')->once()->andReturn('qux');
-        $repository = new Repository($files, 'path/to/meta');
 
         $repository->register($collection, $fingerprint);
 
-        $this->assertEquals($manifestArray['qux'], $repository->getEntry('qux')->toArray());
+        $this->assertEquals($manifest['qux'], $repository->getEntry('qux')->toArray());
     }
 
 
