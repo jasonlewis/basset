@@ -10,7 +10,7 @@ use Basset\Factory\FactoryManager;
 use Basset\Factory\DirectoryFactory;
 use Basset\Builder\FilesystemBuilder;
 use Illuminate\Support\ServiceProvider;
-use Basset\Output\Builder as OutputBuilder;
+use Basset\Output\Server as OutputServer;
 use Basset\Output\Resolver as OutputResolver;
 use Basset\Output\Controller as OutputController;
 
@@ -22,6 +22,13 @@ class BassetServiceProvider extends ServiceProvider {
      * @var string
      */
     const VERSION = '4.0.0';
+
+    /**
+     * Name of the session hash.
+     * 
+     * @var string
+     */
+    const SESSION_HASH = 'basset_hash';
 
     /**
      * Indicates if loading of the provider is deferred.
@@ -37,7 +44,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected $components = array(
         'FactoryManager',
-        'OutputBuilder',
+        'OutputServer',
         'Repository',
         'Commands',
         'Basset'
@@ -93,11 +100,11 @@ class BassetServiceProvider extends ServiceProvider {
         // We can now register a callback to the booting event fired by the application. This
         // allows us to hook in after the sessions have been started and properly register the
         // route with the router.
-        $me = $this;
+        $provider = $this;
 
-        $this->app->booting(function($app) use ($me)
+        $this->app->booting(function($app) use ($provider)
         {
-            $hash = $me->getPatternHash();
+            $hash = $provider->getPatternHash();
 
             $route = $app['router']->get("{$hash}/{collection}/{asset}", 'Basset\Output\Controller@processAsset');
 
@@ -106,17 +113,17 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the collection output builder.
+     * Register the collection output server.
      *
      * @return void
      */
-    protected function registerOutputBuilder()
+    protected function registerOutputServer()
     {
         $this->app['basset.output'] = $this->app->share(function($app)
         {
             $resolver = new OutputResolver($app['basset.manifest'], $app['config'], $app['env']);
 
-            return new OutputBuilder($resolver, $app['config'], $app['session'], $app['url'], $app['basset']->getCollections());
+            return new OutputServer($resolver, $app['config'], $app['session'], $app['url'], $app['basset']->getCollections());
         });
     }
 
@@ -219,12 +226,9 @@ class BassetServiceProvider extends ServiceProvider {
 
         // Get the hash from the session. If the hash does not exist then we'll generate a random
         // string and store that in the session.
-        $hash = $session->get('basset_hash', str_random());
+        $hash = $session->get(static::SESSION_HASH, str_random());
 
-        if ( ! $session->has('basset_hash'))
-        {
-            $session->put('basset_hash', $hash);
-        }
+        ! $session->has(static::SESSION_HASH) and $session->put(static::SESSION_HASH, $hash);
 
         return $hash;
     }

@@ -4,8 +4,9 @@ use Basset\Collection;
 use Illuminate\Session\Store;
 use Illuminate\Config\Repository;
 use Illuminate\Routing\UrlGenerator;
+use Basset\BassetServiceProvider as Provider;
 
-class Builder {
+class Server {
 
     /**
      * Output resolver instance.
@@ -43,7 +44,7 @@ class Builder {
     protected $collections;
 
     /**
-     * Create a new output builder instance.
+     * Create a new output server instance.
      *
      * @param  Basset\Output\Resolver  $resolver
      * @param  Illuminate\Config\Repository  $config
@@ -62,35 +63,35 @@ class Builder {
     }
 
     /**
-     * Build the stylesheets for a given collection.
+     * Serve the stylesheets for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
     public function stylesheets($collection)
     {
-        return $this->buildCollection($collection, 'stylesheets');
+        return $this->serveCollection($collection, 'stylesheets');
     }
 
     /**
-     * Build the javascripts for a given collection.
+     * Serve the javascripts for a given collection.
      *
      * @param  string  $collection
      * @return string
      */
     public function javascripts($collection)
     {
-        return $this->buildCollection($collection, 'javascripts');
+        return $this->serveCollection($collection, 'javascripts');
     }
 
     /**
-     * Build a given group for a collection.
+     * Serve a given group for a collection.
      *
      * @param  string  $collection
      * @param  string  $group
      * @return string
      */
-    public function buildCollection($collection, $group)
+    public function serveCollection($collection, $group)
     {
         if ( ! isset($this->collections[$collection]))
         {
@@ -107,29 +108,29 @@ class Builder {
         // we'll fetch the static asset.
         if ($fingerprint = $this->resolver->resolveFingerprintedCollection($collection, $group))
         {
-            $response = $this->buildFingerprintedCollection($collection, $fingerprint, $group);
+            $response = $this->serveFingerprintedCollection($collection, $fingerprint, $group);
         }
 
-        // Lastly we'll dynamically build each of the assets within the collection by using
+        // Lastly we'll dynamically serve each of the assets within the collection by using
         // an internal controller to process and build each asset. This is fine during
         // development, although it may impact page load times.
         else
         {
-            $response = $this->buildDynamicCollection($collection, $group);
+            $response = $this->serveDynamicCollection($collection, $group);
         }
 
         return array_to_newlines($response);
     }
 
     /**
-     * Build a fingerprinted collection.
+     * Serve a fingerprinted collection.
      *
      * @param  Basset\Collection  $collection
      * @param  string  $fingerprint
      * @param  string  $group
      * @return array
      */
-    protected function buildFingerprintedCollection(Collection $collection, $fingerprint, $group)
+    protected function serveFingerprintedCollection(Collection $collection, $fingerprint, $group)
     {
         $collectionName = $collection->getName();
 
@@ -145,25 +146,25 @@ class Builder {
         // We'll get the response of the original fingerprinted collection first. Then we'll need to
         // spin through any of the excluded assets and append them to the response as well. Excluded
         // assets are only excluded by the builder, but they still need to be fetched.
-        $response = $this->{'build'.studly_case($group).'Element'}($path);
+        $response = $this->{'create'.studly_case($group).'Element'}($path);
 
-        return $this->buildExcludedAssets($collection, $group, array($response));
+        return $this->serveExcludedAssets($collection, $group, array($response));
     }
 
     /**
-     * Build a dynamic collection.
+     * Serve a dynamic collection.
      *
      * @param  Basset\Collection  $collection
      * @param  string  $group
      * @return array
      */
-    protected function buildDynamicCollection(Collection $collection, $group)
+    protected function serveDynamicCollection(Collection $collection, $group)
     {
-        return $this->buildDynamicAssets($collection->getName(), $group, $collection->getAssets($group), array());
+        return $this->serveDynamicAssets($collection->getName(), $group, $collection->getAssets($group), array());
     }
 
     /**
-     * Build an array of dynamic assets.
+     * Serve an array of dynamic assets.
      *
      * @param  string  $name
      * @param  string  $group
@@ -171,12 +172,11 @@ class Builder {
      * @param  array  $responses
      * @return array
      */
-    protected function buildDynamicAssets($name, $group, array $assets, array $responses)
+    protected function serveDynamicAssets($name, $group, array $assets, array $responses)
     {
-        // The path to dynamically generated assets includes a random hash that's been
-        // stored in each session. We'll prefix assets that aren't remotely hosted with
-        // this hash.
-        $hash = $this->session->get('basset_hash');
+        // The path to dynamically generated assets includes a random hash that's been stored in each
+        // session. We'll prefix assets that aren't remotely hosted with this hash.
+        $hash = $this->session->get(Provider::SESSION_HASH);
 
         foreach ($assets as $asset)
         {
@@ -187,45 +187,45 @@ class Builder {
                 $path = "{$hash}/{$name}/{$path}";
             }
 
-            $key = $asset->getPosition() ?: count($responses) + 1;
+            $key = $asset->getOrder() ?: count($responses) + 1;
 
-            array_splice($responses, $key - 1, 0, array($this->{'build'.studly_case($group).'Element'}($path)));
+            array_splice($responses, $key - 1, 0, array($this->{'create'.studly_case($group).'Element'}($path)));
         }
 
         return $responses;
     }
 
     /**
-     * Build a collections excluded assets.
+     * Serve a collections excluded assets.
      *
      * @param  Basset\Collection  $collection
      * @param  string  $group
      * @param  array  $responses
      * @return array
      */
-    protected function buildExcludedAssets(Collection $collection, $group, array $responses)
+    protected function serveExcludedAssets(Collection $collection, $group, array $responses)
     {
-        return $this->buildDynamicAssets($collection->getName(), $group, $collection->getExcludedAssets($group), $responses);
+        return $this->serveDynamicAssets($collection->getName(), $group, $collection->getExcludedAssets($group), $responses);
     }
 
     /**
-     * Build a stylesheets element for the specified path.
+     * Create a stylesheets element for the specified path.
      *
      * @param  string  $path
      * @return string
      */
-    protected function buildStylesheetsElement($path)
+    protected function createStylesheetsElement($path)
     {
         return '<link rel="stylesheet" type="text/css" href="'.$this->url->asset($path).'" />';
     }
 
     /**
-     * Build a javascripts element for the specified path.
+     * Create a javascripts element for the specified path.
      *
      * @param  string  $path
      * @return string
      */
-    protected function buildJavascriptsElement($path)
+    protected function createJavascriptsElement($path)
     {
         return '<script src="'.$this->url->asset($path).'"></script>';
     }
