@@ -97,7 +97,28 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
 
         $finder->resetWorkingDirectory();
-        $this->assertNull($finder->getWorkingDirectory());
+        $this->assertFalse($finder->getWorkingDirectory());
+    }
+
+
+    public function testWorkingDirectoryStackIsPrefixed()
+    {
+        $finder = $this->getFinderInstance();
+
+        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
+        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory/foo/bar/baz')->andReturn(true);
+
+        $finder->setWorkingDirectory('working/directory');
+        $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
+
+        $finder->setWorkingDirectory('foo/bar/baz');
+        $this->assertEquals('path/to/public/working/directory/foo/bar/baz', $finder->getWorkingDirectory());
+
+        $finder->resetWorkingDirectory();
+        $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
+
+        $finder->resetWorkingDirectory();
+        $this->assertFalse($finder->getWorkingDirectory());
     }
 
 

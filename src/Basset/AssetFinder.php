@@ -22,11 +22,11 @@ class AssetFinder {
     protected $config;
 
     /**
-     * Path to the working directory.
+     * Working directory stack.
      *
      * @var string
      */
-    protected $workingDirectory;
+    protected $directoryStack = array();
 
     /**
      * Array of package namespace hints.
@@ -121,9 +121,9 @@ class AssetFinder {
      */
     public function findWorkingDirectory($name)
     {
-        $path = $this->workingDirectory.'/'.$name;
+        $path = $this->getWorkingDirectory().'/'.$name;
 
-        if ( ! is_null($this->workingDirectory) and $this->files->exists($path))
+        if ($this->withinWorkingDirectory() and $this->files->exists($path))
         {
             return $path;
         }
@@ -153,34 +153,71 @@ class AssetFinder {
      */
     public function setWorkingDirectory($path)
     {
-        $path = $this->prefixPublicPath($path);
+        $path = $this->prefixDirectoryStack($path);
 
         if ($this->files->exists($path))
         {
-            return $this->workingDirectory = $path;
+            return $this->directoryStack[] = $path;
         }
 
         throw new DirectoryNotFoundException("Directory [{$path}] could not be found.");
     }
 
     /**
-     * Reset the working directory path.
+     * Pop the last directory from the directory stack.
      *
      * @return void
      */
     public function resetWorkingDirectory()
     {
-        $this->workingDirectory = null;
+        array_pop($this->directoryStack);
     }
 
     /**
-     * Get the working directory path.
+     * Determine if within a working directory.
+     * 
+     * @return bool
+     */
+    public function withinWorkingDirectory()
+    {
+        return ! empty($this->directoryStack);
+    }
+
+    /**
+     * Get the last working directory path off the directory stack.
      *
      * @return string
      */
     public function getWorkingDirectory()
     {
-        return $this->workingDirectory;
+        return end($this->directoryStack);
+    }
+
+    /**
+     * Get the working directory stack.
+     * 
+     * @return array
+     */
+    public function getDirectoryStack()
+    {
+        return $this->directoryStack;
+    }
+
+    /**
+     * Prefix the last directory from the stack or the public path if not
+     * within a working directory
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    public function prefixDirectoryStack($path)
+    {
+        if ($this->withinWorkingDirectory())
+        {
+            return $this->getWorkingDirectory().'/'.$path;
+        }
+
+        return $this->prefixPublicPath($path);
     }
 
     /**
