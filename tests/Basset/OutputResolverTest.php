@@ -20,7 +20,7 @@ class OutputResolverTest extends PHPUnit_Framework_TestCase {
 
         $files = m::mock('Illuminate\Filesystem\Filesystem');
         $files->shouldReceive('exists')->once()->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->once()->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"styles":"bar"}}}');
+        $files->shouldReceive('get')->once()->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"}}}');
 
         $config = m::mock('Illuminate\Config\Repository');
         $config->shouldReceive('get')->twice()->with('basset::production', array())->andReturn('local', 'production');
@@ -31,8 +31,8 @@ class OutputResolverTest extends PHPUnit_Framework_TestCase {
 
         $resolver = new Resolver($repository, $config, 'production');
 
-        $this->assertNull($resolver->resolveFingerprintedCollection($collection, 'styles'));
-        $this->assertEquals('bar', $resolver->resolveFingerprintedCollection($collection, 'styles'));
+        $this->assertNull($resolver->resolveFingerprintedCollection($collection, 'stylesheets'));
+        $this->assertEquals('bar', $resolver->resolveFingerprintedCollection($collection, 'stylesheets'));
     }
 
 
