@@ -35,8 +35,8 @@ return array(
             // collection will contain valid CSS.
             $directory = $collection->directory('../app/assets/stylesheets', function($collection)
             {
-                $collection->requireDirectory('less')->apply('StylusFilter')->findMissingConstructorArgs();
-                $collection->requireDirectory('sass')->apply('Sass\ScssFilter')->findMissingConstructorArgs();
+                $collection->requireDirectory('less')->apply('LessFilter')->to('*.less')->findMissingConstructorArgs();
+                $collection->requireDirectory('sass')->apply('Sass\ScssFilter')->to('*.(sass|scss)')->findMissingConstructorArgs();
                 $collection->requireDirectory();
             });
 
@@ -47,7 +47,7 @@ return array(
             // so the built collection contains valid JS.
             $collection->directory('../app/assets/javascripts', function($collection)
             {
-                $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->findMissingConstructorArgs();
+                $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->to('*.coffee')->findMissingConstructorArgs();
                 $collection->requireDirectory();
             });
         }
