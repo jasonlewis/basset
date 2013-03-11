@@ -70,7 +70,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
         $instance = $filter->getInstance();
 
-        $this->assertEquals('bar', $instance->getFoo());
+        $this->assertEquals('bar', $instance->getFooBin());
     }
 
 
@@ -83,14 +83,14 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
         $filter->beforeFiltering(function($filter) use ($tester)
         {
-            $filter->setFoo('bar');
+            $filter->setFooBin('bar');
 
             $tester->assertInstanceOf('FilterStub', $filter);
         });
 
         $instance = $filter->getInstance();
 
-        $this->assertEquals('bar', $instance->getFoo());
+        $this->assertEquals('bar', $instance->getFooBin());
     }
 
 
@@ -101,6 +101,76 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $filter->getResource()->shouldReceive('foo')->once()->andReturn('bar');
 
         $this->assertEquals('bar', $filter->foo());
+    }
+
+
+    public function testFindingOfMissingConstructorArgsSkipsPresentArgument()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
+
+        $filter->setArguments('foo');
+
+        $filter->findMissingConstructorArgs();
+
+        $this->assertContains('foo', $filter->getArguments());
+    }
+
+
+    public function testFindingOfMissingConstructorArgsViaEnvironmentVariable()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
+        $filter->shouldReceive('getEnvironmentVariable')->once()->with('foo_bin')->andReturn('path/to/foo/bin');
+
+        $filter->findMissingConstructorArgs();
+
+        $this->assertContains('path/to/foo/bin', $filter->getArguments());
+    }
+
+
+    public function testFindingOfMissingConstructorArgsViaExecutableFinder()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
+
+        $finder->shouldReceive('find')->once()->with('foo')->andReturn('path/to/foo/bin');
+
+        $filter->findMissingConstructorArgs();
+
+        $this->assertContains('path/to/foo/bin', $filter->getArguments());
+    }
+
+
+    public function testFindingOfMissingConstructorArgsSetsFilterNodePaths()
+    {
+        $filter = m::mock('Basset\Filter\Filter', array('FooFilter', array('path/to/node')))->shouldDeferMissing();
+        $filter->setResource($this->getResourceMock());
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
+
+        $filter->shouldReceive('getEnvironmentVariable')->once()->with('foo_bin')->andReturn('path/to/foo/bin');
+
+        $filter->findMissingConstructorArgs();
+
+        $this->assertContains(array('path/to/node'), $filter->getArguments());
+    }
+
+
+    public function testFindingOfMissingConstructorIgnoresFilterForInvalidExecutables()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
+
+        $finder->shouldReceive('find')->once()->with('foo')->andReturn(false);
+
+        $filter->findMissingConstructorArgs();
+
+        $this->assertTrue($filter->isIgnored());
     }
 
 
@@ -124,16 +194,16 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
 class FilterStub {
 
-    protected $foo;
+    protected $fooBin;
 
-    public function setFoo($foo)
+    public function setFooBin($fooBin)
     {
-        $this->foo = $foo;
+        $this->fooBin = $fooBin;
     }
 
-    public function getFoo()
+    public function getFooBin()
     {
-        return $this->foo;
+        return $this->fooBin;
     }
 
 }
@@ -141,16 +211,16 @@ class FilterStub {
 
 class FilterWithConstructorStub {
 
-    protected $foo;
+    protected $fooBin;
 
-    public function __construct($foo)
+    public function __construct($fooBin, $nodePaths = array())
     {
-        $this->foo = $foo;
+        $this->fooBin = $fooBin;
     }
 
-    public function getFoo()
+    public function getFooBin()
     {
-        return $this->foo;
+        return $this->fooBin;
     }
 
 }

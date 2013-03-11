@@ -47,7 +47,7 @@ class FilterFactory implements FactoryInterface {
         // If the filter was aliased and the value of the array was a callable closure then
         // we'll return and fire the callback on the filter instance so that any arguments
         // can be set for the filters constructor.
-        $filter = new Filter($filter);
+        $filter = new Filter($filter, $this->config->get('basset::node_paths'));
 
         if (isset($callback) and is_callable($callback))
         {

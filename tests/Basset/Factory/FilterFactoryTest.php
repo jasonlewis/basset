@@ -18,6 +18,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
         $factory = new FilterFactory($config = $this->getConfigInstance());
 
         $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
 
         $this->assertInstanceOf('Basset\Filter\Filter', $factory->make('FooFilter'));
     }
@@ -42,6 +43,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
                 'foo' => 'FooFilter'
             )
         ));
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
 
         $filter = $factory->make('foo');
 
@@ -68,6 +70,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
                 )
             )
         ));
+        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
 
         $factory->make('foo');
 

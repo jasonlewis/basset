@@ -2,6 +2,8 @@
 
 use Closure;
 use ReflectionClass;
+use ReflectionMethod;
+use Symfony\Component\Process\ExecutableFinder;
 
 class Filter {
 
@@ -48,14 +50,120 @@ class Filter {
     protected $groupRestriction;
 
     /**
+     * Array of node module paths.
+     * 
+     * @var array
+     */
+    protected $nodePaths = array();
+
+    /**
+     * Array of valid executable argument suffixes.
+     * 
+     * @var array
+     */
+    protected $validSuffixes = array('bin', 'path');
+
+    /**
+     * Indicates if the filter should be ignored when building assets.
+     * 
+     * @var bool
+     */
+    protected $ignored = false;
+
+    /**
      * Create a new filter instance.
      *
      * @param  string  $filter
+     * @param  array  $nodePaths
      * @return void
      */
-    public function __construct($filter)
+    public function __construct($filter, array $nodePaths = array())
     {
         $this->filter = $filter;
+        $this->nodePaths = $nodePaths;
+    }
+
+    /**
+     * Find and set any missing constructor arguments.
+     * 
+     * @return Basset\Filter\Filter
+     */
+    public function findMissingConstructorArgs()
+    {
+        if ($class = $this->getClassName())
+        {
+            $constructor = new ReflectionMethod($class, '__construct');
+
+            $finder = $this->getExecutableFinder();
+
+            // Spin through all of the constructor parameters and for those that we can find the executable
+            // path for we'll attempt to locate the executable. If we can't find the path then its more
+            // then we'll ignore this filter as it will fail during the build.
+            foreach ($constructor->getParameters() as $key => $parameter)
+            {
+                if ($this->hasArgumentAtPosition($key))
+                {
+                    continue;
+                }
+
+                $snakeParameter = $this->normalizeConstructorParameter($parameter->name);
+
+                list($name, $suffix) = explode('_', $snakeParameter);
+
+                // If the suffix is in the array of valid suffixes we can attempt to locate the parameter
+                // first as an environment variable and secondly by recursively searching through our
+                // paths defined in PATH. If we can't find it then ignore the filter.
+                if (in_array($suffix, $this->validSuffixes))
+                {
+                    $path = $this->getEnvironmentVariable($snakeParameter) ?: $finder->find($name);
+
+                    if ($path)
+                    {
+                        $this->setArgument($path, $key);
+                    }
+                    else
+                    {
+                        $this->ignored = true;
+                    }
+                }
+                elseif(str_is('nodePaths', $parameter->name))
+                {
+                    $this->setArgument($this->nodePaths, $key);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get an environment variable.
+     * 
+     * @param  string  $key
+     * @return string|bool
+     */
+    public function getEnvironmentVariable($key)
+    {
+        return getenv(strtoupper($key));
+    }
+
+    /**
+     * Convert a constructor parameter to snake case and all lowercase.
+     * 
+     * @param  string  $name
+     * @return string
+     */
+    protected function normalizeConstructorParameter($name)
+    {
+        return strtolower(snake_case($name));
+    }
+
+    /**
+     * Get an executable finder instance.
+     * 
+     * @return Symfony\Component\Process\ExecutableFinder
+     */
+    public function getExecutableFinder()
+    {
+        return new ExecutableFinder;
     }
 
     /**
@@ -67,6 +175,31 @@ class Filter {
     public function beforeFiltering(Closure $callback)
     {
         $this->before[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Determine if the filter has an instantiation argument at a given position.
+     * 
+     * @param  int  $position
+     * @return bool
+     */
+    public function hasArgumentAtPosition($position)
+    {
+        return isset($this->arguments[$position]);
+    }
+
+    /**
+     * Set a single instantiation argument.
+     * 
+     * @param  string  $argument
+     * @param  int  $position
+     * @return Basset\Filter\Filter
+     */
+    public function setArgument($argument, $position = null)
+    {
+        array_splice($this->arguments, $position ?: count($this->arguments), 0, array($argument));
 
         return $this;
     }
@@ -196,6 +329,16 @@ class Filter {
     }
 
     /**
+     * Determine if filter is ignored.
+     * 
+     * @return bool
+     */
+    public function isIgnored()
+    {
+        return $this->ignored;
+    }
+
+    /**
      * Fire a callback passing in the filter instance as a parameter.
      * 
      * @param  Closure  $callback
@@ -231,7 +374,7 @@ class Filter {
     }
 
     /**
-     * Attempt to instantiate the filter if it exists.
+     * Attempt to instantiate the filter if it exists and has not been ignored.
      *
      * @return mixed
      */
@@ -239,7 +382,7 @@ class Filter {
     {
         $class = $this->getClassName();
 
-        if ($class)
+        if ($class and ! $this->ignored)
         {
             $reflection = new ReflectionClass($class);
 
