@@ -1,16 +1,43 @@
 <?php
 
-function basset_stylesheet($name)
+if ( ! function_exists('basset_stylesheet'))
 {
-    return app('basset.output')->stylesheets($name);
+    /**
+     * Ouput the stylesheets for a given collection.
+     * 
+     * @param  string  $collection
+     * @return string
+     */
+    function basset_stylesheet($name)
+    {
+        return app('basset.output')->stylesheets($name);
+    }
 }
 
-function basset_scripts($name)
+if ( ! function_exists('basset_javascript'))
 {
-    return app('basset.output')->javascripts($name);
+    /**
+     * Ouput the javascripts for a given collection.
+     * 
+     * @param  string  $collection
+     * @return string
+     */
+    function basset_javascript($collection)
+    {
+        return app('basset.output')->javascripts($collection);
+    }
 }
 
-function array_to_newlines(array $array)
+if ( ! function_exists('array_to_newlines'))
 {
-    return implode(PHP_EOL, $array);
+    /**
+     * Convert an array to a newline separated string.
+     * 
+     * @param  array  $array
+     * @return string
+     */
+    function array_to_newlines(array $array)
+    {
+        return implode(PHP_EOL, $array);
+    }
 }
