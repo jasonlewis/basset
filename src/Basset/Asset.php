@@ -324,21 +324,19 @@ class Asset implements FilterableInterface {
         // to be applied to this asset.
         $this->prepareFilters();
 
-        $applyable = array();
+        $filters = array();
 
         foreach ($this->filters as $filter)
         {
-            // Attempt to instantiate each filter. If we can get an instance we'll add the filter
-            // to the array of filters.
             $instance = $filter->getInstance();
 
             if ($instance instanceof FilterInterface)
             {
-                $applyable[] = $instance;
+                $filters[] = $instance;
             }
         }
 
-        $asset = new StringAsset($this->getContent(), $applyable, dirname($this->absolutePath), basename($this->absolutePath));
+        $asset = new StringAsset($this->getContent(), $filters, dirname($this->absolutePath), basename($this->absolutePath));
 
         return $asset->dump();
     }
@@ -352,6 +350,15 @@ class Asset implements FilterableInterface {
     {
         foreach ($this->filters as $key => $filter)
         {
+            // If the filter is to be applied to a specific file pattern we'll check that the name of
+            // the asset matches the pattern that was supplied.
+            if ($filter->hasFilenamePattern() and ! str_is($filter->getFilenamePattern(), basename($this->absolutePath)))
+            {
+                unset($this->filters[$key]);
+
+                continue;
+            }
+
             // If there is a group restriction on the filter and the assets group is not that being
             // restricted then we'll remove the filter from the asset.
             $groupRestriction = $filter->getGroupRestriction();
@@ -359,6 +366,8 @@ class Asset implements FilterableInterface {
             if ($groupRestriction and ! $this->{'is'.ucfirst(str_singular($groupRestriction))}())
             {
                 unset($this->filters[$key]);
+
+                continue;
             }
 
             // If the filter is being restricted to certain environments we'll make sure the application
@@ -368,6 +377,8 @@ class Asset implements FilterableInterface {
             if ($possibleEnvironments and ! in_array($this->appEnvironment, $possibleEnvironments))
             {
                 unset($this->filters[$key]);
+
+                continue;
             }
         }
     }

@@ -103,13 +103,14 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
         $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
+        $fooFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
 
         $barFilter = $this->getFilterMock();
         $barFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
         $barFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
         $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('javascript');
-        $barFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
+        $barFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
 
         $bazFilter = $this->getFilterMock();
         $bazFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
@@ -117,23 +118,45 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
         $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
+        $bazFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
+
+        $quxFilter = $this->getFilterMock();
+        $quxFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $quxFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
+        $quxFilter->shouldReceive('getFilter')->once()->andReturn('QuxFilter');
+        $quxFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(true);
+        $quxFilter->shouldReceive('getFilenamePattern')->once()->andReturn('*.js');
+
+        $vanFilter = $this->getFilterMock();
+        $vanFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
+        $vanFilter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
+        $vanFilter->shouldReceive('getFilter')->once()->andReturn('VanFilter');
+        $vanFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
+        $vanFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
+        $vanFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(true);
+        $vanFilter->shouldReceive('getFilenamePattern')->once()->andReturn('*.sass');
+        $vanFilter->shouldReceive('getInstance')->once();
 
         $config = $this->getConfigMock();
 
         $asset->getFiles()->shouldReceive('getRemote')->once()->with('path/to/foo/bar.sass')->andReturn('');
-        $asset->getFactory()->shouldReceive('offsetGet')->times(3)->with('filter')->andReturn(new FilterFactory($config));
+        $asset->getFactory()->shouldReceive('offsetGet')->times(5)->with('filter')->andReturn(new FilterFactory($config));
 
         $asset->apply($fooFilter);
         $asset->apply($barFilter);
         $asset->apply($bazFilter);
+        $asset->apply($quxFilter);
+        $asset->apply($vanFilter);
 
         $asset->build();
 
         $filters = $asset->getFilters();
 
         $this->assertArrayHasKey('FooFilter', $filters);
+        $this->assertArrayHasKey('VanFilter', $filters);
         $this->assertArrayNotHasKey('BarFilter', $filters);
         $this->assertArrayNotHasKey('BazFilter', $filters);
+        $this->assertArrayNotHasKey('QuxFilter', $filters);
     }
 
 
@@ -157,6 +180,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
         $filter->shouldReceive('getEnvironments')->once()->andReturn(array());
         $filter->shouldReceive('getInstance')->once()->andReturn($instantiatedFilter);
+        $filter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
 
 
         $config = $this->getConfigMock();

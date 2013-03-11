@@ -71,6 +71,13 @@ class Filter {
     protected $ignored = false;
 
     /**
+     * Asset filename pattern to have the asset applied.
+     * 
+     * @var string
+     */
+    protected $filenamePattern;
+
+    /**
      * Create a new filter instance.
      *
      * @param  string  $filter
@@ -214,6 +221,39 @@ class Filter {
         $this->arguments = array_merge($this->arguments, func_get_args());
 
         return $this;
+    }
+
+    /**
+     * Set file pattern that the filter will be applied to.
+     * 
+     * @param  string  $pattern
+     * @return Basset\Filter\Filter
+     */
+    public function to($pattern)
+    {
+        $this->filenamePattern = $pattern;
+
+        return $this;
+    }
+
+    /**
+     * Get the file pattern.
+     * 
+     * @return string
+     */
+    public function getFilenamePattern()
+    {
+        return $this->filenamePattern;
+    }
+
+    /**
+     * Determine if filter has a file pattern.
+     * 
+     * @return string
+     */
+    public function hasFilenamePattern()
+    {
+        return ! is_null($this->filenamePattern);
     }
 
     /**
