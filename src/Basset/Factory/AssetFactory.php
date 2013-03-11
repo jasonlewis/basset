@@ -98,10 +98,10 @@ class AssetFactory implements FactoryInterface {
 
         // If we're not dealing with a remote asset and the relative and absolute paths are the
         // same then it's likely the asset is outside the public path.
-        if ( ! filter_var($path, FILTER_VALIDATE_URL) and str_replace('\\', '/', $path) == $relativePath)
+        if ( ! filter_var($path, FILTER_VALIDATE_URL) and trim(str_replace('\\', '/', $path), '/') == $relativePath)
         {
             list($directoryName, $fileName) = array(pathinfo($path, PATHINFO_DIRNAME), pathinfo($path, PATHINFO_BASENAME));
-
+            
             $relativePath = md5($directoryName).'/'.$fileName;
         }
 
