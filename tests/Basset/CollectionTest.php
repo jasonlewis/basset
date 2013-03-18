@@ -62,6 +62,23 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testAddingAssetWithCallback()
+    {
+        $collection = $this->getCollectionInstance();
+
+        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
+        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
+        
+        $asset->shouldReceive('isRemote')->once()->andReturn(false);
+        $asset->shouldReceive('fireInCallback')->once();
+
+        $collection->add('bar.css', function($asset)
+        {
+            $asset->fireInCallback();
+        });
+    }
+
+
     public function testChangeCollectionWorkingDirectory()
     {
         $collection = $this->getCollectionInstance();

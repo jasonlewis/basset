@@ -108,9 +108,10 @@ class Collection implements FilterableInterface {
      * Find and add an asset to the collection.
      *
      * @param  string  $name
+     * @param  Closure  $callback
      * @return Basset\Asset
      */
-    public function add($name)
+    public function add($name, Closure $callback = null)
     {
         try
         {
@@ -127,6 +128,11 @@ class Collection implements FilterableInterface {
         // excluded from the build process. This is to prevent assets being hosted on CDNs
         // being built with a collection.
         $asset->isRemote() and $asset->exclude();
+
+        if (is_callable($callback))
+        {
+            call_user_func($callback, $asset);
+        }
 
         return $this->assets[] = $asset;
     }
