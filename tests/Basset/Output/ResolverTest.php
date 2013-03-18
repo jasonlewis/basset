@@ -5,7 +5,7 @@ use Basset\Output\Resolver;
 use Basset\Manifest\Repository as ManifestRepository;
 use Illuminate\Config\Repository as ConfigRepository;
 
-class OutputResolverTest extends PHPUnit_Framework_TestCase {
+class ResolverTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()

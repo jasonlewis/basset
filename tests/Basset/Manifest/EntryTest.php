@@ -3,7 +3,7 @@
 use Mockery as m;
 use Basset\Manifest\Entry;
 
-class ManifestEntryTest extends PHPUnit_Framework_TestCase {
+class EntryTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()

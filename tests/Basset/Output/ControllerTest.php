@@ -3,7 +3,7 @@
 use Mockery as m;
 use Basset\Output\Controller;
 
-class OutputControllerTest extends PHPUnit_Framework_TestCase {
+class ControllerTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()

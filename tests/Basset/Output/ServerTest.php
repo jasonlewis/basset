@@ -5,7 +5,7 @@ use Basset\Output\Server;
 use Illuminate\Config\Repository as Config;
 use Basset\BassetServiceProvider as Provider;
 
-class OutputServerTest extends PHPUnit_Framework_TestCase {
+class ServerTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()

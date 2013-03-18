@@ -3,7 +3,7 @@
 use Mockery as m;
 use Basset\Environment;
 
-class BassetTest extends PHPUnit_Framework_TestCase {
+class EnvironmentTest extends PHPUnit_Framework_TestCase {
 
 
     public function tearDown()
