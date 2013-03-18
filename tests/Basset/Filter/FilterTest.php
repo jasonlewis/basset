@@ -160,7 +160,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testFindingOfMissingConstructorIgnoresFilterForInvalidExecutables()
+    public function testFindingOfMissingConstructorArgsIgnoresFilterForInvalidExecutables()
     {
         $filter = $this->getFilterInstance();
         $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
@@ -171,6 +171,15 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $filter->findMissingConstructorArgs();
 
         $this->assertTrue($filter->isIgnored());
+    }
+
+
+    public function testFindingOfMissingConstructorArgsIsSkippedWhenNoConstructorPresent()
+    {
+        $filter = $this->getFilterInstance();
+        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
+
+        $filter->findMissingConstructorArgs();
     }
 
 

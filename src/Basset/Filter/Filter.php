@@ -2,7 +2,7 @@
 
 use Closure;
 use ReflectionClass;
-use ReflectionMethod;
+use ReflectionException;
 use Symfony\Component\Process\ExecutableFinder;
 
 class Filter {
@@ -97,10 +97,17 @@ class Filter {
      */
     public function findMissingConstructorArgs()
     {
-        if ($class = $this->getClassName())
+        try
         {
-            $constructor = new ReflectionMethod($class, '__construct');
+            $class = new ReflectionClass($this->getClassName());
+        }
+        catch (ReflectionException $e)
+        {
+            return $this;
+        }
 
+        if ($constructor = $class->getConstructor())
+        {
             $finder = $this->getExecutableFinder();
 
             // Spin through all of the constructor parameters and for those that we can find the executable
@@ -139,6 +146,8 @@ class Filter {
                 }
             }
         }
+
+        return $this;
     }
 
     /**
