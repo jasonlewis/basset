@@ -102,6 +102,41 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testDevelopmentCollectionsAreBuiltWithFilesystemBuilder()
+    {
+        $builder = $this->getFilesystemBuilderInstance();
+
+        $assets = array(
+            $this->getAssetMock(),
+            $this->getAssetMock()
+        );
+        $assets[0]->shouldReceive('isExcluded')->once()->andReturn(false);
+        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('foo.css');
+        $assets[0]->shouldReceive('build')->once()->andReturn('body { background-color: #fff; }');
+        $assets[1]->shouldReceive('isExcluded')->once()->andReturn(false);
+        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.css');
+        $assets[1]->shouldReceive('build')->once()->andReturn('a { text-decoration: none; }');
+
+        $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build')->andReturn(false);
+        $builder->getFiles()->shouldReceive('exists')->twice()->with('path/to/build/foo')->andReturn(true);
+        $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build/foo/bar')->andReturn(true);
+        $builder->getFiles()->shouldReceive('deleteDirectory')->once()->with('path/to/build/foo')->andReturn(true);
+        $builder->getFiles()->shouldReceive('makeDirectory')->once()->with('path/to/build');
+        $builder->getFiles()->shouldReceive('makeDirectory')->once()->with('path/to/build/foo');
+        $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo/foo.css", 'body { background-color: #fff; }');
+        $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo/bar/baz.css", 'a { text-decoration: none; }');
+
+        $collection = $this->getCollectionMock();
+        $collection->shouldReceive('determineExtension')->once()->andReturn('css');
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getAssets')->once()->andReturn($assets);
+
+        $builder->setBuildPath('path/to/build');
+
+        $builder->build($collection, 'stylesheets', true);
+    }
+
+
     protected function getFilesystemBuilderInstance()
     {
         return new FilesystemBuilder($this->getFilesMock());

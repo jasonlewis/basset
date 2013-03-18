@@ -100,13 +100,13 @@ class Repository {
         {
             foreach ($collection->getAssets() as $asset)
             {
-                list($relativePath, $absolutePath, $group) = array($asset->getRelativePath(), $asset->getAbsolutePath(), $asset->getGroup());
+                list($relativePath, $group) = array($asset->getRelativePath(), $asset->getGroup());
 
                 // If the asset is remotely hosted then we don't need to get the directory and filename, we can
                 // just add the asset to the entry and continue on.
                 if ($asset->isRemote())
                 {
-                    $entry->addDevelopmentAsset($relativePath, $absolutePath, $group);
+                    $entry->addDevelopmentAsset($relativePath, $relativePath, $group);
 
                     continue;
                 }
