@@ -31,8 +31,9 @@ class OutputResolverTest extends PHPUnit_Framework_TestCase {
         $repository->load();
 
         $resolver = new Resolver($repository, $config, 'production');
+        $resolver->setCollection($collection);
 
-        $this->assertEquals('bar', $resolver->resolveFingerprintedCollection($collection, 'stylesheets'));
+        $this->assertEquals('bar', $resolver->resolveFingerprintedCollection('stylesheets'));
     }
 
 
@@ -53,8 +54,9 @@ class OutputResolverTest extends PHPUnit_Framework_TestCase {
         $repository->load();
 
         $resolver = new Resolver($repository, $config, 'production');
+        $resolver->setCollection($collection);
 
-        $this->assertNull($resolver->resolveFingerprintedCollection($collection, 'stylesheets'));
+        $this->assertNull($resolver->resolveFingerprintedCollection('stylesheets'));
     }
 
 

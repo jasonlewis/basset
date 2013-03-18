@@ -13,6 +13,13 @@ class Entry implements JsonableInterface, ArrayableInterface {
     protected $fingerprints = array();
 
     /**
+     * Development assets.
+     * 
+     * @var array
+     */
+    protected $development = array();
+
+    /**
      * Create a new manifest entry instance.
      *
      * @param  array  $entry
@@ -21,6 +28,39 @@ class Entry implements JsonableInterface, ArrayableInterface {
     public function __construct(array $entry = array())
     {
         $this->parseDefaultEntry($entry);
+    }
+
+    /**
+     * Add a development asset.
+     * 
+     * @param  string  $originalPath
+     * @param  string  $builtPath
+     * @param  string  $group
+     * @return Basset\Manifest\Entry
+     */
+    public function addDevelopmentAsset($originalPath, $builtPath, $group)
+    {
+        $this->development[$group][$originalPath] = $builtPath;
+
+        return $this;
+    }
+
+    /**
+     * Get development assets.
+     * 
+     * @param  string  $group
+     * @return array
+     */
+    public function getDevelopmentAssets($group = null)
+    {
+        if (is_null($group))
+        {
+            return $this->development;
+        }
+        elseif (isset($this->development[$group]))
+        {
+            return $this->development[$group];
+        }
     }
 
     /**
@@ -52,11 +92,11 @@ class Entry implements JsonableInterface, ArrayableInterface {
      * Get the entry fingerprint.
      *
      * @param  string  $group
-     * @return string
+     * @return string|null
      */
     public function getFingerprint($group)
     {
-        return $this->fingerprints[$group];
+        return $this->hasFingerprint($group) ? $this->fingerprints[$group] : null;
     }
 
     /**
@@ -77,9 +117,12 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     protected function parseDefaultEntry(array $entry)
     {
-        if (isset($entry['fingerprints']))
+        foreach (array('fingerprints', 'development') as $key)
         {
-            $this->fingerprints = $entry['fingerprints'];
+            if (isset($entry[$key]))
+            {
+                $this->$key = $entry[$key];
+            }
         }
     }
 
@@ -101,7 +144,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function toArray()
     {
-        return array('fingerprints' => $this->fingerprints);
+        return array('fingerprints' => $this->fingerprints, 'development' => $this->development);
     }
 
 }

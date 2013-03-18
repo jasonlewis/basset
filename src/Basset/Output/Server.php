@@ -1,5 +1,6 @@
 <?php namespace Basset\Output;
 
+use Basset\Asset;
 use Basset\Collection;
 use Illuminate\Session\Store;
 use Illuminate\Config\Repository;
@@ -116,12 +117,19 @@ class Server {
         // manfiest of fingerprints.
         $collection = $this->collections[$collection];
 
+        $this->resolver->setCollection($collection);
+
         // Firstly we'll attempt to resolve a fingerprinted collection. If a collection has an
         // existing fingerprint and the application is running within the correct environment
         // we'll fetch the static asset.
-        if ($fingerprint = $this->resolver->resolveFingerprintedCollection($collection, $group))
+        if ($fingerprint = $this->resolver->resolveFingerprintedCollection($group))
         {
             $response = $this->serveFingerprintedCollection($collection, $fingerprint, $group);
+        }
+
+        elseif ($development = $this->resolver->resolveDevelopmentCollection($group))
+        {
+            $response = $this->serveDevelopmentCollection($collection, $development, $group); 
         }
 
         // Lastly we'll dynamically serve each of the assets within the collection by using
@@ -149,19 +157,57 @@ class Server {
 
         $extension = $collection->determineExtension($group);
 
-        $path = "{$collectionName}-{$fingerprint}.{$extension}";
-
-        if ($buildPath = $this->config->get('basset::build_path'))
-        {
-            $path = "{$buildPath}/{$path}";
-        }
+        $buildPath = $this->prefixBuildPath("{$collectionName}-{$fingerprint}.{$extension}");
 
         // We'll get the response of the original fingerprinted collection first. Then we'll need to
         // spin through any of the excluded assets and append them to the response as well. Excluded
         // assets are only excluded by the builder, but they still need to be fetched.
-        $response = $this->{'create'.studly_case($group).'Element'}($path);
+        $response = $this->{'create'.studly_case($group).'Element'}($buildPath);
 
         return $this->serveExcludedAssets($collection, $group, array($response));
+    }
+
+    /**
+     * Serve a development collection.
+     * 
+     * @param  Basset\Collection  $collection
+     * @param  array  $development
+     * @param  string  $group
+     * @return array
+     */
+    protected function serveDevelopmentCollection(Collection $collection, array $development, $group)
+    {
+        $collectionName = $collection->getName();
+
+        // Spin through every asset within the specified group for the collection and attempt to
+        // locate each one within the array of development assets. We'll build an array of
+        // HTML elements to dump at the end.
+        $responses = array();
+
+        foreach ($collection->getAssets($group) as $asset)
+        {
+            $relativePath = $asset->getRelativePath();
+
+            // If the relative path to the asset is not in the array of development assets then the
+            // asset is not to be included during the serving process.
+            if ( ! array_key_exists($relativePath, $development))
+            {
+                continue;
+            }
+
+            // Get the build path from the array of development assets. If the asset is not a remotely
+            // hosted asset and it's to be included we'll prefix the configuration build path.
+            $buildPath = $development[$relativePath];
+
+            if ( ! $asset->isRemote() and $asset->isIncluded())
+            {
+                $buildPath = $this->prefixBuildPath("{$collectionName}/{$buildPath}");
+            }
+
+            $this->orderAssetResponses($asset, $responses, $this->{'create'.studly_case($group).'Element'}($buildPath));
+        }
+
+        return $responses;
     }
 
     /**
@@ -200,12 +246,25 @@ class Server {
                 $path = "{$hash}/{$name}/{$path}";
             }
 
-            $key = $asset->getOrder() ?: count($responses) + 1;
-
-            array_splice($responses, $key - 1, 0, array($this->{'create'.studly_case($group).'Element'}($path)));
+            $this->orderAssetResponses($asset, $responses, $this->{'create'.studly_case($group).'Element'}($path));
         }
 
         return $responses;
+    }
+
+    /**
+     * Order the asset in the array of responses.
+     * 
+     * @param  Basset\Asset  $asset
+     * @param  array  $responses
+     * @param  string  $element
+     * @return void
+     */
+    protected function orderAssetResponses(Asset $asset, array &$responses, $element)
+    {
+        $key = $asset->getOrder() ?: count($responses) + 1;
+
+        array_splice($responses, $key - 1, 0, array($element));
     }
 
     /**
@@ -219,6 +278,22 @@ class Server {
     protected function serveExcludedAssets(Collection $collection, $group, array $responses)
     {
         return $this->serveDynamicAssets($collection->getName(), $group, $collection->getExcludedAssets($group), $responses);
+    }
+
+    /**
+     * Prefix the build path to a given path.
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    protected function prefixBuildPath($path)
+    {
+        if ($buildPath = $this->config->get('basset::build_path'))
+        {
+            $path = "{$buildPath}/{$path}";
+        }
+
+        return $path;
     }
 
     /**

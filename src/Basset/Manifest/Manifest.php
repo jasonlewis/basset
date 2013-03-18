@@ -29,11 +29,11 @@ class Manifest implements JsonableInterface, ArrayableInterface {
      * Get an entry from the manifest.
      *
      * @param  string  $key
-     * @return Basset\Manifest\Entry
+     * @return Basset\Manifest\Entry|null
      */
     public function getEntry($key)
     {
-        return $this->entries[$key];
+        return $this->hasEntry($key) ? $this->entries[$key] : null;
     }
 
     /**

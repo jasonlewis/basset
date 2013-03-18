@@ -65,7 +65,7 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('determineExtension')->once()->andReturn('css');
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getName')->twice()->andReturn('foo');
         $collection->shouldReceive('getAssets')->once()->andReturn($assets);
 
         $builder->setBuildPath('path/to/build');

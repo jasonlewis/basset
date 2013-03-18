@@ -25,7 +25,8 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
 
         $server->setCollections(array('foo' => $collection));
 
-        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn('bar');
+        $server->getResolver()->shouldReceive('setCollection')->once()->with($collection);
+        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with('stylesheets')->andReturn('bar');
         $server->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'build_path', 'basset')->andReturn('assets');
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
         $server->getUrl()->shouldReceive('asset')->once()->with('assets/foo-bar.css')->andReturn('localhost/assets/foo-bar.css');
@@ -49,7 +50,9 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
 
         $server->setCollections(array('foo' => $collection));
 
-        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn(null);
+        $server->getResolver()->shouldReceive('setCollection')->once()->with($collection);
+        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with('stylesheets')->andReturn(null);
+        $server->getResolver()->shouldReceive('resolveDevelopmentCollection')->once()->with('stylesheets')->andReturn(null);
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
         $server->getUrl()->shouldReceive('asset')->once()->with('baz/foo/qux/bar.css')->andReturn('localhost/baz/foo/qux/bar.css');
 
@@ -73,7 +76,8 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
 
         $server->setCollections(array('foo' => $collection));
 
-        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn('bar');
+        $server->getResolver()->shouldReceive('setCollection')->once()->with($collection);
+        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with('stylesheets')->andReturn('bar');
         $server->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'build_path', 'basset')->andReturn('assets');
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
 
@@ -110,7 +114,9 @@ class OutputServerTest extends PHPUnit_Framework_TestCase {
 
         $server->setCollections(array('foo' => $collection));
 
-        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with($collection, 'stylesheets')->andReturn(null);
+        $server->getResolver()->shouldReceive('setCollection')->once()->with($collection);
+        $server->getResolver()->shouldReceive('resolveFingerprintedCollection')->once()->with('stylesheets')->andReturn(null);
+        $server->getResolver()->shouldReceive('resolveDevelopmentCollection')->once()->with('stylesheets')->andReturn(null);
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
         $server->getUrl()->shouldReceive('asset')->once()->with('baz/foo/foo.css')->andReturn('localhost/baz/foo/foo.css');
         $server->getUrl()->shouldReceive('asset')->once()->with('baz/foo/bar.css')->andReturn('localhost/baz/foo/bar.css');

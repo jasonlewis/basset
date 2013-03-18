@@ -14,7 +14,7 @@ class ManifestEntryTest extends PHPUnit_Framework_TestCase {
 
     public function testDefaultArrayIsParsedCorrectly()
     {
-        $data = array('fingerprints' => array());
+        $data = array('fingerprints' => array(), 'development' => array());
         $entry = new Entry($data);
         $this->assertEquals($data, $entry->toArray());
     }
@@ -31,7 +31,7 @@ class ManifestEntryTest extends PHPUnit_Framework_TestCase {
 
     public function testEntryCanBeConvertedToJson()
     {
-        $data = array('fingerprints' => array());
+        $data = array('fingerprints' => array(), 'development' => array());
         $entry = new Entry($data);
         $this->assertEquals(json_encode($data), $entry->toJson());
     }

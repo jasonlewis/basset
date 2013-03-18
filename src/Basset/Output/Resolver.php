@@ -30,6 +30,13 @@ class Resolver {
     protected $appEnvironment;
 
     /**
+     * Resolving collection.
+     * 
+     * @var Basset\Collection
+     */
+    protected $collection;
+
+    /**
      * Create a new output resolver instance.
      *
      * @param  Basset\Manifest\Repository  $manifest
@@ -45,19 +52,45 @@ class Resolver {
     }
 
     /**
+     * Set the collection to be resolved.
+     * 
+     * @param  Basset\Collection  $collection
+     * @return void
+     */
+    public function setCollection(Collection $collection)
+    {
+        $this->collection = $collection;
+    }
+
+    /**
      * Resolve a fingerprinted collection.
      *
-     * @param  Basset\Collection  $collection
      * @param  string  $group
-     * @return string
+     * @return string|null
      */
-    public function resolveFingerprintedCollection(Collection $collection, $group)
+    public function resolveFingerprintedCollection($group)
     {
-        $name = $collection->getName();
+        $collection = $this->collection->getName();
 
-        if ($this->manifest->hasEntry($name) and $this->runningInProduction() and $this->manifest->getEntry($name)->hasFingerprint($group))
+        if ($this->runningInProduction() and $this->manifest->hasEntry($collection))
         {
-            return $this->manifest->getEntry($name)->getFingerprint($group);
+            return $this->manifest->getEntry($collection)->getFingerprint($group);
+        }
+    }
+
+    /**
+     * Resolve a development collection.
+     *
+     * @param  string  $group
+     * @return string|null
+     */
+    public function resolveDevelopmentCollection($group)
+    {
+        $collection = $this->collection->getName();
+
+        if ($this->manifest->hasEntry($collection))
+        {
+            return $this->manifest->getEntry($collection)->getDevelopmentAssets($group);
         }
     }
 

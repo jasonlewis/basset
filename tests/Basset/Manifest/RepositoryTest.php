@@ -17,9 +17,12 @@ class ManifestRepositoryTest extends PHPUnit_Framework_TestCase {
         $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
 
         $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"}}}');
+        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"},"development":{"stylesheets":{"baz/qux.scss":"baz/qux.css"}}}}');
 
-        $this->assertEquals(array('fingerprints' => array('stylesheets' => 'bar')), $repository->load()->getEntry('foo')->toArray());
+        $this->assertEquals(array(
+            'fingerprints' => array('stylesheets' => 'bar'),
+            'development' => array('stylesheets' => array('baz/qux.scss' => 'baz/qux.css'))
+        ), $repository->load()->getEntry('foo')->toArray());
     }
 
 
@@ -39,7 +42,7 @@ class ManifestRepositoryTest extends PHPUnit_Framework_TestCase {
     {
         $fingerprint = array('stylesheets' => md5('baz'));
 
-        $manifest = array('qux' => array('fingerprints' => $fingerprint));
+        $manifest = array('qux' => array('fingerprints' => $fingerprint, 'development' => array()));
 
         $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
         $files->shouldReceive('put')->once()->with('path/to/meta/collections.json', json_encode($manifest));

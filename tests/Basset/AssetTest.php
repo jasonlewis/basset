@@ -22,7 +22,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('foo/bar.css', $asset->getUsablePath());
         $this->assertEquals('css', $asset->getUsableExtension());
         $this->assertEquals(array(), $asset->getFilters());
-        $this->assertEquals('styles', $asset->getGroup());
+        $this->assertEquals('stylesheets', $asset->getGroup());
     }
 
 

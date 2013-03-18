@@ -286,7 +286,7 @@ class Asset implements FilterableInterface {
      */
     public function getGroup()
     {
-        return $this->isJavascript() ? 'scripts' : 'styles';
+        return $this->isJavascript() ? 'javascripts' : 'stylesheets';
     }
 
     /**

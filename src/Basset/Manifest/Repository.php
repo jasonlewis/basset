@@ -83,7 +83,7 @@ class Repository {
      * @param  bool  $development
      * @return void
      */
-    public function register(Collection $collection, $fingerprints)
+    public function register(Collection $collection, $fingerprints, $development = false)
     {
         $collectionName = $collection->getName();
 
@@ -94,6 +94,25 @@ class Repository {
         foreach ($fingerprints as $group => $fingerprint)
         {
             $entry->setFingerprint($fingerprint, $group);
+        }
+
+        if ($development)
+        {
+            foreach ($collection->getAssets() as $asset)
+            {
+                list($relativePath, $absolutePath, $group) = array($asset->getRelativePath(), $asset->getAbsolutePath(), $asset->getGroup());
+
+                // If the asset is remotely hosted then we don't need to get the directory and filename, we can
+                // just add the asset to the entry and continue on.
+                if ($asset->isRemote())
+                {
+                    $entry->addDevelopmentAsset($relativePath, $absolutePath, $group);
+
+                    continue;
+                }
+
+                $entry->addDevelopmentAsset($relativePath, $asset->getUsablePath(), $group);
+            }
         }
 
         // Make the manifest a variable with the methods scope so that we don't turn the manifest property
