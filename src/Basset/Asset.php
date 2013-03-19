@@ -322,20 +322,22 @@ class Asset implements FilterableInterface {
      */
     public function build()
     {
-        // Before we begin to build the asset we'll prepare the filters by removing those that are not
-        // to be applied to this asset.
-        $this->prepareFilters();
-
+        // Spin through each of the applied assets and remove any where we don't get a class
+        // that does not implement Assetic\Filter\FilterInterface.
         $filters = array();
 
-        foreach ($this->filters as $filter)
+        foreach ($this->filters as $key => $filter)
         {
             $instance = $filter->getInstance();
 
-            if ($instance instanceof FilterInterface)
+            if ( ! $instance instanceof FilterInterface)
             {
-                $filters[] = $instance;
+                unset($this->filters[$key]);
+
+                continue;
             }
+
+            $filters[] = $instance;
         }
 
         $asset = new StringAsset($this->getContent(), $filters, dirname($this->absolutePath), basename($this->absolutePath));
@@ -344,45 +346,13 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Prepare the assets filters by removing those that have been restricted.
-     *
-     * @return void
+     * Get the application environment.
+     * 
+     * @return string
      */
-    protected function prepareFilters()
+    public function getAppEnvironment()
     {
-        foreach ($this->filters as $key => $filter)
-        {
-            // If the filter is to be applied to a specific file pattern we'll check that the name of
-            // the asset matches the pattern that was supplied.
-            if ($filter->hasFilenamePattern() and ! str_is($filter->getFilenamePattern(), basename($this->absolutePath)))
-            {
-                unset($this->filters[$key]);
-
-                continue;
-            }
-
-            // If there is a group restriction on the filter and the assets group is not that being
-            // restricted then we'll remove the filter from the asset.
-            $groupRestriction = $filter->getGroupRestriction();
-
-            if ($groupRestriction and ! $this->{'is'.ucfirst(str_singular($groupRestriction))}())
-            {
-                unset($this->filters[$key]);
-
-                continue;
-            }
-
-            // If the filter is being restricted to certain environments we'll make sure the application
-            // is running within one of the specified environments.
-            $possibleEnvironments = $filter->getEnvironments();
-
-            if ($possibleEnvironments and ! in_array($this->appEnvironment, $possibleEnvironments))
-            {
-                unset($this->filters[$key]);
-
-                continue;
-            }
-        }
+        return $this->appEnvironment;
     }
 
     /**

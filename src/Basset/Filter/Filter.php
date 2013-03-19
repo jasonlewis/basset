@@ -3,6 +3,7 @@
 use Closure;
 use ReflectionClass;
 use ReflectionException;
+use Assetic\Filter\FilterInterface;
 use Symfony\Component\Process\ExecutableFinder;
 
 class Filter {
@@ -36,20 +37,6 @@ class Filter {
     protected $resource;
 
     /**
-     * Array of environments to apply filter on.
-     *
-     * @var array
-     */
-    protected $environments = array();
-
-    /**
-     * Group to restrict the filter to.
-     *
-     * @var string
-     */
-    protected $groupRestriction;
-
-    /**
      * Array of filter requirements.
      * 
      * @var array
@@ -76,13 +63,6 @@ class Filter {
      * @var bool
      */
     protected $ignored = false;
-
-    /**
-     * Asset filename pattern.
-     * 
-     * @var string
-     */
-    protected $filenamePattern;
 
     /**
      * Create a new filter instance.
@@ -217,6 +197,61 @@ class Filter {
     }
 
     /**
+     * Add a asset name pattern requirement to the filter.
+     * 
+     * @param  string  $pattern
+     * @return Basset\Filter\Filter
+     */
+    public function whenAssetIs($pattern)
+    {
+        return $this->when(function($asset) use ($pattern)
+        {
+            return str_is($pattern, $asset->getRelativePath());
+        });
+    }
+
+    /**
+     * Add an environment requirement to the filter.
+     *
+     * @return Basset\Filter\Filter
+     */
+    public function whenEnvironmentIs()
+    {
+        $environments = func_get_args();
+
+        return $this->when(function($asset) use ($environments)
+        {
+            return in_array($asset->getAppEnvironment(), $environments);
+        });
+    }
+
+    /**
+     * Add a stylesheets only requirement to the filter.
+     *
+     * @return Basset\Filter\Filter
+     */
+    public function whenAssetIsStylesheet()
+    {
+        return $this->when(function($asset)
+        {
+            return $asset->isStylesheet();
+        });
+    }
+
+    /**
+     * Add a javascripts only requirement to the filter.
+     *
+     * @return Basset\Filter\Filter
+     */
+    public function whenAssetIsJavascript()
+    {
+        return $this->when(function($asset)
+        {
+            return $asset->isJavascript();
+        });
+    }
+
+    /**
      * Add a before filtering callback.
      *
      * @param  Closure  $callback
@@ -267,88 +302,6 @@ class Filter {
     }
 
     /**
-     * Set file pattern that the filter will be applied to.
-     * 
-     * @param  string  $pattern
-     * @return Basset\Filter\Filter
-     */
-    public function to($pattern)
-    {
-        $this->filenamePattern = $pattern;
-
-        return $this;
-    }
-
-    /**
-     * Get the file pattern.
-     * 
-     * @return string
-     */
-    public function getFilenamePattern()
-    {
-        return $this->filenamePattern;
-    }
-
-    /**
-     * Determine if filter has a file pattern.
-     * 
-     * @return string
-     */
-    public function hasFilenamePattern()
-    {
-        return ! is_null($this->filenamePattern);
-    }
-
-    /**
-     * Add an environment to apply the filter on.
-     *
-     * @param  string  $environment
-     * @return Basset\Filter\Filter
-     */
-    public function onEnvironment($environment)
-    {
-        $this->environments[] = $environment;
-
-        return $this;
-    }
-
-    /**
-     * Add an array of environments to apply the filter on.
-     *
-     * @return Basset\Filter\Filter
-     */
-    public function onEnvironments()
-    {
-        $this->environments = array_merge($this->environments, func_get_args());
-
-        return $this;
-    }
-
-    /**
-     * Apply filter to only stylesheets.
-     *
-     * @return Basset\Filter\Filter
-     */
-    public function onlyStylesheets()
-    {
-        $this->groupRestriction = 'stylesheets';
-
-        return $this;
-    }
-
-    /**
-     * Apply filter to only javascripts.
-     *
-     * @return Basset\Filter\Filter
-     */
-    public function onlyJavascripts()
-    {
-        $this->groupRestriction = 'javascripts';
-
-        return $this;
-    }
-
-    /**
      * Set the resource on the filter.
      * 
      * @param  Basset\Filter\FilterableInterface  $resource
@@ -379,16 +332,6 @@ class Filter {
     public function getFilter()
     {
         return $this->filter;
-    }
-
-    /**
-     * Get the filters group restriction.
-     *
-     * @return string
-     */
-    public function getGroupRestriction()
-    {
-        return $this->groupRestriction;
     }
 
     /**
@@ -447,7 +390,18 @@ class Filter {
     {
         $class = $this->getClassName();
 
-        if ( ! $this->ignored and ! is_null($class) and $this->processRequirements())
+        if ($this->ignored or is_null($class) or ! $this->processRequirements())
+        {
+            return;
+        }
+
+        // If the class returned is already implements Assetic\Filter\FilterInterface then
+        // we can set the instance directly and not worry about using reflection.
+        if ($class instanceof FilterInterface)
+        {
+            $instance = $class;
+        }
+        else
         {
             $reflection = new ReflectionClass($class);
 
@@ -461,19 +415,19 @@ class Filter {
             {
                 $instance = $reflection->newInstanceArgs($this->arguments);
             }
-
-            // Spin through each of the before filtering callbacks and fire each one. We'll
-            // pass in an instance of the filter to the callback.
-            foreach ($this->before as $callback)
-            {
-                if (is_callable($callback))
-                {
-                    call_user_func($callback, $instance);
-                }
-            }
-
-            return $instance;
         }
+
+        // Spin through each of the before filtering callbacks and fire each one. We'll
+        // pass in an instance of the filter to the callback.
+        foreach ($this->before as $callback)
+        {
+            if (is_callable($callback))
+            {
+                call_user_func($callback, $instance);
+            }
+        }
+
+        return $instance;
     }
 
     /**
@@ -497,17 +451,27 @@ class Filter {
      * 
      * @return bool
      */
-    protected function processRequirements()
+    public function processRequirements()
     {
         foreach ($this->requirements as $requirement)
         {
-            if ( ! call_user_func($requirement))
+            if ( ! call_user_func($requirement, $this->resource))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Get the filter requirements.
+     * 
+     * @return array
+     */
+    public function getRequirements()
+    {
+        return $this->requirements;
     }
 
     /**

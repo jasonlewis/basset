@@ -97,45 +97,30 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $asset = $this->getAssetInstance();
 
         $fooFilter = $this->getFilterMock();
-        $fooFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
-        $fooFilter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
-        $fooFilter->shouldReceive('getInstance')->once();
+        $fooFilterInstance = m::mock('stdClass, Assetic\Filter\FilterInterface');
+        $fooFilterInstance->shouldReceive('filterLoad')->once();
+        $fooFilterInstance->shouldReceive('filterDump')->once();
         $fooFilter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
-        $fooFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
-        $fooFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $fooFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
+        $fooFilter->shouldReceive('getClassName')->once()->andReturn($fooFilterInstance);
 
         $barFilter = $this->getFilterMock();
-        $barFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
-        $barFilter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $barFilter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
-        $barFilter->shouldReceive('getGroupRestriction')->once()->andReturn('javascript');
-        $barFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
+        $barFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
 
         $bazFilter = $this->getFilterMock();
-        $bazFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
-        $bazFilter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $bazFilter->shouldReceive('getFilter')->once()->andReturn('BazFilter');
-        $bazFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
-        $bazFilter->shouldReceive('getEnvironments')->once()->andReturn(array('production'));
-        $bazFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
+        $bazFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
 
         $quxFilter = $this->getFilterMock();
-        $quxFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
-        $quxFilter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $quxFilter->shouldReceive('getFilter')->once()->andReturn('QuxFilter');
-        $quxFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(true);
-        $quxFilter->shouldReceive('getFilenamePattern')->once()->andReturn('*.js');
+        $quxFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
 
         $vanFilter = $this->getFilterMock();
-        $vanFilter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
-        $vanFilter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
+        $vanFilterInstance = m::mock('stdClass, Assetic\Filter\FilterInterface');
+        $vanFilterInstance->shouldReceive('filterLoad')->once();
+        $vanFilterInstance->shouldReceive('filterDump')->once();
         $vanFilter->shouldReceive('getFilter')->once()->andReturn('VanFilter');
-        $vanFilter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
-        $vanFilter->shouldReceive('getEnvironments')->once()->andReturn(array());
-        $vanFilter->shouldReceive('hasFilenamePattern')->once()->andReturn(true);
-        $vanFilter->shouldReceive('getFilenamePattern')->once()->andReturn('*.sass');
-        $vanFilter->shouldReceive('getInstance')->once();
+        $vanFilter->shouldReceive('getClassName')->once()->andReturn($vanFilterInstance);
 
         $config = $this->getConfigMock();
 
@@ -143,10 +128,10 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $asset->getFactory()->shouldReceive('offsetGet')->times(5)->with('filter')->andReturn(new FilterFactory($config));
 
         $asset->apply($fooFilter);
-        $asset->apply($barFilter);
-        $asset->apply($bazFilter);
-        $asset->apply($quxFilter);
-        $asset->apply($vanFilter);
+        $asset->apply($barFilter)->whenAssetIsJavascript();
+        $asset->apply($bazFilter)->whenEnvironmentIs('production');
+        $asset->apply($quxFilter)->whenAssetIs('*.js');
+        $asset->apply($vanFilter)->whenAssetIs('*.sass');
 
         $asset->build();
 
@@ -177,10 +162,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $filter->shouldReceive('setResource')->once()->with($asset)->andReturn(m::self());
         $filter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('BodyFilter');
-        $filter->shouldReceive('getGroupRestriction')->once()->andReturn(null);
-        $filter->shouldReceive('getEnvironments')->once()->andReturn(array());
         $filter->shouldReceive('getInstance')->once()->andReturn($instantiatedFilter);
-        $filter->shouldReceive('hasFilenamePattern')->once()->andReturn(false);
 
 
         $config = $this->getConfigMock();
@@ -223,7 +205,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     protected function getFilterMock()
     {
-        return m::mock('Basset\Filter\Filter');
+        return m::mock('Basset\Filter\Filter')->shouldDeferMissing();
     }
 
 

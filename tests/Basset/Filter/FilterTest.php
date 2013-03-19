@@ -25,28 +25,33 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testSettingOfFilterEnvironments()
+    public function testSettingFilterEnvironmentRequirements()
     {
         $filter = $this->getFilterInstance();
 
-        $filter->onEnvironment('foo');
-        $this->assertContains('foo', $filter->getEnvironments());
+        $resource = $this->getResourceMock();
+        $resource->shouldReceive('getAppEnvironment')->once()->andReturn('foo');
 
-        $filter->onEnvironments('bar', 'baz');
-        $this->assertContains('bar', $filter->getEnvironments());
-        $this->assertContains('baz', $filter->getEnvironments());
+        $filter->setResource($resource);
+
+        $filter->whenEnvironmentIs('foo');
+
+        $this->assertTrue($filter->processRequirements());
     }
 
 
-    public function testSettingOfFilterGroupRestriction()
+    public function testSettingFilterGroupRestrictionRequirement()
     {
         $filter = $this->getFilterInstance();
 
-        $filter->onlyJavascripts();
-        $this->assertEquals('javascripts', $filter->getGroupRestriction());
+        $resource = $this->getResourceMock();
+        $resource->shouldReceive('isStylesheet')->once()->andReturn(false);
 
-        $filter->onlyStylesheets();
-        $this->assertEquals('stylesheets', $filter->getGroupRestriction());
+        $filter->setResource($resource);
+
+        $filter->whenAssetIsStylesheet();
+
+        $this->assertFalse($filter->processRequirements());
     }
 
 
