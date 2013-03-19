@@ -41,7 +41,7 @@ class FilterFactory implements FactoryInterface {
 
         if (is_array($filter))
         {
-            list($filter, $callback) = array(key($filter), current($filter));
+            list($filter, $callback) = array(current($filter), next($filter));
         }
 
         // If the filter was aliased and the value of the array was a callable closure then
@@ -49,7 +49,7 @@ class FilterFactory implements FactoryInterface {
         // can be set for the filters constructor.
         $filter = new Filter($filter, $this->config->get('basset::node_paths'));
 
-        isset($callback) and $filter->runCallback($callback);
+        isset($callback) and is_callable($callback) and $filter->runCallback($callback);
 
         return $filter;
     }

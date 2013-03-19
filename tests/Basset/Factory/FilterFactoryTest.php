@@ -51,7 +51,7 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testMakedAliasedFilterWithCallback()
+    public function testMakeAliasedFilterWithCallback()
     {
         $factory = new FilterFactory($config = $this->getConfigInstance());
 
@@ -60,14 +60,12 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
         $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
             'filters' => array(
-                'foo' => array(
-                    'FooFilter' => function($filter) use (&$fired, $tester)
-                    {
-                        $fired = true;
+                'foo' => array('FooFilter', function($filter) use (&$fired, $tester)
+                {
+                    $fired = true;
 
-                        $tester->assertEquals('FooFilter', $filter->getFilter());
-                    }
-                )
+                    $tester->assertEquals('FooFilter', $filter->getFilter());
+                })
             )
         ));
         $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
