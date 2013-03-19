@@ -64,13 +64,20 @@ class BuildCommand extends Command {
     protected $buildPath;
 
     /**
+     * Apply gzip to all collections.
+     *
+     * @var bool
+     */
+    protected $gzip;
+
+    /**
      * Create a new basset compile command instance.
      *
      * @param  Basset\Environment  $env
      * @param  Basset\Builder\BuilderInterface  $builder
      * @return void
      */
-    public function __construct(Environment $env, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath)
+    public function __construct(Environment $env, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath, $gzip)
     {
         parent::__construct();
 
@@ -79,6 +86,7 @@ class BuildCommand extends Command {
         $this->manifest = $manifest;
         $this->cleaner = $cleaner;
         $this->buildPath = $buildPath;
+        $this->gzip = $gzip;
     }
 
     /**
@@ -95,6 +103,8 @@ class BuildCommand extends Command {
         $this->input->getOption('force') and $this->builder->force();
 
         $this->builder->setBuildPath($this->buildPath);
+
+        $this->builder->setGzip($this->input->getOption('gzip') ?: $this->gzip);
 
         // Spin through each of the collections to be built and build both the scripts and styles. We'll catch
         // any exceptions thrown during the building of the assets and output friendlier messages to the user.
@@ -202,6 +212,7 @@ class BuildCommand extends Command {
     {
         return array(
             array('dev', null, InputOption::VALUE_NONE, 'Build assets for a development environment'),
+            array('gzip', null, InputOption::VALUE_NONE, 'Gzip built assets'),
             array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-build of the collection')
         );
     }

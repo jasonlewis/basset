@@ -27,6 +27,13 @@ class FilesystemBuilder extends StringBuilder {
     protected $fingerprint = array();
 
     /**
+     * Apply gzip to built collections.
+     *
+     * @var bool
+     */
+    protected $gzip;
+
+    /**
      * Build the assets of a collection.
      *
      * @param  Basset\Collection  $collection
@@ -67,7 +74,7 @@ class FilesystemBuilder extends StringBuilder {
             throw new CollectionExistsException("The [{$group}] on collection [{$collection->getName()}] are up to date.");
         }
 
-        $this->files->put($outputPath, $responses);
+        $this->files->put($outputPath, $this->gzip($responses));
     }
 
 
@@ -110,8 +117,38 @@ class FilesystemBuilder extends StringBuilder {
 
             ! $this->files->exists($outputPath) and $this->files->makeDirectory($outputPath);
 
-            $this->files->put("{$outputPath}/{$fileName}.{$fileExtension}", $assetContents);
+            $this->files->put("{$outputPath}/{$fileName}.{$fileExtension}", $this->gzip($assetContents));
         }
+    }
+
+    /**
+     * If Gzipping is enabled the the zlib extension is loaded we'll Gzip the contents
+     * with a maximum compression level of 9.
+     * 
+     * @param  string  $contents
+     * @return string
+     */
+    protected function gzip($contents)
+    {
+        if ($this->gzip and function_exists('gzencode'))
+        {
+            return gzencode($contents, 9);
+        }
+
+        return $contents;
+    }
+
+    /**
+     * Set built collections to be Gzipped.
+     * 
+     * @param  bool  $gzip
+     * @return Basset\Builder\FilesystemBuilder
+     */
+    public function setGzip($gzip)
+    {
+        $this->gzip = $gzip;
+
+        return $this;
     }
 
     /**
@@ -138,7 +175,7 @@ class FilesystemBuilder extends StringBuilder {
     }
 
     /**
-     * Set the compiling to be forced.
+     * Set the building to be forced.
      *
      * @param  bool  $force
      * @return Basset\Builder\FilesystemBuilder
@@ -151,7 +188,7 @@ class FilesystemBuilder extends StringBuilder {
     }
 
     /**
-     * Get the compiled collections fingerprints.
+     * Get the built collections fingerprints.
      *
      * @return string
      */

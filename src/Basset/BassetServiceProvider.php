@@ -94,7 +94,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected function registerRouting()
     {
-        // Bind the output controller to the container so that we can resolve it's dependencies.
+        // Bind the output controller to the container so that we can resolve its dependencies.
         // This is essential in making the controller testable and more robust.
         $this->app['Basset\Output\Controller'] = function($app)
         {
@@ -187,11 +187,37 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function registerCommands()
     {
+        $this->registerBassetCommand();
+        
+        $this->registerBuildCommand();
+
+        $this->registerCleanCommand();
+
+        // Resolve the commands with Artisan by attaching the event listener to Artisan's
+        // startup. This allows us to use the commands from our terminal.
+        $this->commands('command.basset', 'command.basset.build', 'command.basset.clean');
+    }
+
+    /**
+     * Register the basset command.
+     * 
+     * @return void
+     */
+    protected function registerBassetCommand()
+    {
         $this->app['command.basset'] = $this->app->share(function($app)
         {
             return new BassetCommand;
         });
+    }
 
+    /**
+     * Register the build command.
+     * 
+     * @return void
+     */
+    protected function registerBuildCommand()
+    {
         $this->app['command.basset.build'] = $this->app->share(function($app)
         {
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
@@ -200,9 +226,17 @@ class BassetServiceProvider extends ServiceProvider {
 
             $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
 
-            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $cleaner, $buildPath);
+            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $cleaner, $buildPath, $app['config']->get('basset::gzip', false));
         });
+    }
 
+    /**
+     * Register the clean command.
+     * 
+     * @return void
+     */
+    protected function registerCleanCommand()
+    {
         $this->app['command.basset.clean'] = $this->app->share(function($app)
         {
             $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
@@ -211,10 +245,6 @@ class BassetServiceProvider extends ServiceProvider {
 
             return new CleanCommand($cleaner);
         });
-
-        // Resolve the commands with Artisan by attaching the event listener to Artisan's
-        // startup. This allows us to use the commands from our terminal.
-        $this->commands('command.basset', 'command.basset.build', 'command.basset.clean');
     }
 
     /**
@@ -242,7 +272,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('basset', 'basset.manifest', 'basset.output', 'basset.factory.asset', 'basset.factory.filter');
+        return array('basset', 'basset.manifest', 'basset.output', 'basset.factory');
     }
 
 }

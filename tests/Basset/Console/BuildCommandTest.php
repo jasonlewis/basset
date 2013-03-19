@@ -25,6 +25,7 @@ class BuildCommandTest extends PHPUnit_Framework_TestCase {
         $env->shouldReceive('getCollections')->once()->andReturn($collections);
         $builder = m::mock('Basset\Builder\BuilderInterface');
         $builder->shouldReceive('setBuildPath')->with('path/to/build');
+        $builder->shouldReceive('setGzip')->with(false);
         $builder->shouldReceive('build')->once()->with($collections[0], 'stylesheets', null);
         $builder->shouldReceive('build')->once()->with($collections[1], 'stylesheets', null);
         $builder->shouldReceive('build')->once()->with($collections[0], 'javascripts', null);
@@ -37,7 +38,7 @@ class BuildCommandTest extends PHPUnit_Framework_TestCase {
         $cleaner = m::mock('Basset\BuildCleaner');
         $cleaner->shouldReceive('clean')->once();
 
-        $command = new BuildCommand($env, $builder, $manifest, $cleaner, 'path/to/build');
+        $command = new BuildCommand($env, $builder, $manifest, $cleaner, 'path/to/build', false);
 
         $this->runCommand($command);
     }

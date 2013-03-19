@@ -40,16 +40,19 @@ return array(
                 $collection->requireDirectory();
             });
 
+            $directory->apply('CssMinFilter')->onEnvironments('production', 'prod');
             $directory->apply('UriRewriteFilter');
 
             // Switch to the javascripts directory and require the "coffeescript" directory. As
             // with the above directories we'll apply the CoffeeScript filter to the directory
             // so the built collection contains valid JS.
-            $collection->directory('../app/assets/javascripts', function($collection)
+            $directory = $collection->directory('../app/assets/javascripts', function($collection)
             {
                 $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->to('*.coffee')->findMissingConstructorArgs();
                 $collection->requireDirectory();
             });
+
+            $directory->apply('JsMinFilter')->onEnvironments('production', 'prod');
         }
 
     ),
@@ -104,6 +107,21 @@ return array(
         app_path().'/assets/node_modules'
 
     ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gzip Built Collections
+    |--------------------------------------------------------------------------
+    |
+    | To get the most speed and compression out of Basset you can enable Gzip
+    | for every collection that is built via the command line. This is applied
+    | to both collection builds and development builds.
+    |
+    | You can use the --gzip switch for on-the-fly Gzipping of collections.
+    |
+    */
+
+    'gzip' => false,
 
     /*
     |--------------------------------------------------------------------------
