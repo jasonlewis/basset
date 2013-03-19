@@ -71,6 +71,20 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testSettingClassExistsFilterRequirement()
+    {
+        $filter = $this->getFilterInstance();
+
+        $filter->setResource($this->getResourceMock());
+
+        $filter->whenClassExists('FilterTest');
+        $this->assertTrue($filter->processRequirements());
+
+        $filter->whenClassExists('FooBarBaz');
+        $this->assertFalse($filter->processRequirements());
+    }
+
+
     public function testSettingCustomFilterRequirement()
     {
         $filter = $this->getFilterInstance();
