@@ -49,10 +49,7 @@ class FilterFactory implements FactoryInterface {
         // can be set for the filters constructor.
         $filter = new Filter($filter, $this->config->get('basset::node_paths'));
 
-        if (isset($callback) and is_callable($callback))
-        {
-            return $filter->fireCallback($callback);
-        }
+        isset($callback) and $filter->runCallback($callback);
 
         return $filter;
     }

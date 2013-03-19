@@ -50,6 +50,13 @@ class Filter {
     protected $groupRestriction;
 
     /**
+     * Array of filter requirements.
+     * 
+     * @var array
+     */
+    protected $requirements = array();
+
+    /**
      * Array of node module paths.
      * 
      * @var array
@@ -71,7 +78,7 @@ class Filter {
     protected $ignored = false;
 
     /**
-     * Asset filename pattern to have the asset applied.
+     * Asset filename pattern.
      * 
      * @var string
      */
@@ -180,6 +187,33 @@ class Filter {
     public function getExecutableFinder()
     {
         return new ExecutableFinder;
+    }
+
+    /**
+     * Add a requirement to the filter.
+     * 
+     * @param  Closure  $callback
+     * @return Basset\Filter\Filter
+     */
+    public function when(Closure $callback)
+    {
+        $this->requirements[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Add a class exists requirement to the filter.
+     * 
+     * @param  string  $class
+     * @return Basset\Filter\Filter
+     */
+    public function whenClassExists($class)
+    {
+        return $this->when(function() use ($class)
+        {
+            return class_exists($class);
+        });
     }
 
     /**
@@ -388,25 +422,9 @@ class Filter {
     }
 
     /**
-     * Fire a callback passing in the filter instance as a parameter.
-     * 
-     * @param  Closure  $callback
-     * @return Basset\Filter\Filter
-     */
-    public function fireCallback(Closure $callback = null)
-    {
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $this);
-        }
-
-        return $this;
-    }
-
-    /**
      * Get the class name for the filter if it exists.
      *
-     * @return string|bool
+     * @return string
      */
     public function getClassName()
     {
@@ -418,8 +436,6 @@ class Filter {
         {
             return "Basset\\Filter\\{$this->filter}";
         }
-
-        return false;
     }
 
     /**
@@ -431,7 +447,7 @@ class Filter {
     {
         $class = $this->getClassName();
 
-        if ($class and ! $this->ignored)
+        if ( ! $this->ignored and ! is_null($class) and $this->processRequirements())
         {
             $reflection = new ReflectionClass($class);
 
@@ -458,6 +474,40 @@ class Filter {
 
             return $instance;
         }
+    }
+
+    /**
+     * Run a callback with the filter instance as a parameter.
+     * 
+     * @param  Closure  $callback
+     * @return Basset\Filter\Filter
+     */
+    public function runCallback(Closure $callback = null)
+    {
+        if (is_callable($callback))
+        {
+            call_user_func($callback, $this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Process any requirements on the filter.
+     * 
+     * @return bool
+     */
+    protected function processRequirements()
+    {
+        foreach ($this->requirements as $requirement)
+        {
+            if ( ! call_user_func($requirement))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

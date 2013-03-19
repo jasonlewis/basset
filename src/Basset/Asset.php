@@ -298,7 +298,9 @@ class Asset implements FilterableInterface {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $instance = $this->factory['filter']->make($filter)->setResource($this)->fireCallback($callback);
+        $instance = $this->factory['filter']->make($filter);
+
+        $instance->setResource($this)->runCallback($callback);
 
         return $this->filters[$instance->getFilter()] = $instance;
     }
