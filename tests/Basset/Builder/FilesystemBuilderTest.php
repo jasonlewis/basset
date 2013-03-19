@@ -120,9 +120,7 @@ class FilesystemBuilderTest extends PHPUnit_Framework_TestCase {
         $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build')->andReturn(false);
         $builder->getFiles()->shouldReceive('exists')->twice()->with('path/to/build/foo')->andReturn(true);
         $builder->getFiles()->shouldReceive('exists')->once()->with('path/to/build/foo/bar')->andReturn(true);
-        $builder->getFiles()->shouldReceive('deleteDirectory')->once()->with('path/to/build/foo')->andReturn(true);
         $builder->getFiles()->shouldReceive('makeDirectory')->once()->with('path/to/build');
-        $builder->getFiles()->shouldReceive('makeDirectory')->once()->with('path/to/build/foo');
         $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo/foo.css", 'body { background-color: #fff; }');
         $builder->getFiles()->shouldReceive('put')->once()->with("path/to/build/foo/bar/baz.css", 'a { text-decoration: none; }');
 
