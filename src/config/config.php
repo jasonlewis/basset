@@ -35,12 +35,12 @@ return array(
             // collection will contain valid CSS.
             $directory = $collection->directory('../app/assets/stylesheets', function($collection)
             {
-                $collection->requireDirectory('less')->apply('LessFilter')->to('*.less')->findMissingConstructorArgs();
-                $collection->requireDirectory('sass')->apply('Sass\ScssFilter')->to('*.(sass|scss)')->findMissingConstructorArgs();
+                $collection->requireDirectory('less')->apply('Less');
+                $collection->requireDirectory('sass')->apply('Sass');
                 $collection->requireDirectory();
             });
 
-            $directory->apply('CssMinFilter')->onEnvironments('production', 'prod');
+            $directory->apply('CssMin');
             $directory->apply('UriRewriteFilter');
 
             // Switch to the javascripts directory and require the "coffeescript" directory. As
@@ -48,11 +48,11 @@ return array(
             // so the built collection contains valid JS.
             $directory = $collection->directory('../app/assets/javascripts', function($collection)
             {
-                $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->to('*.coffee')->findMissingConstructorArgs();
+                $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->whenAssetIs('*.coffee')->findMissingConstructorArgs();
                 $collection->requireDirectory();
             });
 
-            $directory->apply('JsMinFilter')->onEnvironments('production', 'prod');
+            $directory->apply('JsMin');
         }
 
     ),
@@ -143,12 +143,10 @@ return array(
     | should be a callback closure where you can set parameters for a filters
     | constructor, etc.
     |
-    |   'YuiCss' => array(
-    |       'Yui\CssCompressorFilter' => function($filter)
-    |       {
-    |           $filter->setArguments('path/to/jar');
-    |       }
-    |   )
+    |   'YuiCss' => array('Yui\CssCompressorFilter', function($filter)
+    |   {
+    |       $filter->setArguments('path/to/jar');
+    |   })
     |
     |
     */
@@ -157,7 +155,69 @@ return array(
 
         'assets' => array(),
 
-        'filters' => array()
+        'filters' => array(
+
+            /*
+            |--------------------------------------------------------------------------
+            | Less Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter is applied only when asset has a ".less" extension and it will
+            | attempt to find missing constructor arguments.
+            |
+            */
+
+            'Less' => array('LessFilter', function($filter)
+            {
+                $filter->whenAssetIs('*.less')->findMissingConstructorArgs();
+            }),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sass Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter is applied only when asset has a ".sass" or ".scss" extension and
+            | it will attempt to find missing constructor arguments.
+            |
+            */
+
+            'Sass' => array('Sass\ScssFilter', function($filter)
+            {
+                $filter->whenAssetIs('*.(sass|scss)')->findMissingConstructorArgs();
+            }),
+
+            /*
+            |--------------------------------------------------------------------------
+            | CssMin Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter is applied only when within the production environment and when
+            | the "CssMin" class exists.
+            |
+            */
+
+            'CssMin' => array('CssMinFilter', function($filter)
+            {
+                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('CssMin');
+            }),
+
+            /*
+            |--------------------------------------------------------------------------
+            | JsMin Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter is applied only when within the production environment and when
+            | the "JsMin" class exists.
+            |
+            */
+
+            'JsMin' => array('JsMinFilter', function($filter)
+            {
+                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('JsMin');
+            })
+
+        )
 
     )
 
