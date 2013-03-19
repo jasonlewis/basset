@@ -50,7 +50,46 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $filter->setResource($resource);
 
         $filter->whenAssetIsStylesheet();
+        $this->assertFalse($filter->processRequirements());
+    }
 
+
+    public function testSettingAssetNameIsRequirement()
+    {
+        $filter = $this->getFilterInstance();
+
+        $resource = $this->getResourceMock();
+        $resource->shouldReceive('getRelativePath')->times(3)->andReturn('foo.bar');
+
+        $filter->setResource($resource);
+
+        $filter->whenAssetIs('foo.*');
+        $this->assertTrue($filter->processRequirements());
+
+        $filter->whenAssetIs('foo.baz');
+        $this->assertFalse($filter->processRequirements());
+    }
+
+
+    public function testSettingCustomFilterRequirement()
+    {
+        $filter = $this->getFilterInstance();
+
+        $resource = $this->getResourceMock();
+        $resource->shouldReceive('fooBar')->times(3)->andReturn(true, true, false);
+
+        $filter->setResource($resource);
+
+        $filter->when(function($asset)
+        {
+            return $asset->fooBar();
+        });
+        $this->assertTrue($filter->processRequirements());
+
+        $filter->when(function($asset)
+        {
+            return $asset->fooBar();
+        });
         $this->assertFalse($filter->processRequirements());
     }
 
