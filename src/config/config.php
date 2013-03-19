@@ -97,14 +97,14 @@ return array(
     |--------------------------------------------------------------------------
     |
     | Many filters use Node to build assets. We recommend you install your
-    | Node modules locally under app/assets, however you can specify additional
-    | paths to your modules.
+    | Node modules locally at the root of your application, however you can
+    | specify additional paths to your modules.
     |
     */
 
     'node_paths' => array(
 
-        app_path().'/assets/node_modules'
+        base_path().'/node_modules'
 
     ),
 
