@@ -153,7 +153,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
         $directory->getFactory()->get('filter')->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
         $filter->shouldReceive('setResource')->once()->with($directory)->andReturn(m::self());
-        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
+        $filter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
 
         $assets[0]->shouldReceive('apply')->once()->with($filter);
@@ -176,7 +176,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         };
 
         $filter->shouldReceive('setResource')->once()->with($directory)->andReturn(m::self());
-        $filter->shouldReceive('fireCallback')->once()->with($callback)->andReturn(m::self());
+        $filter->shouldReceive('runCallback')->once()->with($callback)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
 
         $this->assertInstanceOf('Basset\Filter\Filter', $directory->apply('FooFilter', $callback));

@@ -334,7 +334,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->getFactory()->get('filter')->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
 
         $filter->shouldReceive('setResource')->once()->with($collection)->andReturn(m::self());
-        $filter->shouldReceive('fireCallback')->once()->with(null)->andReturn(m::self());
+        $filter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
 
         $assets['bar']->shouldReceive('apply')->once()->with($filter);
