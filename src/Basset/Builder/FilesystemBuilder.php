@@ -92,11 +92,7 @@ class FilesystemBuilder extends StringBuilder {
         // duplicates that exist within different collections.
         $buildPath = "{$this->buildPath}/{$collection->getName()}";
 
-        $this->files->exists($buildPath) and $this->files->deleteDirectory($buildPath);
-
-        // If the directory existed then it should now be deleted. We'll create the directory again
-        // so that we don't end up with old, unused directories when re-building the collection.
-        $this->files->makeDirectory($buildPath);
+        ! $this->files->exists($buildPath) and $this->files->makeDirectory($buildPath);
 
         $fileExtension = $collection->determineExtension($group);
 
