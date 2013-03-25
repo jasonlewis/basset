@@ -48,7 +48,7 @@ return array(
             // so the built collection contains valid JS.
             $directory = $collection->directory('../app/assets/javascripts', function($collection)
             {
-                $collection->requireDirectory('coffeescripts')->apply('CoffeeScriptFilter')->whenAssetIs('*.coffee')->findMissingConstructorArgs();
+                $collection->requireDirectory('coffeescripts')->apply('CoffeeScript');
                 $collection->requireDirectory();
             });
 
@@ -185,6 +185,21 @@ return array(
             'Sass' => array('Sass\ScssFilter', function($filter)
             {
                 $filter->whenAssetIs('*.(sass|scss)')->findMissingConstructorArgs();
+            }),
+
+            /*
+            |--------------------------------------------------------------------------
+            | CoffeeScript Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter is applied only when asset has a ".coffee" extension and it will
+            | attempt to find missing constructor arguments.
+            |
+            */
+
+            'CoffeeScript' => array('CoffeeScriptFilter', function($filter)
+            {
+                $filter->whenAssetIs('*.coffee')->findMissingConstructorArgs();
             }),
 
             /*
