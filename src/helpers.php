@@ -41,7 +41,7 @@ if ( ! function_exists('basset_collections'))
 
         foreach ($collections as $collection)
         {
-            $responses[] = app('basset.output')->$group($name);
+            $responses[] = app('basset.output')->$group($collection);
         }
 
         return array_to_newlines($responses);
