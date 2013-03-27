@@ -54,6 +54,17 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testAssetCanBeRemotelyHostedWithRelativeProtocol()
+    {
+        $files = $this->getFilesMock();
+        $factory = $this->getFactoryManagerMock();
+
+        $asset = new Asset($files, $factory, '//foo.com/bar.css', '//foo.com/bar.css', 'testing');
+
+        $this->assertTrue($asset->isRemote());
+    }
+
+
     public function testSettingOfAssetsOrder()
     {
         $asset = $this->getAssetInstance();

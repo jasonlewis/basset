@@ -239,11 +239,11 @@ class Server {
 
         foreach ($assets as $asset)
         {
-            $path = $asset->getUsablePath();
+            $path = "{$hash}/{$name}/{$asset->getUsablePath()}";
 
-            if ( ! $asset->isRemote())
+            if ($asset->isRemote())
             {
-                $path = "{$hash}/{$name}/{$path}";
+                $path = $asset->getAbsolutePath();
             }
 
             $this->orderAssetResponses($asset, $responses, $this->{'create'.studly_case($group).'Element'}($path));
@@ -334,7 +334,7 @@ class Server {
      */
     protected function createStylesheetsElement($path)
     {
-        return '<link rel="stylesheet" type="text/css" href="'.$this->url->asset($path).'" />';
+        return '<link rel="stylesheet" type="text/css" href="'.$this->getAssetUrl($path).'" />';
     }
 
     /**
@@ -345,7 +345,18 @@ class Server {
      */
     protected function createJavascriptsElement($path)
     {
-        return '<script src="'.$this->url->asset($path).'"></script>';
+        return '<script src="'.$this->getAssetUrl($path).'"></script>';
+    }
+
+    /**
+     * Get the URL to an asset.
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    public function getAssetUrl($path)
+    {
+        return starts_with($path, '//') ? $path : $this->url->asset($path);
     }
 
     /**

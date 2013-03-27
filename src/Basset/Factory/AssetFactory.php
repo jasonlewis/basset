@@ -78,7 +78,7 @@ class AssetFactory implements FactoryInterface {
             return $path;
         }
 
-        return filter_var($path, FILTER_VALIDATE_URL) ? $path : realpath($path);
+        return realpath($path) ?: $path;
     }
 
     /**

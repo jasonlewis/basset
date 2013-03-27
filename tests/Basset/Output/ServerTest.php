@@ -111,14 +111,22 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     {
         $server = $this->getServerInstance();
 
-        $asset = $this->getAssetMock();
-        $asset->shouldReceive('getUsablePath')->once()->andReturn('qux/bar.css');
-        $asset->shouldReceive('isRemote')->once()->andReturn(false);
-        $asset->shouldReceive('getOrder')->once()->andReturn(null);
+        $assets = array(
+            $this->getAssetMock(),
+            $this->getAssetMock()
+        );
+        $assets[0]->shouldReceive('getUsablePath')->once()->andReturn('qux/bar.css');
+        $assets[0]->shouldReceive('isRemote')->once()->andReturn(false);
+        $assets[0]->shouldReceive('getOrder')->once()->andReturn(null);
+
+        $assets[1]->shouldReceive('getUsablePath')->once()->andReturn('qux/baz.css');
+        $assets[1]->shouldReceive('isRemote')->once()->andReturn(true);
+        $assets[1]->shouldReceive('getAbsolutePath')->once()->andReturn('//foo.bar/qux/baz.css');
+        $assets[1]->shouldReceive('getOrder')->once()->andReturn(null);
 
         $collection = $this->getCollectionMock();
         $collection->shouldReceive('getName')->once()->andReturn('foo');
-        $collection->shouldReceive('getAssets')->once()->with('stylesheets')->andReturn(array($asset));
+        $collection->shouldReceive('getAssets')->once()->with('stylesheets')->andReturn($assets);
 
         $server->setCollections(array('foo' => $collection));
 
@@ -128,7 +136,12 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $server->getSession()->shouldReceive('get')->once()->with(Provider::SESSION_HASH)->andReturn('baz');
         $server->getUrl()->shouldReceive('asset')->once()->with('baz/foo/qux/bar.css')->andReturn('localhost/baz/foo/qux/bar.css');
 
-        $this->assertEquals('<link rel="stylesheet" type="text/css" href="localhost/baz/foo/qux/bar.css" />', $server->stylesheets('foo'));
+        $response = array(
+            '<link rel="stylesheet" type="text/css" href="localhost/baz/foo/qux/bar.css" />',
+            '<link rel="stylesheet" type="text/css" href="//foo.bar/qux/baz.css" />'
+        );
+
+        $this->assertEquals(array_to_newlines($response), $server->stylesheets('foo'));
     }
 
 

@@ -156,7 +156,7 @@ class Asset implements FilterableInterface {
      */
     public function isRemote()
     {
-        return (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL);
+        return (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL) or starts_with($this->absolutePath, '//');
     }
 
     /**
