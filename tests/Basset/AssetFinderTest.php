@@ -23,6 +23,16 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testFindRelativeProtocolRemotelyHostedAsset()
+    {
+        $finder = $this->getFinderInstance();
+
+        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
+
+        $this->assertEquals('//foo.bar/baz.css', $finder->find('//foo.bar/baz.css'));
+    }
+
+
     public function testFindPackageAsset()
     {
         $finder = $this->getFinderInstance();

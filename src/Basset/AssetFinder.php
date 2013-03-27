@@ -81,7 +81,7 @@ class AssetFinder {
      */
     public function findRemotelyHosted($name)
     {
-        if (filter_var($name, FILTER_VALIDATE_URL))
+        if (filter_var($name, FILTER_VALIDATE_URL) or starts_with($name, '//'))
         {
             return $name;
         }
