@@ -16,7 +16,7 @@
         "illuminate/http": "4.0.*",
         "illuminate/routing": "4.0.*",
         "illuminate/support": "4.0.*",
-        "symfony/process": "2.2.*",
+        "symfony/process": "2.3.*",
         "kriswallsmith/assetic": "1.1.*@dev"
     },
     "require-dev": {
