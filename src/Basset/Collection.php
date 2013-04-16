@@ -85,8 +85,13 @@ class Collection {
 			$name = $this->app['config']->get("basset::assets.{$name}");
 		}
 
+		// Add the path when accessing from directory() method closure.
+		if ($this->directory instanceof Directory)
+		{
+			$assetPath = $this->directory->getPath().'/'.$name;
+		}
 		// Add an asset by using the full path to its location.
-		if (starts_with($name, 'path: '))
+		elseif (starts_with($name, 'path: '))
 		{
 			$assetPath = substr($name, 6);
 		}

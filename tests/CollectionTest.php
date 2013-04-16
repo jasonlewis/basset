@@ -173,6 +173,25 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('foo-'.md5($asset->getLastModified().PHP_EOL.'SomeFilter').'.css', $collection->getCompiledName('style'));
 	}
 
+	public function testAssetsAreAddedToCollectionThroughDirectory()
+	{
+		$app = $this->getApplication();
+		$app['files']->shouldReceive('getRemote')->once()->andReturn('html { background-color: #fff; }');
+		$app['files']->shouldReceive('extension')->once()->andReturn('css');
+		$app['files']->shouldReceive('lastModified')->once()->andReturn(time());
+		$app['config']->shouldReceive('has')->once()->with('basset::assets.foo.css')->andReturn(false);
+
+		$collection = new Basset\Collection('foo', $app);
+		$collection->directory('foo/bar', function ($asset)
+		{
+			$asset->add('foo.css');
+		});
+		$this->assertNotEmpty($styles = $collection->getAssets('style'));
+		$asset = array_pop($styles);
+		$this->assertEquals('foo.css', $asset->getName());
+		$this->assertEquals('path/to/public/foo/bar/foo.css', $asset->getPath());
+	}
+
 
 	public function testCollectionIsCompiled()
 	{
