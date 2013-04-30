@@ -10,13 +10,13 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "illuminate/config": "4.0.*",
-        "illuminate/console": "4.0.*",
-        "illuminate/filesystem": "4.0.*",
-        "illuminate/http": "4.0.*",
-        "illuminate/routing": "4.0.*",
-        "illuminate/support": "4.0.*",
-        "symfony/process": "2.2.*",
+        "illuminate/config": "4.0.*@dev",
+        "illuminate/console": "4.0.*@dev",
+        "illuminate/filesystem": "4.0.*@dev",
+        "illuminate/http": "4.0.*@dev",
+        "illuminate/routing": "4.0.*@dev",
+        "illuminate/support": "4.0.*@dev",
+        "symfony/process": "2.3.*",
         "kriswallsmith/assetic": "1.1.*@dev"
     },
     "require-dev": {
