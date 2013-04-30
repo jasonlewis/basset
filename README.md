@@ -1,5 +1,7 @@
 ## Basset 4 (pre-beta)
 
+[![Build Status](https://secure.travis-ci.org/jasonlewis/basset.png)](http://travis-ci.org/jasonlewis/basset)
+
 G'day folks! Just a quick heads up before you go any further. I'm classifying this as "pre-beta" right now as not everything has been implemented. That said I'd like for people to give it a whirl and let me know any immediate problems they encounter (you most likely will encounter some!). I've been testing it but am yet to test everything together.
 
 Just to re-iterate: this is by no means finished code and bugs ARE to be expected.
