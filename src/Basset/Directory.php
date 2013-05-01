@@ -61,6 +61,17 @@ class Directory implements FilterableInterface {
     }
 
     /**
+     * Add an asset to the directory.
+     * 
+     * @param  Basset\Asset  $asset
+     * @return Basset\Asset
+     */
+    public function add(Asset $asset)
+    {
+        return $this->assets[] = $asset;
+    }
+
+    /**
      * Recursively iterate through a given path.
      *
      * @param  string  $path

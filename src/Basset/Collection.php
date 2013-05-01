@@ -134,6 +134,13 @@ class Collection implements FilterableInterface {
             call_user_func($callback, $asset);
         }
 
+        // If we are within a working directory then the asset is added to the last directory
+        // on the stack. Otherwise the asset is added to the collection.
+        if ($this->finder->withinWorkingDirectory())
+        {
+            return $this->directories[count($this->directories) - 1]->add($asset);
+        }
+
         return $this->assets[] = $asset;
     }
 
@@ -155,18 +162,18 @@ class Collection implements FilterableInterface {
             return $this->factory['directory']->make(null);
         }
 
+        $this->directories[] = $directory = $this->factory['directory']->make($this->finder->getWorkingDirectory());
+
         // Once we've set the working directory we'll fire the callback so that any added assets
         // are relative to the working directory. After the callback we can revert the working
         // directory.
-        ! is_callable($callback) ?: call_user_func($callback, $this);
-
-        $directory = $this->makeWorkingDirectory();
+        is_callable($callback) and call_user_func($callback, $this);
 
         $this->finder->resetWorkingDirectory();
 
         // Once the working directory has been made and reset on the finder we can return and
         // add this directory to the array of directories.
-        return $this->directories[] = $directory;
+        return $directory;
     }
 
     /**
@@ -189,16 +196,6 @@ class Collection implements FilterableInterface {
     public function requireTree($path = null)
     {
         return $this->directory($path)->requireTree();
-    }
-
-    /**
-     * Make a directory instance of the working directory.
-     * 
-     * @return Basset\Directory
-     */
-    protected function makeWorkingDirectory()
-    {
-        return $this->factory['directory']->make($this->finder->getWorkingDirectory());
     }
 
     /**

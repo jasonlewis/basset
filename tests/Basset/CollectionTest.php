@@ -28,6 +28,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     {
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
 
@@ -41,6 +42,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     {
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
 
@@ -66,6 +68,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     {
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
         
@@ -75,6 +78,31 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection->add('bar.css', function($asset)
         {
             $asset->fireInCallback();
+        });
+    }
+
+
+    public function testAddingAssetFromWithinWorkingDirectory()
+    {
+        $collection = $this->getCollectionInstance();
+
+        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
+
+        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
+
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(true);
+        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
+        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
+
+        $directory->shouldReceive('add')->once()->with($asset);
+
+        $asset->shouldReceive('isRemote')->once()->andReturn(false);
+
+        $collection->directory('foo', function($collection)
+        {
+            $collection->add('bar.css');
         });
     }
 
@@ -165,6 +193,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -189,6 +218,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -213,6 +243,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('baz.js')->andReturn('foo/baz.js');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -238,6 +269,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -265,6 +297,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -292,6 +325,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
@@ -314,12 +348,13 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testFiltersareAppliedToEntireCollection()
+    public function testFiltersAreAppliedToEntireCollection()
     {
         $assets = array();
 
         $collection = $this->getCollectionInstance();
 
+        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
         $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
         $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
         $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
