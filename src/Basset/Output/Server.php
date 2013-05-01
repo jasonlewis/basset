@@ -77,6 +77,21 @@ class Server {
     }
 
     /**
+     * Serve a collection where the group is the extension.
+     * 
+     * @param  string  $collection
+     * @return string
+     */
+    public function collection($collection)
+    {
+        $groups = array('css' => 'stylesheets', 'js' => 'javascripts');
+
+        list($collection, $extension) = preg_split('/\.(css|js)/', $collection, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+        return $this->serveCollection($collection, $groups[$extension]);
+    }
+
+    /**
      * Serve the stylesheets for a given collection.
      *
      * @param  string  $collection

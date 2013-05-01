@@ -11,4 +11,14 @@ class Facade extends IlluminateFacade {
      */
     protected static function getFacadeAccessor() { return 'basset'; }
 
+    /**
+     * Serve a collection or number of collections.
+     * 
+     * @return string
+     */
+    public static function show()
+    {
+    	return basset_collections(func_get_args());
+    }
+
 }

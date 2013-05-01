@@ -9,7 +9,9 @@ if ( ! function_exists('basset_stylesheet'))
      */
     function basset_stylesheet()
     {
-        return basset_collections(func_get_args(), 'stylesheets');
+        $collections = array_map(function($collection) { return "{$collection}.css"; }, func_get_args());
+
+        return basset_collections($collections);
     }
 }
 
@@ -22,7 +24,9 @@ if ( ! function_exists('basset_javascript'))
      */
     function basset_javascript()
     {
-        return basset_collections(func_get_args(), 'javascripts');
+        $collections = array_map(function($collection) { return "{$collection}.js"; }, func_get_args());
+
+        return basset_collections($collections);
     }
 }
 
@@ -32,16 +36,15 @@ if ( ! function_exists('basset_collections'))
      * Output a given group for an array of collections.
      * 
      * @param  array  $collections
-     * @param  string  $group
      * @return string
      */
-    function basset_collections(array $collections, $group)
+    function basset_collections(array $collections)
     {
         $responses = array();
 
         foreach ($collections as $collection)
         {
-            $responses[] = app('basset.output')->$group($collection);
+            $responses[] = app('basset.output')->collection($collection);
         }
 
         return array_to_newlines($responses);
