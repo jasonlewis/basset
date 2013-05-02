@@ -138,7 +138,7 @@ class Collection implements FilterableInterface {
         // on the stack. Otherwise the asset is added to the collection.
         if ($this->finder->withinWorkingDirectory())
         {
-            return $this->directories[count($this->directories) - 1]->add($asset);
+            return $this->directories[$this->finder->getWorkingDirectory()]->add($asset);
         }
 
         return $this->assets[] = $asset;
@@ -162,7 +162,9 @@ class Collection implements FilterableInterface {
             return $this->factory['directory']->make(null);
         }
 
-        $this->directories[] = $directory = $this->factory['directory']->make($this->finder->getWorkingDirectory());
+        $directory = $this->factory['directory']->make($this->finder->getWorkingDirectory());
+
+        $this->directories[$this->finder->getWorkingDirectory()] = $directory;
 
         // Once we've set the working directory we'll fire the callback so that any added assets
         // are relative to the working directory. After the callback we can revert the working

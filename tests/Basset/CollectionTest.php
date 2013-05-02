@@ -87,7 +87,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->times(3)->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
@@ -112,7 +112,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($this->getDirectoryMock());
@@ -138,7 +138,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($this->getDirectoryMock());
@@ -160,7 +160,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
@@ -176,7 +176,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
@@ -389,7 +389,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $collection = $this->getCollectionInstance();
 
         $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->once()->andReturn('foo');
+        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
         $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
 
         $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
