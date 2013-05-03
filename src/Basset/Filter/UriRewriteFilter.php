@@ -45,7 +45,7 @@ class UriRewriteFilter implements FilterInterface {
      */
     public function __construct($documentRoot = null, $symlinks = array())
     {
-        $this->documentRoot = $this->realPath($documentRoot ?: $_SERVER['DOCUMENT_ROOT']);
+        $this->documentRoot = $this->realPath($documentRoot ?: public_path());
         $this->symlinks = $symlinks;
     }
 
