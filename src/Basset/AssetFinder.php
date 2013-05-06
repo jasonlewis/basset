@@ -2,6 +2,7 @@
 
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
+use Basset\Exception\AssetExistsException;
 use Basset\Exception\AssetNotFoundException;
 use Basset\Exception\DirectoryNotFoundException;
 
@@ -36,6 +37,13 @@ class AssetFinder {
     protected $hints = array();
 
     /**
+     * Array of cached asset paths.
+     * 
+     * @var array
+     */
+    protected $cached = array();
+
+    /**
      * Create a new asset finder instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
@@ -60,13 +68,18 @@ class AssetFinder {
     {
         $name = $this->config->get("basset::aliases.assets.{$name}", $name);
 
+        if (array_key_exists($name, $this->cached))
+        {
+            throw new AssetExistsException("Asset [{$name}] already exists.");
+        }
+
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
-        foreach (array('RemotelyHosted', 'PackageAsset', 'WorkingDirectory', 'PublicPath') as $method)
+        foreach (array('RemotelyHosted', 'PackageAsset', 'WorkingDirectory', 'PublicPath', 'AbsolutePath') as $method)
         {
             if ($path = $this->{"find{$method}"}($name))
             {
-                return $path;
+                return $this->cached[$name] = $path;
             }
         }
 
@@ -146,6 +159,20 @@ class AssetFinder {
     }
 
     /**
+     * Find an asset by absolute path.
+     * 
+     * @param  string  $name
+     * @return null|string
+     */
+    public function findAbsolutePath($name)
+    {
+        if ($this->files->exists($name))
+        {
+            return $name;
+        }
+    }
+
+    /**
      * Set the working directory path.
      *
      * @param  string  $path
@@ -214,7 +241,7 @@ class AssetFinder {
     {
         if ($this->withinWorkingDirectory())
         {
-            return $this->getWorkingDirectory().'/'.$path;
+            return rtrim($this->getWorkingDirectory().'/'.ltrim($path, '/'), '/');
         }
 
         return $this->prefixPublicPath($path);
@@ -240,7 +267,28 @@ class AssetFinder {
      */
     protected function prefixPublicPath($path)
     {
-        return $this->publicPath.'/'.$path;
+        return rtrim($this->publicPath.'/'.ltrim($path, '/'), '/');
+    }
+
+    /**
+     * Get the path to a cached asset.
+     * 
+     * @param  string  $name
+     * @return string
+     */
+    public function getAssetPath($name)
+    {
+        return $this->cached[$name];
+    }
+
+    /**
+     * Get the public path.
+     * 
+     * @return string
+     */
+    public function getPublicPath()
+    {
+        return $this->publicPath;
     }
 
     /**

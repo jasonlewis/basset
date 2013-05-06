@@ -3,8 +3,8 @@
 use Basset\Collection;
 use Basset\Compiler\StringCompiler;
 use Basset\Compiler\FilesystemCompiler;
-use Illuminate\Config\Repository as ConfigRepository;
-use Basset\Manifest\Repository as ManifestRepository;
+use Illuminate\Config\Repository as Config;
+use Basset\Manifest\Repository as Manifest;
 
 class Resolver {
 
@@ -44,7 +44,7 @@ class Resolver {
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(ManifestRepository $manifest, ConfigRepository $config, $appEnvironment)
+    public function __construct(Manifest $manifest, Config $config, $appEnvironment)
     {
         $this->manifest = $manifest;
         $this->config = $config;

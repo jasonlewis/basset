@@ -43,6 +43,7 @@ class BassetServiceProvider extends ServiceProvider {
      * @var array
      */
     protected $components = array(
+        'AssetFinder',
         'FactoryManager',
         'OutputServer',
         'Repository',
@@ -114,6 +115,14 @@ class BassetServiceProvider extends ServiceProvider {
         });
     }
 
+    protected function registerAssetFinder()
+    {
+        $this->app['basset.finder'] = $this->app->share(function($app)
+        {
+            return new AssetFinder($app['files'], $app['config'], $app['path.public']);
+        });
+    }
+
     /**
      * Register the collection output server.
      *
@@ -146,7 +155,7 @@ class BassetServiceProvider extends ServiceProvider {
 
             $factory['asset'] = new AssetFactory($app['files'], $factory, $app['path.public'], $app['env']);
 
-            $factory['directory'] = new DirectoryFactory($app['files'], $factory);
+            $factory['directory'] = new DirectoryFactory($app['files'], $factory, $app['basset.finder']);
 
             return $factory;
         });
@@ -174,9 +183,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            $finder = new AssetFinder($app['files'], $app['config'], $app['path.public']);
-
-            return new Environment($app['files'], $app['config'], $app['basset.factory'], $finder);
+            return new Environment($app['files'], $app['config'], $app['basset.factory'], $app['basset.finder']);
         });
     }
 

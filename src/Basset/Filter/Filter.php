@@ -304,10 +304,10 @@ class Filter {
     /**
      * Set the resource on the filter.
      * 
-     * @param  Basset\Filter\FilterableInterface  $resource
+     * @param  Basset\Filter\Filterable  $resource
      * @return Basset\Filter\Filter
      */
-    public function setResource(FilterableInterface $resource)
+    public function setResource(Filterable $resource)
     {
         $this->resource = $resource;
 

@@ -2,13 +2,13 @@
 
 use Closure;
 use Basset\Factory\Manager;
+use Basset\Filter\Filterable;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
-use Basset\Filter\FilterableInterface;
 
-class Asset implements FilterableInterface {
+class Asset extends Filterable {
 
     /**
      * Illuminate filesystem instance.
@@ -46,13 +46,6 @@ class Asset implements FilterableInterface {
     protected $appEnvironment;
 
     /**
-     * Array of filters.
-     *
-     * @var array
-     */
-    protected $filters = array();
-
-    /**
      * Indicates if the asset is to be excluded.
      *
      * @var bool
@@ -74,15 +67,18 @@ class Asset implements FilterableInterface {
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @param  string  $appEnvironment
+     * @param  int  $order
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $appEnvironment)
+    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $appEnvironment, $order)
     {
         $this->files = $files;
         $this->factory = $factory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->appEnvironment = $appEnvironment;
+        $this->order = $order;
+        $this->filters = $this->newCollection();
     }
 
     /**
@@ -290,22 +286,6 @@ class Asset implements FilterableInterface {
     }
 
     /**
-     * Apply a filter to the asset.
-     *
-     * @param  string|Filter  $filter
-     * @param  Closure  $callback
-     * @return Basset\Filter
-     */
-    public function apply($filter, Closure $callback = null)
-    {
-        $instance = $this->factory['filter']->make($filter);
-
-        $instance->setResource($this)->runCallback($callback);
-
-        return $this->filters[$instance->getFilter()] = $instance;
-    }
-
-    /**
      * Get the asset contents.
      *
      * @return string
@@ -353,16 +333,6 @@ class Asset implements FilterableInterface {
     public function getAppEnvironment()
     {
         return $this->appEnvironment;
-    }
-
-    /**
-     * Get the applied filters.
-     *
-     * @return array
-     */
-    public function getFilters()
-    {
-        return $this->filters;
     }
 
     /**

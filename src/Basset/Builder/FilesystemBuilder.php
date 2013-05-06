@@ -67,7 +67,7 @@ class FilesystemBuilder extends StringBuilder {
         // If we're not forcefully re-building the collection we'll make sure that an existing
         // collection with the same fingerprint does not already exist. If it does then there's
         // no reason for it to be re-built.
-        $outputPath = "{$this->buildPath}/{$collection->getName()}-{$this->fingerprint[$group]}.{$collection->determineExtension($group)}";
+        $outputPath = "{$this->buildPath}/{$collection->getName()}-{$this->fingerprint[$group]}.{$collection->getExtension($group)}";
 
         if ($this->files->exists($outputPath) and ! $this->force)
         {
@@ -94,7 +94,7 @@ class FilesystemBuilder extends StringBuilder {
 
         ! $this->files->exists($buildPath) and $this->files->makeDirectory($buildPath);
 
-        $fileExtension = $collection->determineExtension($group);
+        $fileExtension = $collection->getExtension($group);
 
         // Spin through each of the responses and create the required directories. Each asset that is
         // to be built will then have its contents dumped to a file.
@@ -111,7 +111,7 @@ class FilesystemBuilder extends StringBuilder {
                 $outputPath = "{$outputPath}/{$directoryName}";
             }
 
-            ! $this->files->exists($outputPath) and $this->files->makeDirectory($outputPath);
+            ! $this->files->exists($outputPath) and $this->files->makeDirectory($outputPath, 0777, true);
 
             $this->files->put("{$outputPath}/{$fileName}.{$fileExtension}", $this->gzip($assetContents));
         }

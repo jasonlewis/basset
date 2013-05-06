@@ -84,7 +84,7 @@ class Environment implements ArrayAccess {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $collection = new Collection($name, $this->files, $this->finder, $this->factory);
+            $collection = new Collection($name, $this->finder, $this->factory);
 
             $this->collections[$name] = $collection;
         }
@@ -94,7 +94,7 @@ class Environment implements ArrayAccess {
         // using the collection instance to add assets.
         if (is_callable($callback))
         {
-            call_user_func($callback, $this->collections[$name]);
+            call_user_func($callback, $collection);
         }
 
         return $this->collections[$name];

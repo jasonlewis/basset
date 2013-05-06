@@ -34,6 +34,13 @@ class AssetFactory implements FactoryInterface {
     protected $appEnvironment;
 
     /**
+     * Number of assets produced by the factory.
+     * 
+     * @var int
+     */
+    protected $assetsProduced = 0;
+
+    /**
      * Create a new asset factory instance.
      *
      * @param  Illuminate\Filesystem\Filesystem  $files
@@ -62,7 +69,7 @@ class AssetFactory implements FactoryInterface {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        return new Asset($this->files, $this->factory, $absolutePath, $relativePath, $this->appEnvironment);
+        return new Asset($this->files, $this->factory, $absolutePath, $relativePath, $this->appEnvironment, $this->nextAssetOrder());
     }
 
     /**
@@ -106,6 +113,16 @@ class AssetFactory implements FactoryInterface {
         }
 
         return $relativePath;
+    }
+
+    /**
+     * Get the next asset order.
+     * 
+     * @return int
+     */
+    protected function nextAssetOrder()
+    {
+        return ++$this->assetsProduced;
     }
 
 }

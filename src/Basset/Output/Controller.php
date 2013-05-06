@@ -1,8 +1,8 @@
 <?php namespace Basset\Output;
 
 use Basset\Asset;
-use Basset\Environment;
 use Basset\Collection;
+use Basset\Environment;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Routing\Controllers\Controller as IlluminateController;

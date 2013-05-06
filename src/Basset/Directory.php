@@ -1,14 +1,19 @@
 <?php namespace Basset;
 
 use Closure;
+use Iterator;
+use SplFileInfo;
 use FilesystemIterator;
 use Basset\Factory\Manager;
+use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use Illuminate\Filesystem\Filesystem;
-use Basset\Filter\FilterableInterface;
+use Basset\Exception\AssetExistsException;
+use Basset\Exception\AssetNotFoundException;
+use Basset\Exception\DirectoryNotFoundException;
 
-class Directory implements FilterableInterface {
+class Directory extends Filterable {
 
     /**
      * Directory path.
@@ -32,18 +37,25 @@ class Directory implements FilterableInterface {
     protected $factory;
 
     /**
-     * Array of assets.
+     * Asset collection.
      *
-     * @var array
+     * @var Illuminate\Support\Collection
      */
-    protected $assets = array();
+    protected $assets;
 
     /**
-     * Array of filters.
-     *
-     * @var array
+     * Directory collection.
+     * 
+     * @var Illuminate\Support\Collection
      */
-    protected $filters = array();
+    protected $directories;
+
+    /**
+     * Asset finder instance.
+     *
+     * @var Basset\AssetFinder
+     */
+    protected $finder;
 
     /**
      * Create a new directory instance.
@@ -53,22 +65,81 @@ class Directory implements FilterableInterface {
      * @param  Basset\Factory\Manager  $factory
      * @return void
      */
-    public function __construct($path, Filesystem $files, Manager $factory)
+    public function __construct($path, Filesystem $files, Manager $factory, AssetFinder $finder)
     {
         $this->path = $path;
         $this->files = $files;
         $this->factory = $factory;
+        $this->finder = $finder;
+        $this->assets = $this->newCollection();
+        $this->filters = $this->newCollection();
+        $this->directories = $this->newCollection();
     }
 
     /**
-     * Add an asset to the directory.
-     * 
-     * @param  Basset\Asset  $asset
+     * Find and add an asset to the directory.
+     *
+     * @param  string  $name
+     * @param  Closure  $callback
      * @return Basset\Asset
      */
-    public function add(Asset $asset)
+    public function add($name, Closure $callback = null)
     {
-        return $this->assets[] = $asset;
+        try
+        {
+            $asset = $this->factory['asset']->make($path = $this->finder->find($name));
+
+            $asset->isRemote() and $asset->exclude();
+
+            $this->assets[$path] = $asset;
+        }
+        catch (AssetNotFoundException $e)
+        {
+            return $this->factory['asset']->make(null);
+        }
+        catch (AssetExistsException $e)
+        {
+            $path = $this->finder->getAssetPath($name);
+        }
+
+        if (is_callable($callback))
+        {
+            call_user_func($callback, $this->assets[$path]);
+        }
+
+        return $this->assets[$path];
+    }
+
+    /**
+     * Change the working directory.
+     *
+     * @param  string  $path
+     * @param  Closure  $callback
+     * @return Basset\Collection|Basset\Directory
+     */
+    public function directory($path, Closure $callback = null)
+    {
+        try
+        {
+            $path = $this->finder->setWorkingDirectory($path);
+
+            $this->directories[$path] = $this->factory['directory']->make($path);
+
+            // Once we've set the working directory we'll fire the callback so that any added assets
+            // are relative to the working directory. After the callback we can revert the working
+            // directory.
+            is_callable($callback) and call_user_func($callback, $this->directories[$path]);
+
+            $this->finder->resetWorkingDirectory();
+
+            // Once the working directory has been made and reset on the finder we can return and
+            // add this directory to the array of directories.
+            return $this->directories[$path];
+        }
+        catch (DirectoryNotFoundException $e)
+        {
+            return $this->factory['directory']->make(null);
+        }
     }
 
     /**
@@ -94,39 +165,72 @@ class Directory implements FilterableInterface {
     }
 
     /**
-     * Require the current directory.
+     * Require a directory.
      *
+     * @param  string  $path
      * @return Basset\Directory
      */
-    public function requireDirectory()
+    public function requireDirectory($path = null)
     {
-        foreach ($this->iterateDirectory($this->path) as $file)
+        if ( ! is_null($path))
         {
-            if ($file->isFile())
-            {
-                $this->assets[] = $this->factory['asset']->make($file->getPathname());
-            }
+            return $this->directory($path)->requireDirectory();
+        }
+
+        $iterator = $this->iterateDirectory($this->path);
+
+        return $this->processRequire($iterator);
+    }
+
+    /**
+     * Require a directory tree.
+     *
+     * @param  string  $path
+     * @return Basset\Directory
+     */
+    public function requireTree($path = null)
+    {
+        if ( ! is_null($path))
+        {
+            return $this->directory($path)->requireDirectory();
+        }
+
+        $iterator = $this->recursivelyIterateDirectory($this->path);
+
+        return $this->processRequire($iterator);
+    }
+
+    /**
+     * Process a require of either the directory or tree.
+     * 
+     * @param  Iterator  $iterator
+     * @return Basset\Directory
+     */
+    protected function processRequire(Iterator $iterator)
+    {
+        // Spin through each of the files within the iterator and if their a valid asset they
+        // are added to the array of assets for this directory.
+        foreach ($iterator as $file)
+        {
+            if ( ! $this->validAssetFile($file)) continue;
+
+            $path = $file->getPathname();
+
+            $this->add($path);
         }
 
         return $this;
     }
 
     /**
-     * Require the current directory tree.
-     *
-     * @return Basset\Directory
+     * Determines if the file is a valid asset file.
+     * 
+     * @param  SplFileInfo  $file
+     * @return bool
      */
-    public function requireTree()
+    protected function validAssetFile(SplFileInfo $file)
     {
-        foreach ($this->recursivelyIterateDirectory($this->path) as $file)
-        {
-            if ($file->isFile())
-            {
-                $this->assets[] = $this->factory['asset']->make($file->getPathname());
-            }
-        }
-
-        return $this;
+        return $file->isFile();
     }
 
     /**
@@ -178,49 +282,31 @@ class Directory implements FilterableInterface {
     }
 
     /**
-     * Get the assets after any directory applied filters are applied to each asset.
+     * Get all the assets.
      *
-     * @return array
+     * @return Illuminate\Support\Collection
      */
     public function getAssets()
     {
-        foreach ($this->assets as $key => $asset)
+        $assets = $this->assets;
+
+        // Spin through each directory and recursively merge the current directories assets
+        // on to the directories assets. This maintains the order of adding in the array
+        // structure.
+        $this->directories->each(function($directory) use (&$assets)
         {
-            foreach ($this->filters as $filter)
-            {
-                $this->assets[$key]->apply($filter);
-            }
-        }
+            $assets = $directory->getAssets()->merge($assets);
+        });
 
-        $this->filters = array();
+        // Spin through each of the filters and apply them to each of the assets. Every filter
+        // is applied and then later during the build will be removed if it does not apply
+        // to a given asset.
+        $this->filters->each(function($filter) use (&$assets)
+        {
+            $assets->each(function($asset) use ($filter) { $asset->apply($filter); });
+        });
 
-        return $this->assets;
-    }
-
-    /**
-     * Apply a filter to an entire directory.
-     *
-     * @param  string  $filter
-     * @param  Closure  $callback
-     * @return Basset\Filter
-     */
-    public function apply($filter, Closure $callback = null)
-    {
-        $instance = $this->factory['filter']->make($filter);
-
-        $instance->setResource($this)->runCallback($callback);
-
-        return $this->filters[$instance->getFilter()] = $instance;
-    }
-
-    /**
-     * Get the applied filters.
-     *
-     * @return array
-     */
-    public function getFilters()
-    {
-        return $this->filters;
+        return $assets;
     }
 
     /**

@@ -219,7 +219,7 @@ class Server {
                 $buildPath = $this->prefixBuildPath("{$collectionName}/{$buildPath}");
             }
 
-            $this->orderAssetResponses($asset, $responses, $this->{'create'.studly_case($group).'Element'}($buildPath));
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($buildPath);
         }
 
         return $responses;
@@ -246,7 +246,7 @@ class Server {
      * @param  array  $responses
      * @return array
      */
-    protected function serveDynamicAssets($name, $group, array $assets, array $responses)
+    protected function serveDynamicAssets($name, $group, $assets, array $responses)
     {
         // The path to dynamically generated assets includes a random hash that's been stored in each
         // session. We'll prefix assets that aren't remotely hosted with this hash.
@@ -261,55 +261,10 @@ class Server {
                 $path = $asset->getAbsolutePath();
             }
 
-            $this->orderAssetResponses($asset, $responses, $this->{'create'.studly_case($group).'Element'}($path));
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($path);
         }
 
         return $responses;
-    }
-
-    /**
-     * Order the asset in the array of responses.
-     * 
-     * @param  Basset\Asset  $asset
-     * @param  array  $responses
-     * @param  string  $element
-     * @return void
-     */
-    protected function orderAssetResponses(Asset $asset, array &$responses, $element)
-    {
-        is_numeric($order = $asset->getOrder()) and $order--;
-
-        // If the order we have is not numeric then we need to guess the order of the asset by
-        // spinning through each of the current existing responses and finding an empty spot
-        // before the current response. Otherwise we'll just add the asset to the end.
-        if ( ! is_numeric($order))
-        {
-            $order = count($responses);
-
-            foreach ($responses as $key => $value)
-            {
-                if ($key > 0 and ! array_key_exists($key - 1, $responses))
-                {
-                    $order = $key - 1;
-
-                    break;
-                }
-            }
-        }
-
-        // If the position already exists then we'll insert a new empty element into the array
-        // at that given position so that we don't overwrite any existing elements.
-        if (array_key_exists($order, $responses))
-        {
-            array_splice($responses, $order, 0, array(null));
-        }
-
-        $responses[$order] = $element;
-
-        // After the element has been added to the array of responses we'll sort the array by
-        // its keys so that any elements given a lower order ranking are ordered in their
-        // correct positions.
-        ksort($responses);
     }
 
     /**
