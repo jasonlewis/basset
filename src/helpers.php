@@ -9,7 +9,7 @@ if ( ! function_exists('basset_stylesheet'))
      */
     function basset_stylesheet()
     {
-        $collections = array_map(function($collection) { return "{$collection}.css"; }, func_get_args());
+        $collections = array_map(function($collection) { return "{$collection}.css"; }, array_flatten(func_get_args()));
 
         return basset_collections($collections);
     }
@@ -24,7 +24,7 @@ if ( ! function_exists('basset_javascript'))
      */
     function basset_javascript()
     {
-        $collections = array_map(function($collection) { return "{$collection}.js"; }, func_get_args());
+        $collections = array_map(function($collection) { return "{$collection}.js"; }, array_flatten(func_get_args()));
 
         return basset_collections($collections);
     }
