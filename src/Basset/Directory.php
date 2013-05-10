@@ -192,7 +192,7 @@ class Directory extends Filterable {
     {
         if ( ! is_null($path))
         {
-            return $this->directory($path)->requireDirectory();
+            return $this->directory($path)->requireTree();
         }
 
         $iterator = $this->recursivelyIterateDirectory($this->path);
@@ -241,11 +241,13 @@ class Directory extends Filterable {
      */
     public function except($assets)
     {
+        $assets = array_flatten(func_get_args());
+
         foreach ($this->assets as $key => $asset)
         {
-            if (in_array($asset->getRelativePath(), (array) $assets))
+            if (in_array($asset->getRelativePath(), $assets))
             {
-                array_splice($this->assets, $key, 1);
+                $this->assets->forget($key);
             }
         }
 
@@ -260,11 +262,13 @@ class Directory extends Filterable {
      */
     public function only($assets)
     {
+        $assets = array_flatten(func_get_args());
+
         foreach ($this->assets as $key => $asset)
         {
-            if ( ! in_array($asset->getRelativePath(), (array) $assets))
+            if ( ! in_array($asset->getRelativePath(), $assets))
             {
-                array_splice($this->assets, $key, 1);
+                $this->assets->forget($key);
             }
         }
 
@@ -310,6 +314,16 @@ class Directory extends Filterable {
     }
 
     /**
+     * Get the current directories assets.
+     * 
+     * @return Illuminate\Support\Collection
+     */
+    public function getDirectoryAssets()
+    {
+        return $this->assets;
+    }
+
+    /**
      * Get the factory manager instance.
      * 
      * @return Basset\Factory\Manager
@@ -327,6 +341,16 @@ class Directory extends Filterable {
     public function getFiles()
     {
         return $this->files;
+    }
+
+    /**
+     * Get the asset finder instance.
+     * 
+     * @return Basset\AssetFinder
+     */
+    public function getFinder()
+    {
+        return $this->finder;
     }
 
 }

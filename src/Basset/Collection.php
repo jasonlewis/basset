@@ -72,34 +72,35 @@ class Collection extends Filterable {
     public function getAssets($group = null)
     {
         // Spin through all of the assets that belong to the given group and push them on
-        // to the beginning of the collection. This means that assets added last are
-        // first in the array and is crucial in ensuring order priority.
-        $assets = $this->newCollection();
+        // to the end of the array.
+        $assets = $this->defaultDirectory->getAssets();
 
-        foreach ($this->defaultDirectory->getAssets() as $asset)
+        foreach ($assets as $key => $asset)
         {
-            if (is_null($group) or $asset->{'is'.ucfirst(str_singular($group))}())
+            if ( ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
             {
-                $assets->push($asset);
+                $assets->forget($key);
             }
         }
 
-        // Spin through each of the assets now and apply the collection wide filters to
-        // them. We'll then order the assets as they were defined or on a user defined
-        // basis.
+        // Spin through each of the assets and build an ordered array of assets. Once
+        // we have the ordered array we'll transform it into a collection and apply
+        // the collection wide filters to each asset.
         $ordered = array();
 
-        foreach ($assets->toArray() as $asset)
+        foreach ($assets as $asset)
         {
             $this->orderAsset($asset, $ordered);
         }
+
+        $ordered = $this->newCollection($ordered);
 
         $this->filters->each(function($filter) use (&$ordered)
         {
             $ordered->each(function($asset) use ($filter) { $asset->apply($filter); });
         });
 
-        return $this->newCollection($ordered);
+        return $ordered;
     }
 
     /**
@@ -137,8 +138,6 @@ class Collection extends Filterable {
         // then when we finally get to the first added asset it's added second.
         if (array_key_exists($order, $assets))
         {
-            $order++;
-
             array_splice($assets, $order, 0, array(null));
         }
 
