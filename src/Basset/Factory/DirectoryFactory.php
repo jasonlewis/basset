@@ -9,21 +9,21 @@ class DirectoryFactory implements FactoryInterface {
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
-     * Factory manager instance.
+     * Basset factory manager instance.
      *
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     protected $factory;
 
     /**
-     * Asset finder instance.
+     * Basset asset finder instance.
      *
-     * @var Basset\AssetFinder
+     * @var \Basset\AssetFinder
      */
     protected $finder;
 
@@ -45,7 +45,7 @@ class DirectoryFactory implements FactoryInterface {
      * Make a new directory instance.
      *
      * @param  string  $path
-     * @return Basset\Directory
+     * @return \Basset\Directory
      */
     public function make($path)
     {

@@ -1,6 +1,7 @@
 <?php namespace Basset;
 
 use Basset\Factory\Manager;
+use Basset\Builder\Builder;
 use Basset\Manifest\Repository;
 use Basset\Console\BuildCommand;
 use Basset\Console\CleanCommand;
@@ -8,11 +9,9 @@ use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
 use Basset\Factory\DirectoryFactory;
-use Basset\Builder\FilesystemBuilder;
+use Basset\Builder\FilesystemCleaner;
 use Illuminate\Support\ServiceProvider;
-use Basset\Output\Server as OutputServer;
-use Basset\Output\Resolver as OutputResolver;
-use Basset\Output\Controller as OutputController;
+use Basset\Exceptions\BuildNotRequiredException;
 
 class BassetServiceProvider extends ServiceProvider {
 
@@ -22,13 +21,6 @@ class BassetServiceProvider extends ServiceProvider {
      * @var string
      */
     const VERSION = '4.0.0';
-
-    /**
-     * Name of the session hash.
-     * 
-     * @var string
-     */
-    const SESSION_HASH = 'basset_hash';
 
     /**
      * Indicates if loading of the provider is deferred.
@@ -45,8 +37,9 @@ class BassetServiceProvider extends ServiceProvider {
     protected $components = array(
         'AssetFinder',
         'FactoryManager',
-        'OutputServer',
-        'Repository',
+        'Server',
+        'Manifest',
+        'Builder',
         'Commands',
         'Basset'
     );
@@ -60,19 +53,47 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
+        $this->app['basset.path.build'] = $this->app['path.public'].'/'.$this->app['config']['basset::build_path'];
+
         // Register the collections defined in the configuration. By default an "application"
         // collection is provided with a clean installation of Basset.
-        $this->app['basset']->registerCollections($this->app['config']->get('basset::collections', array()));
+        $collections = $this->app['config']->get('basset::collections', array());
+
+        $this->app['basset']->collections($collections);
 
         // When booting the application we need to load the collections stored within the manifest
         // repository. These collections indicate the fingerprints required to display the
         // collections correctly.
         $this->app['basset.manifest']->load();
 
-        // To process assets dynamically we'll register a route with the router that will allow
-        // assets to be built on the fly and returned to the browser. Static files will not be served
-        // meaning this is much slower then building assets via the command line.
-        $this->registerRouting();
+        $this->buildOutstandingCollections();
+    }
+
+    /**
+     * Register a global "before" filter to build any outstanding development collections.
+     * 
+     * @return void
+     */
+    public function buildOutstandingCollections()
+    {
+        $app = $this->app;
+
+        $this->app->before(function() use ($app)
+        {
+            if ( ! $app['basset']->runningInProduction() and ! $app->runningUnitTests())
+            {
+                $collections = $app['basset']->getCollections();
+
+                foreach ($collections as $collection)
+                {
+                    try
+                    {
+                        $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets');
+                    }
+                    catch (BuildNotRequiredException $exception) {}
+                }
+            }
+        });
     }
 
     /**
@@ -84,37 +105,15 @@ class BassetServiceProvider extends ServiceProvider {
     {
         foreach ($this->components as $component)
         {
-            $this->{"register{$component}"}();
+            $this->{'register'.$component}();
         }
     }
 
     /**
-     * Register the asset processing route with the router.
-     *
+     * Register the asset finder.
+     * 
      * @return void
      */
-    protected function registerRouting()
-    {
-        // Bind the output controller to the container so that we can resolve its dependencies.
-        // This is essential in making the controller testable and more robust.
-        $this->app['Basset\Output\Controller'] = function($app)
-        {
-            return new OutputController($app['basset']);
-        };
-
-        // We can now register a callback to the booting event fired by the application. This
-        // allows us to hook in after the sessions have been started and properly register the
-        // route with the router.
-        $provider = $this;
-
-        $this->app->booting(function($app) use ($provider)
-        {
-            $route = $app['router']->get("{$provider->getPatternHash()}/{collection}/{asset}", 'Basset\Output\Controller@processAsset');
-
-            $route->where('asset', '.*');
-        });
-    }
-
     protected function registerAssetFinder()
     {
         $this->app['basset.finder'] = $this->app->share(function($app)
@@ -124,17 +123,15 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the collection output server.
+     * Register the collection server.
      *
      * @return void
      */
-    protected function registerOutputServer()
+    protected function registerServer()
     {
-        $this->app['basset.output'] = $this->app->share(function($app)
+        $this->app['basset.server'] = $this->app->share(function($app)
         {
-            $resolver = new OutputResolver($app['basset.manifest'], $app['config'], $app['env']);
-
-            return new OutputServer($resolver, $app['config'], $app['session'], $app['url'], $app['basset']->getCollections());
+            return new Server($app['basset'], $app['basset.manifest'], $app['config'], $app['url']);
         });
     }
 
@@ -149,8 +146,6 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $factory = new Manager;
 
-            // Register the filter, asset, and directory factories with the factory manager so that other
-            // classes don't have multiple dependencies for the factories.
             $factory['filter'] = new FilterFactory($app['config']);
 
             $factory['asset'] = new AssetFactory($app['files'], $factory, $app['path.public'], $app['env']);
@@ -166,16 +161,36 @@ class BassetServiceProvider extends ServiceProvider {
      *
      * @return void
      */
-    protected function registerRepository()
+    protected function registerManifest()
     {
         $this->app['basset.manifest'] = $this->app->share(function($app)
         {
-            return new Repository($app['files'], $app['config']->get('app.manifest'));
+            $meta = $app['config']->get('app.manifest');
+
+            return new Repository($app['files'], $meta);
         });
     }
 
     /**
-     * Register basset.
+     * Register the collection builder.
+     *
+     * @return void
+     */
+    protected function registerBuilder()
+    {
+        $this->app['basset.builder'] = $this->app->share(function($app)
+        {
+            return new Builder($app['files'], $app['basset.manifest'], $app['basset.builder.cleaner'], $app['basset.path.build']);
+        });
+
+        $this->app['basset.builder.cleaner'] = $this->app->share(function($app)
+        {
+            return new FilesystemCleaner($app['basset'], $app['basset.manifest'], $app['files'], $app['basset.path.build']);
+        });
+    }
+
+    /**
+     * Register the basset environment.
      *
      * @return void
      */
@@ -183,7 +198,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Environment($app['files'], $app['config'], $app['basset.factory'], $app['basset.finder']);
+            return new Environment($app['files'], $app['config'], $app['basset.factory'], $app['basset.finder'], $app['env']);
         });
     }
 
@@ -198,11 +213,7 @@ class BassetServiceProvider extends ServiceProvider {
         
         $this->registerBuildCommand();
 
-        $this->registerCleanCommand();
-
-        // Resolve the commands with Artisan by attaching the event listener to Artisan's
-        // startup. This allows us to use the commands from our terminal.
-        $this->commands('command.basset', 'command.basset.build', 'command.basset.clean');
+        $this->commands('command.basset', 'command.basset.build');
     }
 
     /**
@@ -214,7 +225,9 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['command.basset'] = $this->app->share(function($app)
         {
-            return new BassetCommand;
+            $meta = $app['config']->get('app.manifest');
+
+            return new BassetCommand($app['files'], $app['basset.builder.cleaner'], $meta);
         });
     }
 
@@ -227,49 +240,8 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['command.basset.build'] = $this->app->share(function($app)
         {
-            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
-
-            $builder = new FilesystemBuilder($app['files']);
-
-            $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
-
-            return new BuildCommand($app['basset'], $builder, $app['basset.manifest'], $cleaner, $buildPath, $app['config']->get('basset::gzip', false));
+            return new BuildCommand($app['basset'], $app['basset.builder']);
         });
-    }
-
-    /**
-     * Register the clean command.
-     * 
-     * @return void
-     */
-    protected function registerCleanCommand()
-    {
-        $this->app['command.basset.clean'] = $this->app->share(function($app)
-        {
-            $buildPath = $app['path.public'].'/'.$app['config']->get('basset::build_path');
-
-            $cleaner = new BuildCleaner($app['basset.manifest'], $app['files'], $buildPath);
-
-            return new CleanCommand($cleaner);
-        });
-    }
-
-    /**
-     * Generate a random hash for the URI pattern.
-     *
-     * @return string
-     */
-    public function getPatternHash()
-    {
-        $session = $this->app['session'];
-
-        // Get the hash from the session. If the hash does not exist then we'll generate a random
-        // string and store that in the session.
-        $hash = $session->get(static::SESSION_HASH, str_random());
-
-        ! $session->has(static::SESSION_HASH) and $session->put(static::SESSION_HASH, $hash);
-
-        return $hash;
     }
 
     /**
@@ -279,7 +251,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('basset', 'basset.manifest', 'basset.output', 'basset.factory');
+        return array('basset', 'basset.manifest', 'basset.server', 'basset.factory', 'basset.builder', 'basset.builder.cleaner', 'basset.finder');
     }
 
 }

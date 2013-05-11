@@ -8,14 +8,14 @@ class AssetFactory implements FactoryInterface {
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
-     * Factory manager instance.
+     * Basset factory manager instance.
      *
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     protected $factory;
 
@@ -43,8 +43,8 @@ class AssetFactory implements FactoryInterface {
     /**
      * Create a new asset factory instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\Manager  $factory
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Basset\Factory\Manager  $factory
      * @param  string  $publicPath
      * @param  string  $appEnvironment
      * @return void
@@ -61,7 +61,7 @@ class AssetFactory implements FactoryInterface {
      * Make a new asset instance.
      *
      * @param  string  $path
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function make($path)
     {
@@ -80,10 +80,7 @@ class AssetFactory implements FactoryInterface {
      */
     public function buildAbsolutePath($path)
     {
-        if (is_null($path))
-        {
-            return $path;
-        }
+        if (is_null($path)) return $path;
 
         return realpath($path) ?: $path;
     }
@@ -96,20 +93,25 @@ class AssetFactory implements FactoryInterface {
      */
     public function buildRelativePath($path)
     {
-        if (is_null($path))
-        {
-            return $path;
-        }
+        if (is_null($path)) return $path;
 
-        $relativePath = trim(str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $path), '/');
+        $relativePath = str_replace(array(realpath($this->publicPath), '\\'), array('', '/'), $path);
 
-        // If we're not dealing with a remote asset and the relative and absolute paths are the
-        // same then it's likely the asset is outside the public path.
-        if ( ! filter_var($path, FILTER_VALIDATE_URL) and trim(str_replace('\\', '/', $path), '/') == $relativePath)
+        // If the asset is not a remote asset then we'll trim the relative path even further to remove
+        // any unnecessary leading or trailing slashes. This will leave us with a nice relative path.
+        if ( ! starts_with($path, '//') and ! (bool) filter_var($path, FILTER_VALIDATE_URL))
         {
-            list($directoryName, $fileName) = array(pathinfo($path, PATHINFO_DIRNAME), pathinfo($path, PATHINFO_BASENAME));
-            
-            $relativePath = md5($directoryName).'/'.$fileName;
+            $relativePath = trim($relativePath, '/');
+
+            // If the given path is the same as the built relative path then the asset appears to be
+            // outside of the public directory. If this is the case then we'll use an MD5 hash of
+            // the assets path as the relative path to the asset.
+            if (trim(str_replace('\\', '/', $path), '/') == trim($relativePath, '/'))
+            {
+                $path = pathinfo($path);
+
+                $relativePath = md5($path['dirname']).'/'.$path['basename'];
+            }
         }
 
         return $relativePath;

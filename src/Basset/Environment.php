@@ -12,61 +12,71 @@ class Environment implements ArrayAccess {
     /**
      * Asset collections.
      *
-     * @var array
+     * @var \Illuminate\Support\Collection
      */
     protected $collections;
 
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
      * Illuminate config repository instance.
      *
-     * @var Illuminate\Config\Repository
+     * @var \Illuminate\Config\Repository
      */
     protected $config;
 
     /**
      * Factory manager instance.
      *
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     protected $factory;
 
     /**
      * Asset finder instance.
      *
-     * @var Basset\AssetFinder
+     * @var \Basset\AssetFinder
      */
     protected $finder;
 
     /**
+     * Application working environment.
+     * 
+     * @var string
+     */
+    protected $applicationEnvironment;
+
+    /**
      * Create a new environment instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Illuminate\Config\Repository  $config
-     * @param  Basset\Factory\Manager  $factory
-     * @param  Basset\AssetFinder  $finder
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Illuminate\Config\Repository  $config
+     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\AssetFinder  $finder
+     * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, Manager $factory, AssetFinder $finder)
+    public function __construct(Filesystem $files, Repository $config, Manager $factory, AssetFinder $finder, $applicationEnvironment)
     {
         $this->files = $files;
         $this->config = $config;
         $this->factory = $factory;
         $this->finder = $finder;
+        $this->applicationEnvironment = $applicationEnvironment;
+        $this->collections = new \Illuminate\Support\Collection;
     }
 
     /**
-     * Alias of Basset\Environment::collection()
+     * Alias of \Basset\Environment::collection()
      *
      * @param  string  $name
-     * @param  Closure  $callback
-     * @return Basset\Collection
+     * @param  \Closure  $callback
+     * @return \Basset\Collection
      */
     public function make($name, Closure $callback = null)
     {
@@ -77,16 +87,14 @@ class Environment implements ArrayAccess {
      * Create or return an existing collection.
      *
      * @param  string  $name
-     * @param  Closure  $callback
-     * @return Basset\Collection
+     * @param  \Closure  $callback
+     * @return \Basset\Collection
      */
     public function collection($name, Closure $callback = null)
     {
         if ( ! isset($this->collections[$name]))
         {
-            $collection = new Collection($name, $this->finder, $this->factory);
-
-            $this->collections[$name] = $collection;
+            $this->collections[$name] = new Collection($name, $this->finder, $this->factory);;
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with
@@ -94,7 +102,7 @@ class Environment implements ArrayAccess {
         // using the collection instance to add assets.
         if (is_callable($callback))
         {
-            call_user_func($callback, $collection);
+            call_user_func($callback, $this->collections[$name]);
         }
 
         return $this->collections[$name];
@@ -144,12 +152,22 @@ class Environment implements ArrayAccess {
      * @param  array  $collections
      * @return void
      */
-    public function registerCollections(array $collections)
+    public function collections(array $collections)
     {
         foreach ($collections as $name => $callback)
         {
             $this->make($name, $callback);
         }
+    }
+
+    /**
+     * Determine if running in production environment.
+     *
+     * @return bool
+     */
+    public function runningInProduction()
+    {
+        return in_array($this->applicationEnvironment, (array) $this->config->get('basset::production', array()));
     }
 
     /**
@@ -173,7 +191,7 @@ class Environment implements ArrayAccess {
      * Get a collection offset.
      *
      * @param  string  $offset
-     * @return Basset\Collection|null
+     * @return null|\Basset\Collection
      */
     public function offsetGet($offset)
     {
@@ -205,7 +223,7 @@ class Environment implements ArrayAccess {
     /**
      * Get the illuminate filesystem instance.
      * 
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     public function getFiles()
     {
@@ -215,7 +233,7 @@ class Environment implements ArrayAccess {
     /**
      * Get the illuminate config repository instance.
      * 
-     * @var Illuminate\Config\Repository
+     * @var \Illuminate\Config\Repository
      */
     public function getConfig()
     {
@@ -223,9 +241,9 @@ class Environment implements ArrayAccess {
     }
 
     /**
-     * Get the factory manager instance.
+     * Get the basset factory manager instance.
      * 
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     public function getFactory()
     {
@@ -233,9 +251,9 @@ class Environment implements ArrayAccess {
     }
 
     /**
-     * Get the asset finder instance.
+     * Get the basset asset finder instance.
      * 
-     * @var Basset\AssetFinder
+     * @var \Basset\AssetFinder
      */
     public function getFinder()
     {

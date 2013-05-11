@@ -8,7 +8,7 @@ class Repository {
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
@@ -20,16 +20,16 @@ class Repository {
     protected $manifestPath;
 
     /**
-     * Manifest instance.
-     *
-     * @var Basset\Manifest\Manifest
+     * Manifest entries collection.
+     * 
+     * @var \Illuminate\Support\Collection
      */
-    protected $manifest;
+    protected $entries;
 
     /**
      * Create a new collection repository instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
+     * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  string  $manifestPath
      * @return void
      */
@@ -37,136 +37,71 @@ class Repository {
     {
         $this->files = $files;
         $this->manifestPath = $manifestPath;
-        $this->manifest = new Manifest;
+        $this->entries = new \Illuminate\Support\Collection;
     }
 
     /**
-     * Load and set the manifest on the repository instance.
+     * Determine if the manifest has a given collection entry.
+     * 
+     * @param  string  $collection
+     * @return bool
+     */
+    public function has($collection)
+    {
+        if ($collection instanceof Collection)
+        {
+            $collection = $collection->getName();
+        }
+
+        return isset($this->entries[$collection]);
+    }
+
+    /**
+     * Get a collection entry from the manifest or create a new entry.
+     * 
+     * @param  string|\Basset\Collection  $collection
+     * @return \Basset\Manifest\Entry
+     */
+    public function get($collection)
+    {
+        if ($collection instanceof Collection)
+        {
+            $collection = $collection->getName();
+        }
+
+        return isset($this->entries[$collection]) ? $this->entries[$collection] : $this->entries[$collection] = new Entry;
+    }
+
+    /**
+     * Loads and registers the manifest entries.
      *
-     * @return Basset\Manifest\Manifest
+     * @return void
      */
     public function load()
     {
-        $manifest = $this->loadManifest();
+        $path = $this->manifestPath.'/collections.json';
 
-        if (is_array($manifest))
+        if ($this->files->exists($path) and is_array($manifest = json_decode($this->files->get($path), true)))
         {
             foreach ($manifest as $key => $entry)
             {
-                $this->manifest->setEntry($key, new Entry($entry));
+                $entry = new Entry($entry['fingerprints'], $entry['development']);
+
+                $this->entries->put($key, $entry);
             }
         }
-
-        return $this->manifest;
     }
 
     /**
-     * Load the manifest from the manifest path.
+     * Save the manifest.
      *
-     * @return string
-     */
-    public function loadManifest()
-    {
-        $path = $this->manifestPath.'/collections.json';
-
-        if ($this->files->exists($path))
-        {
-            return json_decode($this->files->get($path), true);
-        }
-    }
-
-    /**
-     * Register a collection with the manifest.
-     *
-     * @param  Basset\Collection  $collection
-     * @param  array  $fingerprints
-     * @param  bool  $development
      * @return void
      */
-    public function register(Collection $collection, $fingerprints, $development = false)
-    {
-        $collectionName = $collection->getName();
-
-        $entry = $this->freshEntry();
-
-        // We can immedietly set the collections fingerprints for the entry if one exists.
-        // This fingerprint is used to bust the cache and identify the current compiled file.
-        foreach ($fingerprints as $group => $fingerprint)
-        {
-            $entry->setFingerprint($fingerprint, $group);
-        }
-
-        if ($development)
-        {
-            foreach ($collection->getAssets() as $asset)
-            {
-                list($relativePath, $group) = array($asset->getRelativePath(), $asset->getGroup());
-
-                // If the asset is remotely hosted then we don't need to get the directory and filename, we can
-                // just add the asset to the entry and continue on.
-                if ($asset->isRemote())
-                {
-                    $entry->addDevelopmentAsset($relativePath, $relativePath, $group);
-
-                    continue;
-                }
-
-                $entry->addDevelopmentAsset($relativePath, $asset->getUsablePath(), $group);
-            }
-        }
-
-        // Make the manifest a variable with the methods scope so that we don't turn the manifest property
-        // into a bunch of arrays when writing the manifest.
-        $this->manifest->setEntry($collectionName, $entry);
-
-        $this->writeManifest($this->manifest->toJson());
-    }
-
-    /**
-     * Write to the manifest file.
-     *
-     * @param  string  $manifest
-     * @return array
-     */
-    public function writeManifest($manifest)
+    public function save()
     {
         $path = $this->manifestPath.'/collections.json';
 
-        $this->files->put($path, $manifest);
-
-        return $manifest;
-    }
-
-    /**
-     * Get the manifest array.
-     *
-     * @return array
-     */
-    public function getManifest()
-    {
-        return $this->manifest;
-    }
-
-    /**
-     * Get a new fresh manifest entry.
-     *
-     * @return array
-     */
-    protected function freshEntry()
-    {
-        return new Entry;
-    }
-
-    /**
-     * Dynamically pass method calls to the manifest.
-     *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        return call_user_func_array(array($this->manifest, $method), $parameters);
+        $this->files->put($path, $this->entries->toJson());
     }
 
 }

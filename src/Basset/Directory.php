@@ -9,9 +9,9 @@ use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use Illuminate\Filesystem\Filesystem;
-use Basset\Exception\AssetExistsException;
-use Basset\Exception\AssetNotFoundException;
-use Basset\Exception\DirectoryNotFoundException;
+use Basset\Exceptions\AssetExistsException;
+use Basset\Exceptions\AssetNotFoundException;
+use Basset\Exceptions\DirectoryNotFoundException;
 
 class Directory extends Filterable {
 
@@ -25,35 +25,35 @@ class Directory extends Filterable {
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
-     * Factory manager instance.
+     * Basset factory manager instance.
      *
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     protected $factory;
 
     /**
      * Asset collection.
      *
-     * @var Illuminate\Support\Collection
+     * @var \Illuminate\Support\Collection
      */
     protected $assets;
 
     /**
      * Directory collection.
      * 
-     * @var Illuminate\Support\Collection
+     * @var \Illuminate\Support\Collection
      */
     protected $directories;
 
     /**
-     * Asset finder instance.
+     * Basset asset finder instance.
      *
-     * @var Basset\AssetFinder
+     * @var \Basset\AssetFinder
      */
     protected $finder;
 
@@ -61,8 +61,9 @@ class Directory extends Filterable {
      * Create a new directory instance.
      *
      * @param  string  $path
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\Manager  $factory
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\AssetFinder  $finder
      * @return void
      */
     public function __construct($path, Filesystem $files, Manager $factory, AssetFinder $finder)
@@ -80,8 +81,8 @@ class Directory extends Filterable {
      * Find and add an asset to the directory.
      *
      * @param  string  $name
-     * @param  Closure  $callback
-     * @return Basset\Asset
+     * @param  \Closure  $callback
+     * @return \Basset\Asset
      */
     public function add($name, Closure $callback = null)
     {
@@ -99,7 +100,7 @@ class Directory extends Filterable {
         }
         catch (AssetExistsException $e)
         {
-            $path = $this->finder->getAssetPath($name);
+            $path = $this->finder->getCachedPath($name);
         }
 
         if (is_callable($callback))
@@ -114,8 +115,8 @@ class Directory extends Filterable {
      * Change the working directory.
      *
      * @param  string  $path
-     * @param  Closure  $callback
-     * @return Basset\Collection|Basset\Directory
+     * @param  \Closure  $callback
+     * @return \Basset\Collection|\Basset\Directory
      */
     public function directory($path, Closure $callback = null)
     {
@@ -146,7 +147,7 @@ class Directory extends Filterable {
      * Recursively iterate through a given path.
      *
      * @param  string  $path
-     * @return RecursiveIteratorIterator
+     * @return \RecursiveIteratorIterator
      */
     public function recursivelyIterateDirectory($path)
     {
@@ -157,7 +158,7 @@ class Directory extends Filterable {
      * Iterate through a given path.
      *
      * @param  string  $path
-     * @return FilesystemIterator
+     * @return \FilesystemIterator
      */
     public function iterateDirectory($path)
     {
@@ -168,7 +169,7 @@ class Directory extends Filterable {
      * Require a directory.
      *
      * @param  string  $path
-     * @return Basset\Directory
+     * @return \Basset\Directory
      */
     public function requireDirectory($path = null)
     {
@@ -186,7 +187,7 @@ class Directory extends Filterable {
      * Require a directory tree.
      *
      * @param  string  $path
-     * @return Basset\Directory
+     * @return \Basset\Directory
      */
     public function requireTree($path = null)
     {
@@ -203,8 +204,8 @@ class Directory extends Filterable {
     /**
      * Process a require of either the directory or tree.
      * 
-     * @param  Iterator  $iterator
-     * @return Basset\Directory
+     * @param  \Iterator  $iterator
+     * @return \Basset\Directory
      */
     protected function processRequire(Iterator $iterator)
     {
@@ -225,7 +226,7 @@ class Directory extends Filterable {
     /**
      * Determines if the file is a valid asset file.
      * 
-     * @param  SplFileInfo  $file
+     * @param  \SplFileInfo  $file
      * @return bool
      */
     protected function validAssetFile(SplFileInfo $file)
@@ -236,20 +237,17 @@ class Directory extends Filterable {
     /**
      * Exclude an array of assets.
      *
-     * @param  array  $assets
-     * @return Basset\Directory
+     * @param  string|array  $assets
+     * @return \Basset\Directory
      */
     public function except($assets)
     {
         $assets = array_flatten(func_get_args());
 
-        foreach ($this->assets as $key => $asset)
+        $this->assets = $this->assets->filter(function($asset) use ($assets)
         {
-            if (in_array($asset->getRelativePath(), $assets))
-            {
-                $this->assets->forget($key);
-            }
-        }
+            return ! in_array($asset->getRelativePath(), $assets);
+        });
 
         return $this;
     }
@@ -257,20 +255,17 @@ class Directory extends Filterable {
     /**
      * Include only a subset of assets.
      *
-     * @param  array  $assets
-     * @return Basset\Directory
+     * @param  string|array  $assets
+     * @return \Basset\Directory
      */
     public function only($assets)
     {
         $assets = array_flatten(func_get_args());
 
-        foreach ($this->assets as $key => $asset)
+        $this->assets = $this->assets->filter(function($asset) use ($assets)
         {
-            if ( ! in_array($asset->getRelativePath(), $assets))
-            {
-                $this->assets->forget($key);
-            }
-        }
+            return in_array($asset->getRelativePath(), $assets);
+        });
 
         return $this;
     }
@@ -288,7 +283,7 @@ class Directory extends Filterable {
     /**
      * Get all the assets.
      *
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function getAssets()
     {
@@ -316,7 +311,7 @@ class Directory extends Filterable {
     /**
      * Get the current directories assets.
      * 
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function getDirectoryAssets()
     {
@@ -324,9 +319,9 @@ class Directory extends Filterable {
     }
 
     /**
-     * Get the factory manager instance.
+     * Get the basset factory manager instance.
      * 
-     * @return Basset\Factory\Manager
+     * @return \Basset\Factory\Manager
      */
     public function getFactory()
     {
@@ -336,7 +331,7 @@ class Directory extends Filterable {
     /**
      * Get the illuminate filesystem instance.
      * 
-     * @return Illuminate\Filesystem\Filesystem
+     * @return \Illuminate\Filesystem\Filesystem
      */
     public function getFiles()
     {
@@ -344,9 +339,9 @@ class Directory extends Filterable {
     }
 
     /**
-     * Get the asset finder instance.
+     * Get the basset asset finder instance.
      * 
-     * @return Basset\AssetFinder
+     * @return \Basset\AssetFinder
      */
     public function getFinder()
     {

@@ -2,23 +2,23 @@
 
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
-use Basset\Exception\AssetExistsException;
-use Basset\Exception\AssetNotFoundException;
-use Basset\Exception\DirectoryNotFoundException;
+use Basset\Exceptions\AssetExistsException;
+use Basset\Exceptions\AssetNotFoundException;
+use Basset\Exceptions\DirectoryNotFoundException;
 
 class AssetFinder {
 
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
      * Illuminate config repository instance.
      *
-     * @var Illuminate\Config\Repository
+     * @var \Illuminate\Config\Repository
      */
     protected $config;
 
@@ -46,8 +46,8 @@ class AssetFinder {
     /**
      * Create a new asset finder instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Illuminate\Config\Repository  $config
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Illuminate\Config\Repository  $config
      * @param  string  $publicPath
      * @return void
      */
@@ -63,6 +63,8 @@ class AssetFinder {
      *
      * @param  string  $name
      * @return string
+     * @throws \Basset\Exceptions\AssetExistsException
+     * @throws \Basset\Exceptions\AssetNotFoundException
      */
     public function find($name)
     {
@@ -70,20 +72,20 @@ class AssetFinder {
 
         if (array_key_exists($name, $this->cached))
         {
-            throw new AssetExistsException("Asset [{$name}] already exists.");
+            throw new AssetExistsException;
         }
 
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
         foreach (array('RemotelyHosted', 'PackageAsset', 'WorkingDirectory', 'PublicPath', 'AbsolutePath') as $method)
         {
-            if ($path = $this->{"find{$method}"}($name))
+            if ($path = $this->{'find'.$method}($name))
             {
                 return $this->cached[$name] = $path;
             }
         }
 
-        throw new AssetNotFoundException("Asset [{$name}] could not be found.");
+        throw new AssetNotFoundException;
     }
 
     /**
@@ -117,7 +119,7 @@ class AssetFinder {
                 return;
             }
 
-            $path = $this->prefixPublicPath("packages/{$this->hints[$namespace]}/{$name}");
+            $path = $this->prefixPublicPath('packages/'.$this->hints[$namespace].'/'.$name);
 
             if ($this->files->exists($path))
             {
@@ -177,6 +179,7 @@ class AssetFinder {
      *
      * @param  string  $path
      * @return string
+     * @throws \Basset\Exceptions\DirectoryNotFoundException
      */
     public function setWorkingDirectory($path)
     {
@@ -193,11 +196,11 @@ class AssetFinder {
     /**
      * Pop the last directory from the directory stack.
      *
-     * @return void
+     * @return string
      */
     public function resetWorkingDirectory()
     {
-        array_pop($this->directoryStack);
+        return array_pop($this->directoryStack);
     }
 
     /**
@@ -276,7 +279,7 @@ class AssetFinder {
      * @param  string  $name
      * @return string
      */
-    public function getAssetPath($name)
+    public function getCachedPath($name)
     {
         return $this->cached[$name];
     }
@@ -294,7 +297,7 @@ class AssetFinder {
     /**
      * Get the illuminate filesystem instance.
      * 
-     * @return Illuminate\Filesystem\Filesystem
+     * @return \Illuminate\Filesystem\Filesystem
      */
     public function getFiles()
     {
@@ -304,7 +307,7 @@ class AssetFinder {
     /**
      * Get the illuminate config repository instance.
      * 
-     * @return Illuminate\Config\Repository
+     * @return \Illuminate\Config\Repository
      */
     public function getConfig()
     {

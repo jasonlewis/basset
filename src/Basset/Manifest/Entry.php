@@ -1,5 +1,6 @@
 <?php namespace Basset\Manifest;
 
+use Basset\Asset;
 use Illuminate\Support\Contracts\JsonableInterface;
 use Illuminate\Support\Contracts\ArrayableInterface;
 
@@ -22,59 +23,119 @@ class Entry implements JsonableInterface, ArrayableInterface {
     /**
      * Create a new manifest entry instance.
      *
-     * @param  array  $entry
+     * @param  array  $fingerprints
+     * @param  array  $development
      * @return void
      */
-    public function __construct(array $entry = array())
+    public function __construct($fingerprints = array(), $development = array())
     {
-        $this->parseDefaultEntry($entry);
+        $this->fingerprints = $fingerprints;
+        $this->development = $development;
     }
 
     /**
      * Add a development asset.
      * 
-     * @param  string  $originalPath
-     * @param  string  $builtPath
+     * @param  string|\Basset\Asset  $value
+     * @param  string  $fingerprint
      * @param  string  $group
-     * @return Basset\Manifest\Entry
+     * @return void
      */
-    public function addDevelopmentAsset($originalPath, $builtPath, $group)
+    public function addDevelopmentAsset($value, $fingerprint = null, $group = null)
     {
-        $this->development[$group][$originalPath] = $builtPath;
+        if ($value instanceof Asset)
+        {
+            $group = $value->getGroup();
 
-        return $this;
+            $fingerprint = $value->getFingerprintedPath();
+
+            $value = $value->getRelativePath();
+        }
+
+        $this->development[$group][$value] = $fingerprint;
     }
 
     /**
-     * Get development assets.
+     * Get a development assets build path.
+     * 
+     * @param  string|\Basset\Asset  $value
+     * @param  string  $group
+     * @return null|string
+     */
+    public function getDevelopmentAsset($value, $group = null)
+    {
+        if ($value instanceof Asset)
+        {
+            $group = $value->getGroup();
+
+            $value = $value->getRelativePath();
+        }
+        
+        return isset($this->development[$group][$value]) ? $this->development[$group][$value] : null;
+    }
+
+    /**
+     * Determine if the entry has a development asset.
+     * 
+     * @param  string|\Basset\Asset  $value
+     * @param  string  $group
+     * @return bool
+     */
+    public function hasDevelopmentAsset($value, $group = null)
+    {
+        return ! is_null($this->getDevelopmentAsset($value, $group));
+    }
+
+    /**
+     * Get all or a subset of development assets.
      * 
      * @param  string  $group
      * @return array
      */
     public function getDevelopmentAssets($group = null)
     {
+        return is_null($group) ? $this->development : $this->development[$group];
+    }
+
+    /**
+     * Determine if the entry has any development assets.
+     * 
+     * @param  string  $group
+     * @return bool
+     */
+    public function hasDevelopmentAssets($group = null)
+    {
+        return is_null($group) ? ! empty($this->development) : isset($this->development[$group]);
+    }
+
+    /**
+     * Reset the development assets.
+     * 
+     * @param  string  $group
+     * @return void
+     */
+    public function resetDevelopmentAssets($group = null)
+    {
         if (is_null($group))
         {
-            return $this->development;
+            $this->development = array();
         }
-        elseif (isset($this->development[$group]))
+        else
         {
-            return $this->development[$group];
+            $this->development[$group] = array();
         }
     }
 
     /**
      * Set the entry fingerprint.
      *
-     * @param  string  $fingerprint
      * @param  string  $group
-     * @return Basset\Manifest\Entry
+     * @param  string  $fingerprint
+     * @return void
      */
-    public function setFingerprint($fingerprint, $group)
+    public function setProductionFingerprint($group, $fingerprint)
     {
         $this->fingerprints[$group] = $fingerprint;
-
-        return $this;
     }
 
     /**
@@ -83,7 +144,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      * @param  string  $group
      * @return bool
      */
-    public function hasFingerprint($group)
+    public function hasProductionFingerprint($group)
     {
         return isset($this->fingerprints[$group]);
     }
@@ -94,9 +155,9 @@ class Entry implements JsonableInterface, ArrayableInterface {
      * @param  string  $group
      * @return string|null
      */
-    public function getFingerprint($group)
+    public function getProductionFingerprint($group)
     {
-        return $this->hasFingerprint($group) ? $this->fingerprints[$group] : null;
+        return $this->hasProductionFingerprint($group) ? $this->fingerprints[$group] : null;
     }
 
     /**
@@ -104,30 +165,13 @@ class Entry implements JsonableInterface, ArrayableInterface {
      *
      * @return array
      */
-    public function getFingerprints()
+    public function getProductionFingerprints()
     {
         return $this->fingerprints;
     }
 
     /**
-     * Parse the default entry array.
-     *
-     * @param  array  $entry
-     * @return void
-     */
-    protected function parseDefaultEntry(array $entry)
-    {
-        foreach (array('fingerprints', 'development') as $key)
-        {
-            if (isset($entry[$key]))
-            {
-                $this->$key = $entry[$key];
-            }
-        }
-    }
-
-    /**
-     * Convert the entry to it's JSON representation.
+     * Convert the entry to its JSON representation.
      *
      * @param  int  $options
      * @return string
@@ -138,13 +182,13 @@ class Entry implements JsonableInterface, ArrayableInterface {
     }
 
     /**
-     * Convert the entry to it's array representation.
+     * Convert the entry to its array representation.
      *
      * @return array
      */
     public function toArray()
     {
-        return array('fingerprints' => $this->fingerprints, 'development' => $this->development);
+        return get_object_vars($this);
     }
 
 }

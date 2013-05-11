@@ -16,8 +16,8 @@ class Manager implements ArrayAccess, Countable {
      * Register a factory with the manager.
      *
      * @param  string  $name
-     * @param  Basset\Factory\FactoryInterface  $factory
-     * @return Basset\Factory\Manager
+     * @param  \Basset\Factory\FactoryInterface  $factory
+     * @return \Basset\Factory\Manager
      */
     public function register($name, FactoryInterface $factory)
     {

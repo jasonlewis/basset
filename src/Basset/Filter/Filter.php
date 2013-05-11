@@ -32,7 +32,7 @@ class Filter {
     /**
      * Resource being filtered.
      *
-     * @var Basset\FilterableInterface
+     * @var \Basset\Filterable
      */
     protected $resource;
 
@@ -80,7 +80,7 @@ class Filter {
     /**
      * Find and set any missing constructor arguments.
      * 
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function findMissingConstructorArgs()
     {
@@ -162,7 +162,7 @@ class Filter {
     /**
      * Get an executable finder instance.
      * 
-     * @return Symfony\Component\Process\ExecutableFinder
+     * @return \Symfony\Component\Process\ExecutableFinder
      */
     public function getExecutableFinder()
     {
@@ -172,8 +172,8 @@ class Filter {
     /**
      * Add a requirement to the filter.
      * 
-     * @param  Closure  $callback
-     * @return Basset\Filter\Filter
+     * @param  \Closure  $callback
+     * @return \Basset\Filter\Filter
      */
     public function when(Closure $callback)
     {
@@ -186,7 +186,7 @@ class Filter {
      * Add a class exists requirement to the filter.
      * 
      * @param  string  $class
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function whenClassExists($class)
     {
@@ -200,7 +200,7 @@ class Filter {
      * Add a asset name pattern requirement to the filter.
      * 
      * @param  string  $pattern
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function whenAssetIs($pattern)
     {
@@ -213,7 +213,7 @@ class Filter {
     /**
      * Add an environment requirement to the filter.
      *
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function whenEnvironmentIs()
     {
@@ -221,14 +221,14 @@ class Filter {
 
         return $this->when(function($asset) use ($environments)
         {
-            return in_array($asset->getAppEnvironment(), $environments);
+            return in_array($asset->getApplicationEnvironment(), $environments);
         });
     }
 
     /**
      * Add a stylesheets only requirement to the filter.
      *
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function whenAssetIsStylesheet()
     {
@@ -241,7 +241,7 @@ class Filter {
     /**
      * Add a javascripts only requirement to the filter.
      *
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function whenAssetIsJavascript()
     {
@@ -254,8 +254,8 @@ class Filter {
     /**
      * Add a before filtering callback.
      *
-     * @param  Closure  $callback
-     * @return Basset\Filter\Filter
+     * @param  \Closure  $callback
+     * @return \Basset\Filter\Filter
      */
     public function beforeFiltering(Closure $callback)
     {
@@ -280,7 +280,7 @@ class Filter {
      * 
      * @param  string  $argument
      * @param  int  $position
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function setArgument($argument, $position = null)
     {
@@ -304,8 +304,8 @@ class Filter {
     /**
      * Set the resource on the filter.
      * 
-     * @param  Basset\Filter\Filterable  $resource
-     * @return Basset\Filter\Filter
+     * @param  \Basset\Filter\Filterable  $resource
+     * @return \Basset\Filter\Filter
      */
     public function setResource(Filterable $resource)
     {
@@ -384,7 +384,7 @@ class Filter {
     /**
      * Attempt to instantiate the filter if it exists and has not been ignored.
      *
-     * @return mixed
+     * @return null|\Assetic\Filter\FilterInterface
      */
     public function getInstance()
     {
@@ -431,22 +431,6 @@ class Filter {
     }
 
     /**
-     * Run a callback with the filter instance as a parameter.
-     * 
-     * @param  Closure  $callback
-     * @return Basset\Filter\Filter
-     */
-    public function runCallback(Closure $callback = null)
-    {
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $this);
-        }
-
-        return $this;
-    }
-
-    /**
      * Process any requirements on the filter.
      * 
      * @return bool
@@ -475,7 +459,7 @@ class Filter {
     }
 
     /**
-     * Dynamically chain uncallable methods to the parent resource.
+     * Dynamically chain uncallable methods to the belonging resource.
      *
      * @param  string  $method
      * @param  array  $parameters

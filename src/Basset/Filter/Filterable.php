@@ -8,7 +8,7 @@ abstract class Filterable {
     /**
      * Collection of filters.
      * 
-     * @var Illuminate\Support\Collection
+     * @var \Illuminate\Support\Collection
      */
     protected $filters;
 
@@ -16,14 +16,19 @@ abstract class Filterable {
      * Apply a filter.
      *
      * @param  string  $filter
-     * @param  Closure  $callback
-     * @return mixed
+     * @param  \Closure  $callback
+     * @return \Basset\Filter\Filter
      */
     public function apply($filter, Closure $callback = null)
     {
         $filter = $this->factory['filter']->make($filter);
 
-        $filter->setResource($this)->runCallback($callback);
+        $filter->setResource($this);
+
+        if (is_callable($callback))
+        {
+            call_user_func($callback, $filter);
+        }
 
         return $this->filters[$filter->getFilter()] = $filter;
     }
@@ -31,7 +36,7 @@ abstract class Filterable {
     /**
      * Get the applied filters.
      *
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function getFilters()
     {
@@ -42,7 +47,7 @@ abstract class Filterable {
      * Create a new collection instance.
      * 
      * @param  array  $items
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function newCollection(array $items = array())
     {

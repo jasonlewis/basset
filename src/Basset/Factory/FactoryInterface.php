@@ -3,7 +3,7 @@
 interface FactoryInterface {
 
     /**
-     * Make a new instance.
+     * Make a new factory instance.
      * 
      * @param  string  $factory
      * @return mixed

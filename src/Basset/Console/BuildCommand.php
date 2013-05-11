@@ -3,12 +3,10 @@
 use RuntimeException;
 use Basset\Collection;
 use Basset\Environment;
-use Basset\BuildCleaner;
+use Basset\Builder\Builder;
 use Illuminate\Console\Command;
 use Basset\Manifest\Repository;
-use Basset\Builder\BuilderInterface;
-use Basset\Exception\EmptyResponseException;
-use Basset\Exception\CollectionExistsException;
+use Basset\Exceptions\BuildNotRequiredException;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -29,64 +27,32 @@ class BuildCommand extends Command {
     protected $description = 'Build asset collections';
 
     /**
-     * Environment instance.
+     * Basset environment instance.
      *
-     * @var Basset\Environment
+     * @var \Basset\Environment
      */
-    protected $env;
+    protected $environment;
 
     /**
-     * Builder instance.
+     * Basset builder instance.
      *
-     * @var Basset\Builder\BuilderInterface
+     * @var \Basset\Builder\Builder
      */
     protected $builder;
 
     /**
-     * Manifest repository instance.
-     *
-     * @var Basset\Manifest\Repository
-     */
-    protected $manifest;
-
-    /**
-     * Build cleaner instance.
-     *
-     * @var Basset\BuildCleaner
-     */
-    protected $cleaner;
-
-    /**
-     * Path to output built collections.
-     *
-     * @var string
-     */
-    protected $buildPath;
-
-    /**
-     * Apply gzip to all collections.
-     *
-     * @var bool
-     */
-    protected $gzip;
-
-    /**
      * Create a new basset compile command instance.
      *
-     * @param  Basset\Environment  $env
-     * @param  Basset\Builder\BuilderInterface  $builder
+     * @param  \Basset\Environment  $environment
+     * @param  \Basset\Builder\Builder  $builder
      * @return void
      */
-    public function __construct(Environment $env, BuilderInterface $builder, Repository $manifest, BuildCleaner $cleaner, $buildPath, $gzip)
+    public function __construct(Environment $environment, Builder $builder)
     {
         parent::__construct();
 
-        $this->env = $env;
+        $this->environment = $environment;
         $this->builder = $builder;
-        $this->manifest = $manifest;
-        $this->cleaner = $cleaner;
-        $this->buildPath = $buildPath;
-        $this->gzip = $gzip;
     }
 
     /**
@@ -96,97 +62,101 @@ class BuildCommand extends Command {
      */
     public function fire()
     {
-        $collections = $this->fetchCollections();
+        $this->input->getOption('force') and $this->builder->setForce(true);
 
-        // If the force option has been set then we'll tell the builder to forcefully re-build each
-        // of the collections.
-        $this->input->getOption('force') and $this->builder->force();
+        $this->input->getOption('gzip') and $this->builder->setGzip(true);
 
-        $this->builder->setBuildPath($this->buildPath);
-
-        $this->builder->setGzip($this->input->getOption('gzip') ?: $this->gzip);
-
-        // Spin through each of the collections to be built and build both the scripts and styles. We'll catch
-        // any exceptions thrown during the building of the assets and output friendlier messages to the user.
-        foreach ($collections as $collection)
+        if ($development = $this->input->getOption('dev'))
         {
+            $this->comment("Starting development build....");
+        }
+        else
+        {
+            $this->comment("Starting production build....");
+        }
+
+        foreach ($this->gatherCollections() as $collection)
+        {
+            if ($development)
+            {
+                $this->buildAsDevelopment($collection);
+            }
+            else
+            {
+                $this->buildAsProduction($collection);
+            }
+        }
+    }
+
+    /**
+     * Dynamically handle calls to the build methods.
+     * 
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (in_array($method, array('buildAsDevelopment', 'buildAsProduction')))
+        {
+            $collection = array_shift($parameters);
+
             try
             {
-                $this->build($collection, 'stylesheets');
+                $this->builder->{$method}($collection, 'stylesheets');
 
                 $this->line("<info>Stylesheets successfully built for collection:</info> {$collection->getName()}");
             }
-            catch (EmptyResponseException $error)
+            catch (BuildNotRequiredException $error)
             {
-                $this->line("<comment>There are no stylesheets to build for collection:</comment> {$collection->getName()}");
-            }
-            catch (CollectionExistsException $error)
-            {
-                $this->line("<comment>Stylesheets are up-to-date for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>Stylesheets build was not required for collection:</comment> {$collection->getName()}");
             }
 
             try
             {
-                $this->build($collection, 'javascripts');
+                $this->builder->{$method}($collection, 'javascripts');
 
                 $this->line("<info>Javascripts successfully built for collection:</info> {$collection->getName()}");
             }
-            catch (EmptyResponseException $error)
+            catch (BuildNotRequiredException $error)
             {
-                $this->line("<comment>There are no javascripts to build for collection:</comment> {$collection->getName()}");
+                $this->line("<comment>Javascripts build was not required for collection:</comment> {$collection->getName()}");
             }
-            catch (CollectionExistsException $error)
-            {
-                $this->line("<comment>Javascripts are up-to-date for collection:</comment> {$collection->getName()}");
-            }
-
-            // Once a collection has been built we need to register the collection with the manifest repository. The
-            // repository will store details about the collection in the manifest.
-            $this->manifest->register($collection, $this->builder->getFingerprint(), $this->input->getOption('dev'));
         }
-
-        // After building all the collections we'll let the cleaner tidy up any unnecessary asset files.
-        $this->cleaner->clean();
+        else
+        {
+            return parent::__call($method, $parameters);
+        }
     }
 
     /**
-     * Build a given group on the collection.
-     *
-     * @param  Basset\Collection  $collection
-     * @param  string  $group
-     * @return void
-     */
-    protected function build(Collection $collection, $group)
-    {
-        $this->builder->build($collection, $group, $this->input->getOption('dev'));
-    }
-
-    /**
-     * Fetch the collections to be built.
+     * Gather the collections to be built.
      *
      * @return array
      */
-    protected function fetchCollections()
+    protected function gatherCollections()
     {
         if ( ! is_null($collection = $this->input->getArgument('collection')))
         {
-            if ( ! $this->env->hasCollection($collection))
+            if ( ! $this->environment->hasCollection($collection))
             {
                 $this->error("Could not find collection: {$collection}");
 
                 return;
             }
 
-            $this->info("Gathering assets for collection...");
+            $this->comment("Gathering assets for collection...");
 
-            $collections = array($this->env->collection($collection));
+            $collections = array($this->environment->collection($collection));
         }
         else
         {
-            $this->info("Gathering all collections to build...");
+            $this->comment("Gathering all collections to build...");
 
-            $collections = $this->env->getCollections();
+            $collections = $this->environment->getCollections();
         }
+
+        $this->line("");
 
         return $collections;
     }

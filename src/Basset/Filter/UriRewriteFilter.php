@@ -52,7 +52,7 @@ class UriRewriteFilter implements FilterInterface {
     /**
      * Apply filter on file load.
      *
-     * @param  Assetic\Asset\AssetInterface  $asset
+     * @param  \Assetic\Asset\AssetInterface  $asset
      * @return void
      */
     public function filterLoad(AssetInterface $asset){}
@@ -60,7 +60,7 @@ class UriRewriteFilter implements FilterInterface {
     /**
      * Apply a filter on file dump.
      *
-     * @param  Assetic\Asset\AssetInterface  $asset
+     * @param  \Assetic\Asset\AssetInterface  $asset
      * @return void
      */
     public function filterDump(AssetInterface $asset)

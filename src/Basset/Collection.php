@@ -13,23 +13,23 @@ class Collection extends Filterable {
     protected $name;
 
     /**
-     * Asset finder instance.
+     * Basset asset finder instance.
      *
-     * @var Basset\AssetFinder
+     * @var \Basset\AssetFinder
      */
     protected $finder;
 
     /**
-     * Factory manager instance.
+     * Basset factory manager instance.
      *
-     * @var Basset\Factory\Manager
+     * @var \Basset\Factory\Manager
      */
     protected $factory;
 
     /**
      * The default directory of the collection.
      * 
-     * @var Basset\Directory
+     * @var \Basset\Directory
      */
     protected $defaultDirectory;
 
@@ -37,8 +37,8 @@ class Collection extends Filterable {
      * Create a new collection instance.
      *
      * @param  string  $name
-     * @param  Basset\AssetFinder  $finder
-     * @param  Basset\Factory\Manager  $factory
+     * @param  \Basset\AssetFinder  $finder
+     * @param  \Basset\Factory\Manager  $factory
      * @return void
      */
     public function __construct($name, AssetFinder $finder, Manager $factory)
@@ -67,7 +67,7 @@ class Collection extends Filterable {
      * Get an array of assets filtered by a group.
      *
      * @param  string  $group
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function getAssets($group = null)
     {
@@ -107,7 +107,7 @@ class Collection extends Filterable {
      * Get an array of excluded assets filtered by a group.
      *
      * @param  string  $group
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function getExcludedAssets($group = null)
     {
@@ -124,7 +124,7 @@ class Collection extends Filterable {
     /**
      * Orders the array of assets as they were defined or on a user ordered basis.
      * 
-     * @param  Basset\Asset  $asset
+     * @param  \Basset\Asset  $asset
      * @param  array  $assets
      * @return void
      */
@@ -159,7 +159,7 @@ class Collection extends Filterable {
     /**
      * Get the default directory.
      * 
-     * @return Basset\Directory
+     * @return \Basset\Directory
      */
     public function getDefaultDirectory()
     {
@@ -178,9 +178,9 @@ class Collection extends Filterable {
     }
 
     /**
-     * Get the asset finder instance.
+     * Get the basset asset finder instance.
      * 
-     * @return Basset\AssetFinder
+     * @return \Basset\AssetFinder
      */
     public function getFinder()
     {
@@ -188,9 +188,9 @@ class Collection extends Filterable {
     }
 
     /**
-     * Get the factory manager instance.
+     * Get the basset factory manager instance.
      * 
-     * @return Basset\Factory\Manager
+     * @return \Basset\Factory\Manager
      */
     public function getFactory()
     {

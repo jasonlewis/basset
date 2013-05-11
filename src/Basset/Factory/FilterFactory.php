@@ -9,14 +9,14 @@ class FilterFactory implements FactoryInterface {
     /**
      * Illuminate config repository.
      *
-     * @var Illuminate\Config\Repository
+     * @var \Illuminate\Config\Repository
      */
     protected $config;
 
     /**
      * Create a new filter factory instance.
      *
-     * @param  Illuminate\Config\Repository  $config
+     * @param  \Illuminate\Config\Repository  $config
      * @return void
      */
     public function __construct(Repository $config)
@@ -27,8 +27,8 @@ class FilterFactory implements FactoryInterface {
     /**
      * Make a new filter instance.
      *
-     * @param  Basset\Filter\Filter|string  $filter
-     * @return Basset\Filter\Filter
+     * @param  string|\Basset\Filter\Filter  $filter
+     * @return \Basset\Filter\Filter
      */
     public function make($filter)
     {
@@ -49,7 +49,10 @@ class FilterFactory implements FactoryInterface {
         // can be set for the filters constructor.
         $filter = new Filter($filter, $this->config->get('basset::node_paths'));
 
-        isset($callback) and is_callable($callback) and $filter->runCallback($callback);
+        if (isset($callback) and is_callable($callback))
+        {
+            call_user_func($callback, $filter);
+        }
 
         return $filter;
     }

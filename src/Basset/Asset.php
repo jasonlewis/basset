@@ -1,6 +1,5 @@
 <?php namespace Basset;
 
-use Closure;
 use Basset\Factory\Manager;
 use Basset\Filter\Filterable;
 use InvalidArgumentException;
@@ -13,12 +12,12 @@ class Asset extends Filterable {
     /**
      * Illuminate filesystem instance.
      *
-     * @var Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
-     * Factory manager instance.
+     * Basset factory manager instance.
      *
      * @var Basset\Factory\Manager
      */
@@ -43,7 +42,7 @@ class Asset extends Filterable {
      *
      * @var string
      */
-    protected $appEnvironment;
+    protected $applicationEnvironment;
 
     /**
      * Indicates if the asset is to be excluded.
@@ -60,23 +59,30 @@ class Asset extends Filterable {
     protected $order;
 
     /**
+     * Assets cached last modified time.
+     * 
+     * @var int
+     */
+    protected $lastModified;
+
+    /**
      * Create a new asset instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\Manager  $factory
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Basset\Factory\Manager  $factory
      * @param  string  $absolutePath
      * @param  string  $relativePath
-     * @param  string  $appEnvironment
+     * @param  string  $applicationEnvironment
      * @param  int  $order
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $appEnvironment, $order)
+    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $applicationEnvironment, $order)
     {
         $this->files = $files;
         $this->factory = $factory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
-        $this->appEnvironment = $appEnvironment;
+        $this->applicationEnvironment = $applicationEnvironment;
         $this->order = $order;
         $this->filters = $this->newCollection();
     }
@@ -126,6 +132,35 @@ class Asset extends Filterable {
     }
 
     /**
+     * Get the fingerprinted path to the asset.
+     * 
+     * @return string
+     */
+    public function getFingerprintedPath()
+    {
+        $path = pathinfo($this->relativePath);
+
+        $fingerprint = md5(array_to_newlines($this->filters->map(function($f) { return $f->getFilter(); })->flatten()).$this->getLastModified());
+
+        return "{$path['dirname']}/{$path['filename']}-{$fingerprint}.{$this->getUsableExtension()}";
+    }
+
+    /**
+     * Get the last modified time of the asset.
+     * 
+     * @return int
+     */
+    public function getLastModified()
+    {
+        if ($this->lastModified)
+        {
+            return $this->lastModified;
+        }
+
+        return $this->lastModified = $this->isRemote() ? null : $this->files->lastModified($this->absolutePath);
+    }
+
+    /**
      * Determine if asset is a javascript.
      *
      * @return bool
@@ -152,11 +187,11 @@ class Asset extends Filterable {
      */
     public function isRemote()
     {
-        return (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL) or starts_with($this->absolutePath, '//');
+        return starts_with($this->absolutePath, '//') or (bool) filter_var($this->absolutePath, FILTER_VALIDATE_URL);
     }
 
     /**
-     * Alias for Basset\Asset::setOrder(1)
+     * Alias for \Basset\Asset::setOrder(1)
      *
      * @return Basset\Asset
      */
@@ -166,9 +201,9 @@ class Asset extends Filterable {
     }
 
     /**
-     * Alias for Basset\Asset::setOrder(2)
+     * Alias for \Basset\Asset::setOrder(2)
      *
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function second()
     {
@@ -176,9 +211,9 @@ class Asset extends Filterable {
     }
 
     /**
-     * Alias for Basset\Asset::setOrder(3)
+     * Alias for \Basset\Asset::setOrder(3)
      *
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function third()
     {
@@ -186,10 +221,10 @@ class Asset extends Filterable {
     }
 
     /**
-     * Alias for Basset\Asset::setOrder()
+     * Alias for \Basset\Asset::setOrder()
      *
      * @param  int  $order
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function order($order)
     {
@@ -200,7 +235,7 @@ class Asset extends Filterable {
      * Set the order of the outputted asset.
      *
      * @param  int  $order
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function setOrder($order)
     {
@@ -220,9 +255,9 @@ class Asset extends Filterable {
     }
 
     /**
-     * Alias for Basset\Asset::setExcluded(true)
+     * Alias for \Basset\Asset::setExcluded(true)
      *
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function exclude()
     {
@@ -233,7 +268,7 @@ class Asset extends Filterable {
      * Sets the asset to be excluded.
      *
      * @param  bool  $excluded
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function setExcluded($excluded)
     {
@@ -256,7 +291,7 @@ class Asset extends Filterable {
      * Sets the asset to be included.
      *
      * @param  bool  $included
-     * @return Basset\Asset
+     * @return \Basset\Asset
      */
     public function setIncluded($included)
     {
@@ -304,23 +339,12 @@ class Asset extends Filterable {
     {
         // Spin through each of the applied assets and remove any where we don't get a class
         // that does not implement Assetic\Filter\FilterInterface.
-        $filters = array();
-
-        foreach ($this->filters as $key => $filter)
+        $filters = $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
         {
-            $instance = $filter->getInstance();
+            return $filter instanceof FilterInterface;
+        });
 
-            if ( ! $instance instanceof FilterInterface)
-            {
-                unset($this->filters[$key]);
-
-                continue;
-            }
-
-            $filters[] = $instance;
-        }
-
-        $asset = new StringAsset($this->getContent(), $filters, dirname($this->absolutePath), basename($this->absolutePath));
+        $asset = new StringAsset($this->getContent(), $filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
 
         return $asset->dump();
     }
@@ -330,15 +354,15 @@ class Asset extends Filterable {
      * 
      * @return string
      */
-    public function getAppEnvironment()
+    public function getApplicationEnvironment()
     {
-        return $this->appEnvironment;
+        return $this->applicationEnvironment;
     }
 
     /**
-     * Get factory manager instance.
+     * Get the basset factory manager instance.
      * 
-     * @return Basset\Factory\Manager
+     * @return \Basset\Factory\Manager
      */
     public function getFactory()
     {
@@ -346,9 +370,9 @@ class Asset extends Filterable {
     }
 
     /**
-     * Get illuminate filesystem instance.
+     * Get the illuminate filesystem instance.
      * 
-     * @return Illuminate\Filesystem\Filesystem
+     * @return \Illuminate\Filesystem\Filesystem
      */
     public function getFiles()
     {
