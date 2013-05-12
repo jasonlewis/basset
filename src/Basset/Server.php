@@ -181,11 +181,6 @@ class Server {
         {
             $path = $asset->getRelativePath();
 
-            if ( ! $asset->isRemote())
-            {
-                $path = $this->prefixBuildPath($path);
-            }
-
             $responses[] = $this->{'create'.studly_case($group).'Element'}($path);
         }
 
