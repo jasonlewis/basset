@@ -158,7 +158,7 @@ class Server {
     {
         $responses = $this->serveExcludedAssets($collection, $group);
 
-        foreach ($entry>getDevelopmentAssets($group) as $path)
+        foreach ($entry->getDevelopmentAssets($group) as $path)
         {
             $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($collection->getName().'/'.$path));
         }
