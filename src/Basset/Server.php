@@ -2,6 +2,7 @@
 
 use Basset\Collection;
 use Basset\Environment;
+use Basset\Manifest\Entry;
 use Illuminate\Routing\UrlGenerator;
 use Basset\Manifest\Repository as Manifest;
 use Illuminate\Config\Repository as Config;
@@ -115,11 +116,11 @@ class Server {
 
             if ($this->environment->runningInProduction() and $entry->hasProductionFingerprint($group))
             {
-                $response = $this->serveProductionCollection($collection, $group);
+                $response = $this->serveProductionCollection($collection, $entry, $group);
             }
             elseif ($entry->hasDevelopmentAssets($group))
             {
-                $response = $this->serveDevelopmentCollection($collection, $group);
+                $response = $this->serveDevelopmentCollection($collection, $entry, $group);
             }
         }
 
@@ -130,14 +131,15 @@ class Server {
      * Serve a production collection.
      *
      * @param  \Basset\Collection  $collection
+     * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
      * @return array
      */
-    protected function serveProductionCollection(Collection $collection, $group)
+    protected function serveProductionCollection(Collection $collection, Entry $entry, $group)
     {
         $responses = $this->serveExcludedAssets($collection, $group);
 
-        $fingerprint = $this->manifest->get($collection)->getProductionFingerprint($group);
+        $fingerprint = $entry->getProductionFingerprint($group);
 
         return $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint));
     }
@@ -146,14 +148,15 @@ class Server {
      * Serve a development collection.
      * 
      * @param  \Basset\Collection  $collection
+     * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
      * @return array
      */
-    protected function serveDevelopmentCollection(Collection $collection, $group)
+    protected function serveDevelopmentCollection(Collection $collection, Entry $entry, $group)
     {
         $responses = $this->serveExcludedAssets($collection, $group);
 
-        foreach ($this->manifest->get($collection)->getDevelopmentAssets($group) as $path)
+        foreach ($entry>getDevelopmentAssets($group) as $path)
         {
             $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($collection->getName().'/'.$path));
         }
