@@ -141,7 +141,9 @@ class Server {
 
         $fingerprint = $entry->getProductionFingerprint($group);
 
-        return $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint));
+        $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint));
+
+        return $responses;
     }
 
     /**
