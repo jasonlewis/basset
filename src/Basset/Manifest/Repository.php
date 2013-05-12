@@ -48,10 +48,7 @@ class Repository {
      */
     public function has($collection)
     {
-        if ($collection instanceof Collection)
-        {
-            $collection = $collection->getName();
-        }
+        $collection = $this->getCollectionNameFromInstance($collection);
 
         return isset($this->entries[$collection]);
     }
@@ -60,16 +57,37 @@ class Repository {
      * Get a collection entry from the manifest or create a new entry.
      * 
      * @param  string|\Basset\Collection  $collection
-     * @return \Basset\Manifest\Entry
+     * @return null|\Basset\Manifest\Entry
      */
     public function get($collection)
     {
-        if ($collection instanceof Collection)
-        {
-            $collection = $collection->getName();
-        }
+        $collection = $this->getCollectionNameFromInstance($collection);
 
-        return isset($this->entries[$collection]) ? $this->entries[$collection] : $this->entries[$collection] = new Entry;
+        return isset($this->entries[$collection]) ? $this->entries[$collection] : null;
+    }
+
+    /**
+     * Make a collection entry if it does not already exist on the manifest.
+     * 
+     * @param  string|\Basset\Collection  $collection
+     * @return \Basset\Manifest\Entry
+     */
+    public function make($collection)
+    {
+        $collection = $this->getCollectionNameFromInstance($collection);
+
+        return $this->has($collection) ? $this->get($collection) : $this->entries[$collection] = new Entry;
+    }
+
+    /**
+     * Get the collections name from a collection instance.
+     * 
+     * @param  string|\Basset\Collection  $collection
+     * @return string
+     */
+    protected function getCollectionNameFromInstance($collection)
+    {
+        return $collection instanceof Collection ? $collection->getName() : $collection;
     }
 
     /**

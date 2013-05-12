@@ -82,7 +82,7 @@ class Builder {
         // for handling any ordering of the assets so that we just need to build them.
         $assets = $collection->getAssets($group);
 
-        $entry = $this->manifest->get($name = $collection->getName());
+        $entry = $this->manifest->make($name = $collection->getName());
 
         // Build the assets and transform the array into a newline separated string. We'll use this
         // as a basis for the collections fingerprint and it will decide as to whether the
@@ -122,7 +122,7 @@ class Builder {
         // for handling any ordering of the assets so that we just need to build them.
         $assets = $collection->getAssets($group);
 
-        $entry = $this->manifest->get($name = $collection->getName());
+        $entry = $this->manifest->make($name = $collection->getName());
 
         // If there are no changes to the collection then we'll instead look at each asset individually
         // for any possible changes. If the asset is not in the collections manifest entry or the
