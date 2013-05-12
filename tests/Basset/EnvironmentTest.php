@@ -12,143 +12,51 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testCollectionInstanceIsCreated()
+    public function setUp()
     {
-        $env = $this->getEnvInstance();
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->config = m::mock('Illuminate\Config\Repository');
+        $this->factory = m::mock('Basset\Factory\Manager');
+        $this->finder = m::mock('Basset\AssetFinder');
 
-        $this->assertInstanceOf('Basset\Collection', $env->collection('foo'));
+        $this->finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
+        $this->factory->shouldReceive('offsetGet')->with('directory')->andReturn($directory = m::mock('Basset\Factory\DirectoryFactory'));
+        $directory->shouldReceive('make')->with('/');
 
-        $this->assertInstanceOf('Basset\Collection', $env->make('bar'));
-
-        $env['baz'] = function(){};
-        $this->assertInstanceOf('Basset\Collection', $env['baz']);
+        $this->environment = new Environment($this->files, $this->config, $this->factory, $this->finder, 'testing');
     }
 
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testOffsetSetWithNoCollectionNameThrowsException()
+    public function testMakingNewCollectionReturnsNewCollectionInstance()
     {
-        $env = $this->getEnvInstance();
-
-        $env[] = function(){};
+        $this->assertInstanceOf('Basset\Collection', $this->environment->collection('foo'));
     }
 
 
-    public function testRemovingCollectionFromEnvironment()
+    public function testMakingNewCollectionFiresCallback()
     {
-        $env = $this->getEnvInstance();
-        $env['baz'] = function(){};
-
-        unset($env['baz']);
-
-        $this->assertNull($env['baz']);
-    }
-
-
-    public function testCollectionCallbackIsFiredUponCreation()
-    {
-        $env = $this->getEnvInstance();
-
         $fired = false;
 
-        $env->collection('foo', function($collection) use (&$fired)
-        {
-            $fired = true;
-        });
-
+        $this->environment->collection('foo', function() use (&$fired) { $fired = true; });
         $this->assertTrue($fired);
     }
 
 
-    public function testGetAllCollections()
+    public function testRegisterPackageNamespaceAndVendorWithEnvironmentAndFinder()
     {
-        $env = $this->getEnvInstance();
-
-        $env->collection('foo');
-        $env->collection('bar');
-
-        $this->assertCount(2, $env->getCollections());
-    }
-
-
-    public function testCheckingCollectionExistence()
-    {
-        $env = $this->getEnvInstance();
-
-        $env->collection('foo');
-
-        $this->assertTrue($env->hasCollection('foo'));
-        $this->assertTrue(isset($env['foo']));
-        $this->assertFalse($env->hasCollection('bar'));
-    }
-
-
-    public function testAddingPackageNamespace()
-    {
-        $env = $this->getEnvInstance();
-
-        $env->getFinder()->shouldReceive('addNamespace')->once()->with('bar', 'foo/bar');
-        $env->getFinder()->shouldReceive('addNamespace')->once()->with('baz', 'foo/bar');
-
-        $env->package('foo/bar');
-        $env->package('foo/bar', 'baz');
+        $this->finder->shouldReceive('addNamespace')->once()->with('bar', 'foo/bar');
+        $this->environment->package('foo/bar', 'bar');
     }
 
 
     public function testRegisteringArrayOfCollections()
     {
-        $env = $this->getEnvInstance();
-
-        $env->collections(array(
+        $this->environment->collections(array(
             'foo' => function(){},
             'bar' => function(){}
         ));
-
-        $this->assertInstanceOf('Basset\Collection', $env['foo']);
-        $this->assertInstanceOf('Basset\Collection', $env['bar']);
-    }
-
-
-    public function testCheckingIfRunningInProduction()
-    {
-        $env = $this->getEnvInstance();
-
-        $env->getConfig()->shouldReceive('get')->once()->with('basset::production', array())->andReturn('production');
-        $this->assertFalse($env->runningInProduction());
-
-        $env->getConfig()->shouldReceive('get')->once()->with('basset::production', array())->andReturn('testing');
-        $this->assertTrue($env->runningInProduction());
-    }
-
-
-    public function testGetFiles()
-    {
-        $env = $this->getEnvInstance();
-        $this->assertInstanceOf('Illuminate\Filesystem\Filesystem', $env->getFiles());
-    }
-
-
-    public function testGetFactory()
-    {
-        $env = $this->getEnvInstance();
-        $this->assertInstanceOf('Basset\Factory\Manager', $env->getFactory());
-    }
-
-
-    protected function getEnvInstance()
-    {
-        $files = m::mock('Illuminate\Filesystem\Filesystem');
-        $config = m::mock('Illuminate\Config\Repository');
-        $factory = m::mock('Basset\Factory\Manager');
-        $finder = m::mock('Basset\AssetFinder');
-
-        $finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
-        $factory->shouldReceive('offsetGet')->with('directory')->andReturn($directoryFactory = m::mock('Basset\Factory\DirectoryFactory'));
-        $directoryFactory->shouldReceive('make')->with('/');
-
-        return new Environment($files, $config, $factory, $finder, 'testing');
+        $this->assertCount(2, $this->environment->getCollections());
+        $this->assertArrayHasKey('foo', $this->environment->getCollections()->all());
     }
 
 
