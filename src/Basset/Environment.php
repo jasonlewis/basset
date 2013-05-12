@@ -94,7 +94,7 @@ class Environment implements ArrayAccess {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $this->collections[$name] = new Collection($name, $this->finder, $this->factory);;
+            $this->collections[$name] = new Collection($name, $this->finder, $this->factory);
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with
