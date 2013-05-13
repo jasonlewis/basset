@@ -105,7 +105,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function hasDevelopmentAssets($group = null)
     {
-        return is_null($group) ? ! empty($this->development) : isset($this->development[$group]);
+        return is_null($group) ? ! empty($this->development) : ! empty($this->development[$group]);
     }
 
     /**
@@ -146,7 +146,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function hasProductionFingerprint($group)
     {
-        return isset($this->fingerprints[$group]);
+        return ! is_null($this->getProductionFingerprint($group));
     }
 
     /**
@@ -157,7 +157,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
      */
     public function getProductionFingerprint($group)
     {
-        return $this->hasProductionFingerprint($group) ? $this->fingerprints[$group] : null;
+        return isset($this->fingerprints[$group]) ? $this->fingerprints[$group] : null;
     }
 
     /**
