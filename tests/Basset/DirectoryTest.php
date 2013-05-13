@@ -1,8 +1,10 @@
 <?php
 
 use Mockery as m;
+use Basset\Asset;
+use Basset\Directory;
+use Basset\AssetFinder;
 use Basset\Factory\Manager;
-use Basset\Factory\FilterFactory;
 
 class DirectoryTest extends PHPUnit_Framework_TestCase {
 
@@ -13,223 +15,269 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testRequireDirectory()
+    public function setUp()
     {
-        $directory = $this->getDirectoryPartialMock();
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->finder = m::mock('Basset\AssetFinder');
+        $this->factory = new Manager;
 
-        $files = array(
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo')
-        );
-        $files[0]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
+        $this->factory['asset'] = m::mock('Basset\Factory\AssetFactory');
+        $this->factory['directory'] = m::mock('Basset\Factory\DirectoryFactory');
+        $this->factory['filter'] = m::mock('Basset\Factory\FilterFactory');
 
-        $files[1]->shouldReceive('isFile')->once()->andReturn(false);
-
-        $files[2]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[2]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
-
-        $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($files);
-
-        $assets = array();
-
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/foo.css')->andReturn($assets[] = $this->getAssetMock());
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/bar.css')->andReturn($assets[] = $this->getAssetMock());
-
-        $directory->requireDirectory();
-
-        $this->assertEquals($assets, $directory->getAssets());
+        $this->directory = new Directory('foo', $this->files, $this->factory, $this->finder);
     }
 
 
-    public function testRequireTree()
+    public function testAddingBasicAssetFromPublicDirectory()
     {
-        $directory = $this->getDirectoryPartialMock();
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
 
-        $files = array(
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo')
-        );
-        $files[0]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
 
-        $files[1]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[1]->shouldReceive('getPathname')->once()->andReturn('baz/qux/bar.css');
-
-        $directory->shouldReceive('recursivelyIterateDirectory')->once()->with('baz')->andReturn($files);
-
-        $assets = array();
-
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/foo.css')->andReturn($assets[] = $this->getAssetMock());
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/qux/bar.css')->andReturn($assets[] = $this->getAssetMock());
-
-        $directory->requireTree();
-
-        $this->assertEquals($assets, $directory->getAssets());
+        $this->assertInstanceOf('Basset\Asset', $this->directory->add('foo.css'));
+        $this->assertCount(1, $this->directory->getDirectoryAssets());
     }
 
 
-    public function testExcludingOfFilesFromDirectory()
+    public function testAddingInvalidAssetReturnsBlankAssetInstance()
     {
-        $directory = $this->getDirectoryPartialMock();
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
 
-        $files = array(
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo')
-        );
-        $files[0]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetNotFoundException');
+        $this->factory['asset']->shouldReceive('make')->once()->with(null)->andReturn($asset);
 
-        $files[1]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[1]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
-
-        $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($files);
-
-        $assets = array();
-
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/foo.css')->andReturn($assets[] = $this->getAssetMock());
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/bar.css')->andReturn($assets[] = $this->getAssetMock());
-
-        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('baz/foo.css');
-        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('baz/bar.css');
-
-        $directory->requireDirectory()->except('baz/foo.css');
-
-        $this->assertEquals(array(end($assets)), $directory->getAssets());
+        $this->assertInstanceOf('Basset\Asset', $this->directory->add('foo.css'));
+        $this->assertCount(0, $this->directory->getDirectoryAssets());
     }
 
 
-    public function testIncludingCertainFilesFromDirectory()
+    public function testAddingExistingAssetReturnsExistingAssetsInstance()
     {
-        $directory = $this->getDirectoryPartialMock();
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
 
-        $files = array(
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo')
-        );
-        $files[0]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
 
-        $files[1]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[1]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetExistsException');
+        $this->finder->shouldReceive('getCachedPath')->once()->with('foo.css')->andReturn('path/to/foo.css');
 
-        $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($files);
-
-        $assets = array();
-
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/foo.css')->andReturn($assets[] = $this->getAssetMock());
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/bar.css')->andReturn($assets[] = $this->getAssetMock());
-
-        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('baz/foo.css');
-        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('baz/bar.css');
-
-        $directory->requireDirectory()->only('baz/foo.css');
-
-        $this->assertEquals(array(reset($assets)), $directory->getAssets());
+        $this->assertEquals($this->directory->add('foo.css'), $this->directory->add('foo.css'));
     }
 
 
-    public function testFiltersAreAppliedToEntireDirectory()
+    public function testAddingAssetFiresCallback()
     {
-        $directory = $this->getDirectoryPartialMock();
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
 
-        $files = array(
-            m::mock('SplFileInfo'),
-            m::mock('SplFileInfo')
-        );
-        $files[0]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[0]->shouldReceive('getPathname')->once()->andReturn('baz/foo.css');
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
 
-        $files[1]->shouldReceive('isFile')->once()->andReturn(true);
-        $files[1]->shouldReceive('getPathname')->once()->andReturn('baz/bar.css');
+        $fired = false;
 
-        $directory->shouldReceive('iterateDirectory')->once()->with('baz')->andReturn($files);
-
-        $assets = array();
-
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/foo.css')->andReturn($assets[] = $this->getAssetMock());
-        $directory->getFactory()->get('asset')->shouldReceive('make')->once()->with('baz/bar.css')->andReturn($assets[] = $this->getAssetMock());
-
-        $directory->getFactory()->get('filter')->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
-        $filter->shouldReceive('setResource')->once()->with($directory)->andReturn(m::self());
-        $filter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
-        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
-
-        $assets[0]->shouldReceive('apply')->once()->with($filter);
-        $assets[1]->shouldReceive('apply')->once()->with($filter);
-
-        $this->assertInstanceOf('Basset\Filter\Filter', $directory->requireDirectory()->apply('FooFilter'));
-
-        $directory->getAssets();
+        $this->directory->add('foo.css', function() use (&$fired) { $fired = true; });
+        $this->assertTrue($fired);
     }
 
 
-    public function testFiltersAreAppliedToEntireDirectoryAndCallbackIsFired()
+    public function testChangingTheWorkingDirectory()
     {
-        $directory = $this->getDirectoryPartialMock();
-        $directory->getFactory()->get('filter')->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
+        $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
+        $this->directory = new Directory('foo', $this->files, $this->factory, $this->finder);
 
-        $callback = function()
-        {
-            return 'bar';
-        };
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
+        $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn(m::mock('Basset\Directory'));
 
-        $filter->shouldReceive('setResource')->once()->with($directory)->andReturn(m::self());
-        $filter->shouldReceive('runCallback')->once()->with($callback)->andReturn(m::self());
-        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
-
-        $this->assertInstanceOf('Basset\Filter\Filter', $directory->apply('FooFilter', $callback));
+        $this->assertInstanceOf('Basset\Directory', $this->directory->directory('css'));
     }
 
 
-    protected function getDirectoryPartialMock()
+    public function testChangingTheWorkingDirectoryToInvalidDirectoryReturnsBlankDirectoryInstance()
     {
-        $files = $this->getFilesMock();
-        $factory = $this->getFactoryManagerInstance();
+        $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
+        $this->directory = new Directory('foo', $this->files, $this->factory, $this->finder);
 
-        return m::mock('Basset\Directory', array('baz', $files, $factory))->shouldDeferMissing();
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(false);
+        $this->factory['directory']->shouldReceive('make')->with(null)->andReturn(m::mock('Basset\Directory'));
+
+        $this->assertInstanceOf('Basset\Directory', $this->directory->directory('css'));
     }
 
 
-    protected function getFilesMock()
+    public function testChangingTheWorkingDirectoryFiresCallback()
     {
-        return m::mock('Illuminate\Filesystem\Filesystem');
+        $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
+        $this->directory = new Directory('foo', $this->files, $this->factory, $this->finder);
+
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
+        $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn(m::mock('Basset\Directory'));
+
+        $fired = false;
+        $this->directory->directory('css', function() use (&$fired) { $fired = true; });
+        $this->assertTrue($fired);
     }
 
 
-    protected function getAssetFactoryMock()
+    public function testRequireCurrentWorkingDirectory()
     {
-        return m::mock('Basset\Factory\AssetFactory');
+        $this->directory = m::mock('Basset\Directory[iterateDirectory]', array('foo', $this->files, $this->factory, $this->finder));
+        $this->directory->shouldReceive('iterateDirectory')->once()->with('foo')->andReturn($iterator = m::mock('Iterator'));
+
+        $iterator->shouldReceive('rewind')->once();
+        $iterator->shouldReceive('valid')->times()->andReturn(true, true, false);
+        $iterator->shouldReceive('current')->once()->andReturn($files[] = m::mock('SplFileInfo'));
+        $iterator->shouldReceive('current')->once()->andReturn($files[] = m::mock('SplFileInfo'));
+        $iterator->shouldReceive('next')->twice();
+
+        $files[0]->shouldReceive('isFile')->andReturn(true);
+        $files[0]->shouldReceive('getPathname')->andReturn('foo/bar.css');
+        $files[1]->shouldReceive('isFile')->andReturn(false);
+
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $this->finder->shouldReceive('find')->once()->with('foo/bar.css')->andReturn('foo/bar.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset);
+
+        $this->directory->requireDirectory();
+        $this->assertCount(1, $this->directory->getDirectoryAssets());
     }
 
 
-    protected function getFilterFactoryMock()
+    public function testRequireDirectoryChangesDirectoryAndRequiresNewWorkingDirectory()
     {
-        return m::mock('Basset\Factory\FilterFactory');
+        $this->directory = m::mock('Basset\Directory[directory]', array('foo', $this->files, $this->factory, $this->finder));
+
+        $requireDirectory = m::mock('Basset\Directory[iterateDirectory]', array('foo/bar', $this->files, $this->factory, $this->finder));
+        $this->directory->shouldReceive('directory')->with('bar')->andReturn($requireDirectory);
+
+        $requireDirectory->shouldReceive('iterateDirectory')->once()->with('foo/bar')->andReturn($iterator = m::mock('Iterator'));
+
+        $iterator->shouldReceive('rewind')->once();
+        $iterator->shouldReceive('valid')->twice()->andReturn(true, false);
+        $iterator->shouldReceive('current')->once()->andReturn($file = m::mock('SplFileInfo'));
+        $iterator->shouldReceive('next')->once();
+
+        $file->shouldReceive('isFile')->andReturn(true);
+        $file->shouldReceive('getPathname')->andReturn('foo/bar/baz.css');
+
+        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $this->finder->shouldReceive('find')->once()->with('foo/bar/baz.css')->andReturn('foo/bar/baz.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('foo/bar/baz.css')->andReturn($asset);
+
+        $this->directory->requireDirectory('bar');
+        $this->assertCount(1, $requireDirectory->getDirectoryAssets());
     }
 
 
-    protected function getAssetMock()
+    public function testRequireCurrentWorkingDirectoryTree()
     {
-        return m::mock('Basset\Asset');
+        $this->directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('foo', $this->files, $this->factory, $this->finder));
+        $this->directory->shouldReceive('recursivelyIterateDirectory')->once()->with('foo')->andReturn($iterator = m::mock('Iterator'));
+
+        $iterator->shouldReceive('rewind')->once();
+        $iterator->shouldReceive('valid')->once()->andReturn(false);
+
+        $this->directory->requireTree();
+        $this->assertCount(0, $this->directory->getDirectoryAssets());
     }
 
 
-    protected function getFilterMock()
+    public function testRequireTreeChangesWorkingDirectoryAndRequiresNewDirectoryTree()
     {
-        return m::mock('Basset\Filter\Filter');
+        $this->directory = m::mock('Basset\Directory[directory]', array('foo', $this->files, $this->factory, $this->finder));
+
+        $requireTree = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('foo/bar', $this->files, $this->factory, $this->finder));
+        $this->directory->shouldReceive('directory')->once()->with('bar')->andReturn($requireTree);
+
+        $requireTree->shouldReceive('recursivelyIterateDirectory')->once()->with('foo/bar')->andReturn($iterator = m::mock('Iterator'));
+
+        $iterator->shouldReceive('rewind')->once();
+        $iterator->shouldReceive('valid')->once()->andReturn(false);
+
+        $this->directory->requireTree('bar');
+        $this->assertCount(0, $this->directory->getDirectoryAssets());
     }
 
 
-    protected function getFactoryManagerInstance()
+    public function testCanGetFilesystemIterator()
     {
-        $factory = new Manager;
+        $this->files->shouldReceive('exists')->once()->with(__DIR__)->andReturn(true);
+        $this->assertInstanceOf('FilesystemIterator', $this->directory->iterateDirectory(__DIR__));
+    }
 
-        $factory['asset'] = $this->getAssetFactoryMock();
-        $factory['filter'] = $this->getFilterFactoryMock();
 
-        return $factory;
+    public function testCanGetRecursiveDirectoryIterator()
+    {
+        $this->files->shouldReceive('exists')->once()->with(__DIR__)->andReturn(true);
+        $this->assertInstanceOf('RecursiveIteratorIterator', $this->directory->recursivelyIterateDirectory(__DIR__));
+    }
+
+
+    public function testGettingOfDirectoryPath()
+    {
+        $this->assertEquals('foo', $this->directory->getPath());
+    }
+
+
+    public function testExcludingOfAssetsFromDirectory()
+    {
+        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css', 'testing', 1);
+        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css', 'testing', 1);
+
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($fooAsset);
+
+        $this->finder->shouldReceive('find')->once()->with('bar.css')->andReturn('path/to/bar.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/bar.css')->andReturn($barAsset);
+
+        $this->directory->add('foo.css');
+        $this->directory->add('bar.css');
+
+        $this->directory->except('foo.css');
+
+        $this->assertEquals($barAsset, $this->directory->getDirectoryAssets()->first());
+    }
+
+
+    public function testIncludingOfAssetsFromDirectory()
+    {
+        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css', 'testing', 1);
+        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css', 'testing', 1);
+
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($fooAsset);
+
+        $this->finder->shouldReceive('find')->once()->with('bar.css')->andReturn('path/to/bar.css');
+        $this->factory['asset']->shouldReceive('make')->once()->with('path/to/bar.css')->andReturn($barAsset);
+
+        $this->directory->add('foo.css');
+        $this->directory->add('bar.css');
+
+        $this->directory->only('foo.css');
+
+        $this->assertEquals($fooAsset, $this->directory->getDirectoryAssets()->first());
+    }
+
+
+    public function testGetAssetsFromDirectory()
+    {
+        $this->assertCount(0, $this->directory->getAssets());
+    }
+
+
+    public function testGetAssetsFromDirectoryAndChildDirectories()
+    {
+        $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
+        $this->directory = new Directory('foo', $this->files, $this->factory, $this->finder);
+
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
+        $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn($childDirectory = m::mock('Basset\Directory'));
+
+        $this->directory->directory('css');
+
+        $childDirectory->shouldReceive('getAssets')->once()->andReturn(new Illuminate\Support\Collection);
+
+        $this->assertCount(0, $this->directory->getAssets());
     }
 
 
