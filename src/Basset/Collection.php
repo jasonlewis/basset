@@ -12,20 +12,6 @@ class Collection extends Filterable {
     protected $name;
 
     /**
-     * Basset asset finder instance.
-     *
-     * @var \Basset\AssetFinder
-     */
-    protected $finder;
-
-    /**
-     * Basset factory manager instance.
-     *
-     * @var \Basset\Factory\Manager
-     */
-    protected $factory;
-
-    /**
      * The default directory of the collection.
      * 
      * @var \Basset\Directory
