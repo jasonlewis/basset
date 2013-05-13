@@ -21,7 +21,7 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
 
         $this->finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
         $this->factory->shouldReceive('offsetGet')->with('directory')->andReturn($directory = m::mock('Basset\Factory\DirectoryFactory'));
-        $directory->shouldReceive('make')->with('/');
+        $directory->shouldReceive('make')->with('/')->andReturn(m::mock('Basset\Directory'));
 
         $this->environment = new Environment($this->files, $this->config, $this->factory, $this->finder, 'testing');
     }

@@ -1,12 +1,9 @@
 <?php
 
 use Mockery as m;
+use Basset\Asset;
 use Basset\Collection;
-use Basset\AssetFinder;
-use Basset\Factory\Manager;
-use Basset\Factory\AssetFactory;
-use Basset\Factory\FilterFactory;
-use Basset\Builder\StringBuilder;
+use Illuminate\Support\Collection as IlluminateCollection;
 
 class CollectionTest extends PHPUnit_Framework_TestCase {
 
@@ -17,458 +14,87 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testGetCollectionName()
+    public function setUp()
     {
-        $collection = $this->getCollectionInstance();
-        $this->assertEquals('foo', $collection->getName());
+        $this->collection = new Collection('foo', $this->directory = m::mock('Basset\Directory'));
     }
 
 
-    public function testAddingValidAssetDoesNotThrowException()
+    public function testGetNameOfCollection()
     {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
-
-        $asset->shouldReceive('isRemote')->once()->andReturn(false);
-
-        $this->assertInstanceOf('Basset\Asset', $collection->add('bar.css'));
+        $this->assertEquals('foo', $this->collection->getName());
     }
 
 
-    public function testAddingValidRemoteAssetExcludesAsset()
+    public function testGetDefaultDirectory()
     {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
-
-        $asset->shouldReceive('isRemote')->once()->andReturn(true);
-        $asset->shouldReceive('exclude')->once()->andReturn(true);
-
-        $this->assertInstanceOf('Basset\Asset', $collection->add('bar.css'));
+        $this->assertEquals($this->directory, $this->collection->getDefaultDirectory());
     }
 
 
-    public function testAddingInvalidAssetThrowsException()
+    public function testGetExtensionFromGroup()
     {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andThrow('Basset\Exception\AssetNotFoundException');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with(null)->andReturn($asset = $this->getAssetMock());
-
-        $this->assertInstanceOf('Basset\Asset', $collection->add('bar.css'));
+        $this->assertEquals('css', $this->collection->getExtension('stylesheets'));
+        $this->assertEquals('js', $this->collection->getExtension('javascripts'));
     }
 
 
-    public function testAddingAssetWithCallback()
+    public function testGettingCollectionAssetsWithDefaultOrdering()
     {
-        $collection = $this->getCollectionInstance();
+        $this->directory->shouldReceive('getAssets')->andReturn($expected = new IlluminateCollection(array(
+            $this->newAsset('bar.css', 'path/to/bar.css', 1),
+            $this->newAsset('baz.css', 'path/to/baz.css', 2)
+        )));
 
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
-        
-        $asset->shouldReceive('isRemote')->once()->andReturn(false);
-        $asset->shouldReceive('fireInCallback')->once();
-
-        $collection->add('bar.css', function($asset)
-        {
-            $asset->fireInCallback();
-        });
+        $this->assertEquals($expected->all(), $this->collection->getAssets('stylesheets')->all());
     }
 
 
-    public function testAddingAssetFromWithinWorkingDirectory()
+    public function testGettingCollectionWithMultipleAssetGroupsReturnsOnlyRequestedGroup()
     {
-        $collection = $this->getCollectionInstance();
+        $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1),
+            $assets[] = $this->newAsset('bar.js', 'path/to/bar.js', 2),
+            $assets[] = $this->newAsset('baz.js', 'path/to/baz.js', 3),
+            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 4)
+        )));
 
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->times(3)->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->once()->andReturn(true);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset = $this->getAssetMock());
-
-        $directory->shouldReceive('add')->once()->with($asset);
-
-        $asset->shouldReceive('isRemote')->once()->andReturn(false);
-
-        $collection->directory('foo', function($collection)
-        {
-            $collection->add('bar.css');
-        });
+        $expected = array(0 => $assets[0], 3 => $assets[3]);
+        $this->assertEquals($expected, $this->collection->getAssets('stylesheets')->all());
     }
 
 
-    public function testChangeCollectionWorkingDirectory()
+    public function testGettingCollectionAssetsWithCustomOrdering()
     {
-        $collection = $this->getCollectionInstance();
+        $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1), // Becomes 2nd
+            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 2), // Becomes 4th
+            $assets[] = $this->newAsset('baz.css', 'path/to/baz.css', 1), // Becomes 1st
+            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 4), // Becomes 5th
+            $assets[] = $this->newAsset('zin.css', 'path/to/zin.css', 3)  // Becomes 3rd
+        )));
 
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($this->getDirectoryMock());
-
-        $this->assertInstanceOf('Basset\Directory', $directory = $collection->directory('foo'));
-        $this->assertCount(1, $collection->getDirectories());
+        $expected = array($assets[2], $assets[0], $assets[4], $assets[1], $assets[3]);
+        $this->assertEquals($expected, $this->collection->getAssets('stylesheets')->all());
     }
 
 
-    public function testChangeCollectionToInvalidWorkingDirectoryThrowsException()
+    public function testGettingCollectionExcludedAssets()
     {
-        $collection = $this->getCollectionInstance();
+        $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1),
+            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 2)
+        )));
 
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo')->andThrow('Basset\Exception\DirectoryNotFoundException');
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with(null)->andReturn($this->getDirectoryMock());
+        $assets[1]->exclude();
 
-        $this->assertInstanceOf('Basset\Directory', $directory = $collection->directory('foo'));
+        $this->assertEquals(array(1 => $assets[1]), $this->collection->getExcludedAssets('stylesheets')->all());
     }
 
 
-    public function testChangeCollectionWorkingDirectoryAndFireDirectoryCallback()
+    public function newAsset($relative, $absolute, $order)
     {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($this->getDirectoryMock());
-
-        $fired = false;
-        $tester = $this;
-
-        $this->assertInstanceOf('Basset\Directory', $directory = $collection->directory('foo', function($collection) use (&$fired, $tester)
-        {
-            $fired = true;
-            $tester->assertEquals('foo', $collection->getName());
-        }));
-        $this->assertTrue($fired);
-    }
-
-
-    public function testRequiringDirectoryFiresCorrectMethodsAndReturnsDirectoryInstance()
-    {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
-
-        $directory->shouldReceive('requireDirectory')->once()->andReturn(m::self());
-
-        $this->assertInstanceOf('Basset\Directory', $collection->requireDirectory('foo'));
-    }
-
-
-    public function testRequiringTreeFiresCorrectMethodsAndReturnsDirectoryInstance()
-    {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
-
-        $directory->shouldReceive('requireTree')->once()->andReturn(m::self());
-
-        $this->assertInstanceOf('Basset\Directory', $collection->requireTree('foo'));
-    }
-
-
-    public function testGetAssetsWithNoOrdering()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/baz.css')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(null);
-
-        $collection->add('bar.css');
-        $collection->add('baz.css');
-
-        $this->assertEquals(array_values($assets), $collection->getAssets());
-    }
-
-
-    public function testGetAssetsWithOrdering()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/baz.css')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(1);
-
-        $collection->add('bar.css');
-        $collection->add('baz.css');
-
-        $this->assertEquals(array_reverse(array_values($assets)), $collection->getAssets());
-    }
-
-
-    public function testGetAssetsWithSpecificGroup()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('baz.js')->andReturn('foo/baz.js');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/baz.js')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-        $assets['bar']->shouldReceive('isStylesheet')->once()->andReturn(true);
-
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['baz']->shouldReceive('isStylesheet')->once()->andReturn(false);
-
-        $collection->add('bar.css');
-        $collection->add('baz.js');
-
-        $this->assertEquals(array($assets['bar']), $collection->getAssets('stylesheets'));
-    }
-
-
-    public function testGetExcludedAssetsWithNoOrdering()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('http://qux.fiz/baz.js')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-        $assets['bar']->shouldReceive('isExcluded')->once()->andReturn(true);
-
-        $assets['baz']->shouldReceive('exclude')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(null);
-        $assets['baz']->shouldReceive('isExcluded')->once()->andReturn(true);
-
-        $collection->add('bar.css');
-        $collection->add('http://qux.fiz/baz.js');
-
-        $this->assertEquals(array_values($assets), $collection->getExcludedAssets());
-    }
-
-
-    public function testGetExcludedAssetsWithOrdering()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('http://qux.fiz/baz.js')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-        $assets['bar']->shouldReceive('isExcluded')->once()->andReturn(true);
-
-        $assets['baz']->shouldReceive('exclude')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(1);
-        $assets['baz']->shouldReceive('isExcluded')->once()->andReturn(true);
-
-        $collection->add('bar.css');
-        $collection->add('http://qux.fiz/baz.js');
-
-        $this->assertEquals(array_reverse(array_values($assets)), $collection->getExcludedAssets());
-    }
-
-
-    public function testGetExcludedAssetsWithSpecificGroup()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('http://qux.fiz/baz.js')->andReturn('http://qux.fiz/baz.js');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('http://qux.fiz/baz.js')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('isExcluded')->once()->andReturn(true);
-        $assets['bar']->shouldReceive('isJavascript')->once()->andReturn(false);
-
-        $assets['baz']->shouldReceive('exclude')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(null);
-        $assets['baz']->shouldReceive('isExcluded')->once()->andReturn(true);
-        $assets['baz']->shouldReceive('isJavascript')->once()->andReturn(true);
-
-        $collection->add('bar.css');
-        $collection->add('http://qux.fiz/baz.js');
-
-        $this->assertEquals(array($assets['baz']), $collection->getExcludedAssets('javascripts'));
-    }
-
-
-    public function testFiltersAreAppliedToEntireCollection()
-    {
-        $assets = array();
-
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('withinWorkingDirectory')->twice()->andReturn(false);
-        $collection->getFinder()->shouldReceive('find')->once()->with('bar.css')->andReturn('foo/bar.css');
-        $collection->getFinder()->shouldReceive('find')->once()->with('baz.css')->andReturn('foo/baz.css');
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($assets['bar'] = $this->getAssetMock());
-        $collection->getFactory()->get('asset')->shouldReceive('make')->once()->with('foo/baz.css')->andReturn($assets['baz'] = $this->getAssetMock());
-
-        $assets['bar']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['bar']->shouldReceive('getOrder')->once()->andReturn(null);
-
-        $assets['baz']->shouldReceive('isRemote')->once()->andReturn(false);
-        $assets['baz']->shouldReceive('getOrder')->once()->andReturn(null);
-
-        $collection->getFactory()->get('filter')->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = $this->getFilterMock());
-
-        $filter->shouldReceive('setResource')->once()->with($collection)->andReturn(m::self());
-        $filter->shouldReceive('runCallback')->once()->with(null)->andReturn(m::self());
-        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
-
-        $assets['bar']->shouldReceive('apply')->once()->with($filter);
-        $assets['baz']->shouldReceive('apply')->once()->with($filter);
-
-        $collection->add('bar.css');
-        $collection->add('baz.css');
-
-        $this->assertInstanceOf('Basset\Filter\Filter', $collection->apply('FooFilter'));
-
-        $collection->getAssets();
-    }
-
-
-    public function testDirectoryAssetsAreMergedWithCollectionAssets()
-    {
-        $collection = $this->getCollectionInstance();
-
-        $collection->getFinder()->shouldReceive('setWorkingDirectory')->once()->with('foo');
-        $collection->getFinder()->shouldReceive('getWorkingDirectory')->twice()->andReturn('foo');
-        $collection->getFinder()->shouldReceive('resetWorkingDirectory')->once();
-
-        $collection->getFactory()->get('directory')->shouldReceive('make')->once()->with('foo')->andReturn($directory = $this->getDirectoryMock());
-
-        $collection->directory('foo');
-
-        $directory->shouldReceive('getAssets')->once()->andReturn(array());
-
-        $collection->getAssets();
-    }
-
-
-    protected function getCollectionInstance()
-    {
-        $files = $this->getFilesMock();
-        $finder = $this->getAssetFinderMock();
-        $factory = $this->getFactoryManagerInstance();
-
-        return new Collection('foo', $files, $finder, $factory);
-    }
-
-
-    protected function getAssetMock()
-    {
-        return m::mock('Basset\Asset');
-    }
-
-
-    protected function getFilesMock()
-    {
-        return m::mock('Illuminate\Filesystem\Filesystem');
-    }
-
-
-    protected function getAssetFinderMock()
-    {
-        return m::mock('Basset\AssetFinder');
-    }
-
-
-    protected function getAssetFactoryMock()
-    {
-        return m::mock('Basset\Factory\AssetFactory');
-    }
-
-
-    protected function getFilterFactoryMock()
-    {
-        return m::mock('Basset\Factory\FilterFactory');
-    }
-
-
-    protected function getDirectoryFactoryMock()
-    {
-        return m::mock('Basset\Factory\DirectoryFactory');
-    }
-
-
-    protected function getFilterMock()
-    {
-        return m::mock('Basset\Filter\Filter');
-    }
-
-
-    protected function getDirectoryMock()
-    {
-        return m::mock('Basset\Directory');
-    }
-
-
-    protected function getFactoryManagerInstance()
-    {
-        $manager = new Manager;
-
-        $manager['asset'] = $this->getAssetFactoryMock();
-        $manager['filter'] = $this->getFilterFactoryMock();
-        $manager['directory'] = $this->getDirectoryFactoryMock();
-
-        return $manager;
+        return new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\Manager'), $absolute, $relative, 'testing', $order);
     }
 
 

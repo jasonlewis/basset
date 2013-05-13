@@ -13,140 +13,162 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->config = m::mock('Illuminate\Config\Repository');
+
+        $this->finder = new AssetFinder($this->files, $this->config, 'path/to/public');
+    }
+
+
     public function testFindRemotelyHostedAsset()
     {
-        $finder = $this->getFinderInstance();
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.http://foo.bar/baz.css', 'http://foo.bar/baz.css')->andReturn('http://foo.bar/baz.css');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
-
-        $this->assertEquals('http://foo.bar/baz.css', $finder->find('http://foo.bar/baz.css'));
+        $this->assertEquals('http://foo.bar/baz.css', $this->finder->find('http://foo.bar/baz.css'));
     }
 
 
     public function testFindRelativeProtocolRemotelyHostedAsset()
     {
-        $finder = $this->getFinderInstance();
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.//foo.bar/baz.css', '//foo.bar/baz.css')->andReturn('//foo.bar/baz.css');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
-
-        $this->assertEquals('//foo.bar/baz.css', $finder->find('//foo.bar/baz.css'));
+        $this->assertEquals('//foo.bar/baz.css', $this->finder->find('//foo.bar/baz.css'));
     }
 
 
     public function testFindPackageAsset()
     {
-        $finder = $this->getFinderInstance();
-        $finder->addNamespace('bar', 'foo/bar');
+        $this->finder->addNamespace('bar', 'foo/bar');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/packages/foo/bar/baz.css')->andReturn(true);
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.bar::baz.css', 'bar::baz.css')->andReturn('bar::baz.css');
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/packages/foo/bar/baz.css')->andReturn(true);
 
-        $this->assertEquals('path/to/public/packages/foo/bar/baz.css', $finder->find('bar::baz.css'));
+        $this->assertEquals('path/to/public/packages/foo/bar/baz.css', $this->finder->find('bar::baz.css'));
+    }
+
+
+    /**
+     * @expectedException Basset\Exceptions\AssetNotFoundException
+     */
+    public function testFindPackageAssetWithNoSetPackageThrowsNotFoundException()
+    {
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.bar::baz.css', 'bar::baz.css')->andReturn('bar::baz.css');
+
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/bar::baz.css')->andReturn(false);
+        $this->files->shouldReceive('exists')->once()->with('bar::baz.css')->andReturn(false);
+
+        $this->assertNull($this->finder->find('bar::baz.css'));
     }
 
 
     public function testFindWorkingDirectoryAsset()
     {
-        $finder = $this->getFinderInstance();
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
+        $this->finder->setWorkingDirectory('working/directory');
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory/foo.css')->andReturn(true);
 
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
-        $finder->setWorkingDirectory('working/directory');
-
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory/foo.css')->andReturn(true);
-
-        $this->assertEquals('path/to/public/working/directory/foo.css', $finder->find('foo.css'));
+        $this->assertEquals('path/to/public/working/directory/foo.css', $this->finder->find('foo.css'));
     }
 
 
     public function testFindPublicPathAsset()
     {
-        $finder = $this->getFinderInstance();
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
 
-        $this->assertEquals('path/to/public/foo.css', $finder->find('foo.css'));
+        $this->assertEquals('path/to/public/foo.css', $this->finder->find('foo.css'));
+    }
+
+
+    public function testFindAbsolutePathAsset()
+    {
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets./absolute/path/to/foo.css', '/absolute/path/to/foo.css')->andReturn('/absolute/path/to/foo.css');
+
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/absolute/path/to/foo.css')->andReturn(false);
+        $this->files->shouldReceive('exists')->once()->with('/absolute/path/to/foo.css')->andReturn(true);
+
+        $this->assertEquals('/absolute/path/to/foo.css', $this->finder->find('/absolute/path/to/foo.css'));
     }
 
 
     public function testFindAliasedAsset()
     {
-        $finder = $this->getFinderInstance();
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.foo', 'foo')->andReturn('foo.css');
 
-        $finder->getConfig()->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
-            'assets' => array(
-                'foo' => 'foo.css'
-            )
-        ));
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
 
-        $this->assertEquals('path/to/public/foo.css', $finder->find('foo'));
+        $this->assertEquals('path/to/public/foo.css', $this->finder->find('foo'));
     }
 
 
     /**
-     * @expectedException Basset\Exception\DirectoryNotFoundException
+     * @expectedException Basset\Exceptions\DirectoryNotFoundException
      */
     public function testSettingInvalidWorkingDirectoryThrowsException()
     {
-        $finder = $this->getFinderInstance();
-
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(false);
-        $finder->setWorkingDirectory('working/directory');
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(false);
+        $this->finder->setWorkingDirectory('working/directory');
     }
 
 
     public function testResettingWorkingDirectory()
     {
-        $finder = $this->getFinderInstance();
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
+        $this->finder->setWorkingDirectory('working/directory');
+        $this->assertEquals('path/to/public/working/directory', $this->finder->getWorkingDirectory());
 
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
-        $finder->setWorkingDirectory('working/directory');
-        $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
-
-        $finder->resetWorkingDirectory();
-        $this->assertFalse($finder->getWorkingDirectory());
+        $this->finder->resetWorkingDirectory();
+        $this->assertFalse($this->finder->getWorkingDirectory());
     }
 
 
     public function testWorkingDirectoryStackIsPrefixed()
     {
-        $finder = $this->getFinderInstance();
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/working/directory/foo/bar/baz')->andReturn(true);
 
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory')->andReturn(true);
-        $finder->getFiles()->shouldReceive('exists')->once()->with('path/to/public/working/directory/foo/bar/baz')->andReturn(true);
+        $this->finder->setWorkingDirectory('working/directory');
+        $this->assertEquals('path/to/public/working/directory', $this->finder->getWorkingDirectory());
 
-        $finder->setWorkingDirectory('working/directory');
-        $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
+        $this->finder->setWorkingDirectory('foo/bar/baz');
+        $this->assertEquals('path/to/public/working/directory/foo/bar/baz', $this->finder->getWorkingDirectory());
 
-        $finder->setWorkingDirectory('foo/bar/baz');
-        $this->assertEquals('path/to/public/working/directory/foo/bar/baz', $finder->getWorkingDirectory());
+        $this->finder->resetWorkingDirectory();
+        $this->assertEquals('path/to/public/working/directory', $this->finder->getWorkingDirectory());
 
-        $finder->resetWorkingDirectory();
-        $this->assertEquals('path/to/public/working/directory', $finder->getWorkingDirectory());
-
-        $finder->resetWorkingDirectory();
-        $this->assertFalse($finder->getWorkingDirectory());
+        $this->finder->resetWorkingDirectory();
+        $this->assertFalse($this->finder->getWorkingDirectory());
     }
 
 
-    protected function getFinderInstance()
+    /**
+     * @expectedException Basset\Exceptions\AssetExistsException
+     */
+    public function testFindSameAssetTwiceThrowsAssetExistsException()
     {
-        return new AssetFinder($this->getFilesMock(), $this->getConfigMock(), 'path/to/public');
+        $this->config->shouldReceive('get')->twice()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
+
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
+
+        $this->finder->find('foo.css');
+        $this->finder->find('foo.css');
     }
 
 
-    protected function getFilesMock()
+    public function testCanGetCachedAssetPath()
     {
-        return m::mock('Illuminate\Filesystem\Filesystem');
-    }
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
 
+        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
 
-    protected function getConfigMock()
-    {
-        return new Config(m::mock('Illuminate\Config\LoaderInterface'), 'testing');
+        $this->finder->find('foo.css');
+
+        $this->assertEquals('path/to/public/foo.css', $this->finder->getCachedPath('foo.css'));
     }
 
 
