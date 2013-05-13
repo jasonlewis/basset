@@ -339,12 +339,12 @@ class Asset extends Filterable {
     {
         // Spin through each of the applied assets and remove any where we don't get a class
         // that does not implement Assetic\Filter\FilterInterface.
-        $filters = $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
+        $this->filters = $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
         {
             return $filter instanceof FilterInterface;
         });
 
-        $asset = new StringAsset($this->getContent(), $filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
+        $asset = new StringAsset($this->getContent(), $this->filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
 
         return $asset->dump();
     }
