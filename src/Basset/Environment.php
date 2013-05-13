@@ -94,7 +94,9 @@ class Environment implements ArrayAccess {
     {
         if ( ! isset($this->collections[$name]))
         {
-            $this->collections[$name] = new Collection($name, $this->finder, $this->factory);
+            $directory = $this->prepareDefaultDirectory();
+
+            $this->collections[$name] = new Collection($name, $directory);
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with
@@ -106,6 +108,18 @@ class Environment implements ArrayAccess {
         }
 
         return $this->collections[$name];
+    }
+
+    /**
+     * Prepare the default directory for a new collection.
+     * 
+     * @return \Basset\Directory
+     */
+    protected function prepareDefaultDirectory()
+    {
+        $path = $this->finder->setWorkingDirectory('/');
+
+        return $this->factory['directory']->make($path);
     }
 
     /**

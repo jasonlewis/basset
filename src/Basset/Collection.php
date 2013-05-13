@@ -1,6 +1,5 @@
 <?php namespace Basset;
 
-use Basset\Factory\Manager;
 use Basset\Filter\Filterable;
 
 class Collection extends Filterable {
@@ -31,7 +30,7 @@ class Collection extends Filterable {
      * 
      * @var \Basset\Directory
      */
-    protected $defaultDirectory;
+    protected $directory;
 
     /**
      * Create a new collection instance.
@@ -41,26 +40,11 @@ class Collection extends Filterable {
      * @param  \Basset\Factory\Manager  $factory
      * @return void
      */
-    public function __construct($name, AssetFinder $finder, Manager $factory)
+    public function __construct($name, Directory $directory)
     {
         $this->name = $name;
-        $this->finder = $finder;
-        $this->factory = $factory;
+        $this->directory = $directory;
         $this->filters = $this->newCollection();
-
-        $this->setupDefaultDirectory();
-    }
-
-    /**
-     * Setup the default directory.
-     * 
-     * @return void
-     */
-    protected function setupDefaultDirectory()
-    {
-        $path = $this->finder->setWorkingDirectory('/');
-
-        $this->defaultDirectory = $this->factory['directory']->make($path);
     }
 
     /**
@@ -73,7 +57,7 @@ class Collection extends Filterable {
     {
         // Spin through all of the assets that belong to the given group and push them on
         // to the end of the array.
-        $assets = $this->defaultDirectory->getAssets();
+        $assets = $this->directory->getAssets();
 
         foreach ($assets as $key => $asset)
         {
@@ -163,7 +147,7 @@ class Collection extends Filterable {
      */
     public function getDefaultDirectory()
     {
-        return $this->defaultDirectory;
+        return $this->directory;
     }
 
     /**
@@ -206,7 +190,7 @@ class Collection extends Filterable {
      */
     public function __call($method, $parameters)
     {
-        return call_user_func_array(array($this->defaultDirectory, $method), $parameters);
+        return call_user_func_array(array($this->directory, $method), $parameters);
     }
 
 }
