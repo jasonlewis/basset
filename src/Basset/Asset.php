@@ -360,26 +360,6 @@ class Asset extends Filterable {
     }
 
     /**
-     * Get the basset factory manager instance.
-     * 
-     * @return \Basset\Factory\Manager
-     */
-    public function getFactory()
-    {
-        return $this->factory;
-    }
-
-    /**
-     * Get the illuminate filesystem instance.
-     * 
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFiles()
-    {
-        return $this->files;
-    }
-
-    /**
      * Dynamically handle the "include" method as we can't set the method on the class.
      *
      * @param  string  $method

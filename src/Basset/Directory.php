@@ -322,35 +322,5 @@ class Directory extends Filterable {
     {
         return $this->assets;
     }
-
-    /**
-     * Get the basset factory manager instance.
-     * 
-     * @return \Basset\Factory\Manager
-     */
-    public function getFactory()
-    {
-        return $this->factory;
-    }
-
-    /**
-     * Get the illuminate filesystem instance.
-     * 
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFiles()
-    {
-        return $this->files;
-    }
-
-    /**
-     * Get the basset asset finder instance.
-     * 
-     * @return \Basset\AssetFinder
-     */
-    public function getFinder()
-    {
-        return $this->finder;
-    }
-
+    
 }

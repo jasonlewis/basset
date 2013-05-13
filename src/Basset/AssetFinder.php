@@ -294,24 +294,4 @@ class AssetFinder {
         return $this->publicPath;
     }
 
-    /**
-     * Get the illuminate filesystem instance.
-     * 
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFiles()
-    {
-        return $this->files;
-    }
-
-    /**
-     * Get the illuminate config repository instance.
-     * 
-     * @return \Illuminate\Config\Repository
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
 }

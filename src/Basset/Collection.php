@@ -148,26 +148,6 @@ class Collection extends Filterable {
     }
 
     /**
-     * Get the basset asset finder instance.
-     * 
-     * @return \Basset\AssetFinder
-     */
-    public function getFinder()
-    {
-        return $this->finder;
-    }
-
-    /**
-     * Get the basset factory manager instance.
-     * 
-     * @return \Basset\Factory\Manager
-     */
-    public function getFactory()
-    {
-        return $this->factory;
-    }
-
-    /**
      * Dynamically call methods on the default directory.
      * 
      * @param  string  $method

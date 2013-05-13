@@ -236,44 +236,4 @@ class Server {
         return starts_with($path, '//') ? $path : $this->url->asset($path);
     }
 
-    /**
-     * Get the illuminate config repository instance.
-     * 
-     * @return \Illuminate\Config\Repository
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * Get the illuminate url generator instance.
-     * 
-     * @return \Illuminate\Routing\UrlGenerator
-     */
-    public function getUrlGenerator()
-    {
-        return $this->url;
-    }
-
-    /**
-     * Get the basset manifest repository instance.
-     * 
-     * @return \Basset\Manifest\Repository
-     */
-    public function getManifest()
-    {
-        return $this->manifest;
-    }
-
-    /**
-     * Get the basset environment instance.
-     * 
-     * @return \Basset\Environment
-     */
-    public function getEnvironment()
-    {
-        return $this->environment;
-    }
-
 }
