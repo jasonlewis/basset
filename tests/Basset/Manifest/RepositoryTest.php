@@ -12,102 +12,70 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testLoadingOfManifest()
+    public function setUp()
     {
-        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
+        $this->files = new Illuminate\Filesystem\Filesystem;
+        $this->manifest = new Repository($this->files, __DIR__.'/fixtures');
+    }
 
-        $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"},"development":{"stylesheets":{"baz/qux.scss":"baz/qux.css"}}}}');
+
+    public function testManifestIsLoadedCorrectlyFromFilesystem()
+    {
+        $this->manifest->load();
 
         $this->assertEquals(array(
             'fingerprints' => array('stylesheets' => 'bar'),
             'development' => array('stylesheets' => array('baz/qux.scss' => 'baz/qux.css'))
-        ), $repository->load()->getEntry('foo')->toArray());
+        ), $this->manifest->get('foo')->toArray());
     }
 
 
-    public function testMethodsArePassedThroughToManifestInstance()
+    public function testGetInvalidManifestEntryReturnsNull()
     {
-        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
-        $files->shouldReceive('exists')->with('path/to/meta/collections.json')->andReturn(true);
-        $files->shouldReceive('get')->with('path/to/meta/collections.json')->andReturn('{"foo":{"fingerprints":{"stylesheets":"bar"}}}');
-
-        $repository->load();
-
-        $this->assertTrue($repository->hasEntry('foo'));
+        $this->assertNull($this->manifest->get('foo'));
     }
 
 
-    public function testRegisterCollectionWithRepository()
+    public function testMakeManifestEntryReturnsNewEntry()
     {
-        $fingerprint = array('stylesheets' => md5('baz'));
-        $development = array();
-
-        $manifest = array('qux' => array('fingerprints' => $fingerprint, 'development' => $development));
-
-        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
-        $files->shouldReceive('put')->once()->with('path/to/meta/collections.json', json_encode($manifest));
-
-        $collection = $this->getCollectionMock();
-        $collection->shouldReceive('getName')->once()->andReturn('qux');
-
-        $repository->register($collection, $fingerprint);
-
-        $this->assertEquals($manifest['qux'], $repository->getEntry('qux')->toArray());
+        $this->assertInstanceOf('Basset\Manifest\Entry', $this->manifest->make('foo'));
     }
 
 
-    public function testRegisterDevelopmentCollectionWithRepository()
+    public function testMakeReturnsExistingManifestEntryIfEntryAlreadyExists()
     {
-        $fingerprint = array('stylesheets' => md5('baz'));
-        $development = array(
-            'stylesheets' => array('http://bar.qux/yin.css' => 'http://bar.qux/yin.css'),
-            'javascripts' => array('foo/bar.coffee' => 'foo/bar.js')
-        );
-
-        $manifest = array('qux' => array('fingerprints' => $fingerprint, 'development' => $development));
-
-        $repository = new Repository($files = $this->getFilesMock(), 'path/to/meta');
-
-        $files->shouldReceive('put')->once()->with('path/to/meta/collections.json', json_encode($manifest));
-
-        $collection = $this->getCollectionMock();
-        $collection->shouldReceive('getName')->once()->andReturn('qux');
-        $collection->shouldReceive('getAssets')->once()->andReturn(array(
-            $assets[] = $this->getAssetMock(),
-            $assets[] = $this->getAssetMock()
-        ));
-
-        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('http://bar.qux/yin.css');
-        $assets[0]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
-        $assets[0]->shouldReceive('isRemote')->once()->andReturn(true);
-        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('foo/bar.coffee');
-        $assets[1]->shouldReceive('getUsablePath')->once()->andReturn('foo/bar.js');
-        $assets[1]->shouldReceive('getGroup')->once()->andReturn('javascripts');
-        $assets[1]->shouldReceive('isRemote')->once()->andReturn(false);
-
-        $repository->register($collection, $fingerprint, true);
-
-        $this->assertEquals($manifest['qux'], $entry = $repository->getEntry('qux')->toArray());
-        $this->assertEquals($development, $entry['development']);
+        $foo = $this->manifest->make('foo');
+        $this->assertEquals($foo, $this->manifest->make('foo'));
     }
 
 
-    protected function getFilesMock()
+    public function testManifestChecksForExistingEntry()
     {
-        return m::mock('Illuminate\Filesystem\Filesystem');
+        $this->assertFalse($this->manifest->has('foo'));
+        $this->manifest->make('foo');
+        $this->assertTrue($this->manifest->has('foo'));
     }
 
 
-    protected function getCollectionMock()
+    public function testManifestUsesCollectionInstanceToGetEntryName()
     {
-        return m::mock('Basset\Collection');
+        $collection = m::mock('Basset\Collection');
+        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->assertInstanceOf('Basset\Manifest\Entry', $this->manifest->make($collection));
     }
 
 
-    protected function getAssetMock()
+    public function testWritesChangedEntriesToManifest()
     {
-        return m::mock('Basset\Asset');
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->manifest = new Repository($this->files, __DIR__.'/fixtures');
+
+        $entry = $this->manifest->make('foo');
+        $entry->setProductionFingerprint('stylesheets', 'foo-123.css');
+
+        $this->files->shouldReceive('put')->once()->with(__DIR__.'/fixtures/collections.json', json_encode(array('foo' => $entry->toArray())))->andReturn(true);
+
+        $this->manifest->save();
     }
 
 

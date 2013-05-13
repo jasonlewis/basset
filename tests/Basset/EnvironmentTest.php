@@ -49,6 +49,13 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testRegisterPackageNamespaceAndVendorWithEnvironmentAndFinderAndGuessNamespace()
+    {
+        $this->finder->shouldReceive('addNamespace')->once()->with('bar', 'foo/bar');
+        $this->environment->package('foo/bar');
+    }
+
+
     public function testRegisteringArrayOfCollections()
     {
         $this->environment->collections(array(

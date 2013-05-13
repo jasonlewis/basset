@@ -1,9 +1,7 @@
 <?php
 
 use Mockery as m;
-use Basset\Factory\Manager;
 use Basset\Factory\DirectoryFactory;
-use Illuminate\Filesystem\Filesystem;
 
 class DirectoryFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -16,10 +14,8 @@ class DirectoryFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakingOfDirectory()
     {
-        $factory = new DirectoryFactory(new Filesystem, new Manager);
-
+        $factory = new DirectoryFactory(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\Manager'), m::mock('Basset\AssetFinder'));
         $directory = $factory->make('foo');
-
         $this->assertInstanceOf('Basset\Directory', $directory);
     }
 

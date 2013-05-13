@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Filter\Filter;
 
 class FilterTest extends PHPUnit_Framework_TestCase {
 
@@ -12,247 +11,183 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->filter = m::mock('Basset\Filter\Filter', array('FooFilter'))->shouldDeferMissing();
+        $this->filter->setResource($this->resource = m::mock('Basset\Filter\Filterable'));
+    }
+
+
     public function testSettingOfFilterInstantiationArguments()
     {
-        $filter = $this->getFilterInstance();
+        $this->filter->setArguments('bar', 'baz');
 
-        $filter->setArguments('bar', 'baz');
-
-        $arguments = $filter->getArguments();
+        $arguments = $this->filter->getArguments();
 
         $this->assertContains('bar', $arguments);
         $this->assertContains('baz', $arguments);
     }
 
 
-    public function testSettingFilterEnvironmentRequirements()
+    public function testSettingFilterEnvironmentRequirement()
     {
-        $filter = $this->getFilterInstance();
-
-        $resource = $this->getResourceMock();
-        $resource->shouldReceive('getAppEnvironment')->once()->andReturn('foo');
-
-        $filter->setResource($resource);
-
-        $filter->whenEnvironmentIs('foo');
-
-        $this->assertTrue($filter->processRequirements());
+        $this->resource->shouldReceive('getApplicationEnvironment')->once()->andReturn('foo');
+        $this->filter->whenEnvironmentIs('foo');
+        $this->assertTrue($this->filter->processRequirements());
     }
 
 
-    public function testSettingFilterGroupRestrictionRequirement()
+    public function testSettingFilterStylesheetGroupRestrictionRequirement()
     {
-        $filter = $this->getFilterInstance();
+        $this->resource->shouldReceive('isStylesheet')->once()->andReturn(false);
+        $this->filter->whenAssetIsStylesheet();
+        $this->assertFalse($this->filter->processRequirements());
+    }
 
-        $resource = $this->getResourceMock();
-        $resource->shouldReceive('isStylesheet')->once()->andReturn(false);
 
-        $filter->setResource($resource);
-
-        $filter->whenAssetIsStylesheet();
-        $this->assertFalse($filter->processRequirements());
+    public function testSettingFilterJavascriptGroupRestrictionRequirement()
+    {
+        $this->resource->shouldReceive('isJavascript')->once()->andReturn(true);
+        $this->filter->whenAssetIsJavascript();
+        $this->assertTrue($this->filter->processRequirements());
     }
 
 
     public function testSettingAssetNameIsRequirement()
     {
-        $filter = $this->getFilterInstance();
+        $this->resource->shouldReceive('getRelativePath')->times(3)->andReturn('foo/bar.css');
 
-        $resource = $this->getResourceMock();
-        $resource->shouldReceive('getRelativePath')->times(3)->andReturn('foo.bar');
+        $this->filter->whenAssetIs('foo*');
+        $this->assertTrue($this->filter->processRequirements());
 
-        $filter->setResource($resource);
-
-        $filter->whenAssetIs('foo.*');
-        $this->assertTrue($filter->processRequirements());
-
-        $filter->whenAssetIs('foo.baz');
-        $this->assertFalse($filter->processRequirements());
+        $this->filter->whenAssetIs('foo/baz.css');
+        $this->assertFalse($this->filter->processRequirements());
     }
 
 
     public function testSettingClassExistsFilterRequirement()
     {
-        $filter = $this->getFilterInstance();
+        $this->filter->whenClassExists('FilterTest');
+        $this->assertTrue($this->filter->processRequirements());
 
-        $filter->setResource($this->getResourceMock());
-
-        $filter->whenClassExists('FilterTest');
-        $this->assertTrue($filter->processRequirements());
-
-        $filter->whenClassExists('FooBarBaz');
-        $this->assertFalse($filter->processRequirements());
+        $this->filter->whenClassExists('FooBarBaz');
+        $this->assertFalse($this->filter->processRequirements());
     }
 
 
     public function testSettingCustomFilterRequirement()
     {
-        $filter = $this->getFilterInstance();
+        $this->resource->shouldReceive('fooBar')->times(3)->andReturn(true, true, false);
 
-        $resource = $this->getResourceMock();
-        $resource->shouldReceive('fooBar')->times(3)->andReturn(true, true, false);
-
-        $filter->setResource($resource);
-
-        $filter->when(function($asset)
+        $this->filter->when(function($asset)
         {
             return $asset->fooBar();
         });
-        $this->assertTrue($filter->processRequirements());
+        $this->assertTrue($this->filter->processRequirements());
 
-        $filter->when(function($asset)
+        $this->filter->when(function($asset)
         {
             return $asset->fooBar();
         });
-        $this->assertFalse($filter->processRequirements());
+        $this->assertFalse($this->filter->processRequirements());
     }
 
 
     public function testInstantiationOfFiltersWithNoArguments()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
-
-        $instance = $filter->getInstance();
-
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
+        $instance = $this->filter->getInstance();
         $this->assertInstanceOf('FilterStub', $instance);
     }
 
 
     public function testInstantiationOfFiltersWithArguments()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
-
-        $filter->setArguments('bar');
-
-        $instance = $filter->getInstance();
-
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $this->filter->setArguments('bar');
+        $instance = $this->filter->getInstance();
         $this->assertEquals('bar', $instance->getFooBin());
     }
 
 
     public function testInstantiationOfFiltersWithBeforeFilteringCallback()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
-
-        $tester = $this;
-
-        $filter->beforeFiltering(function($filter) use ($tester)
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
+        $this->filter->beforeFiltering(function($filter)
         {
             $filter->setFooBin('bar');
-
-            $tester->assertInstanceOf('FilterStub', $filter);
         });
-
-        $instance = $filter->getInstance();
-
+        $instance = $this->filter->getInstance();
         $this->assertEquals('bar', $instance->getFooBin());
     }
 
 
     public function testInvalidMethodsAreHandledByResource()
     {
-        $filter = new Filter('FooFilter');
-        $filter->setResource($this->getResourceMock());
-        $filter->getResource()->shouldReceive('foo')->once()->andReturn('bar');
-
+        $filter = new Basset\Filter\Filter('FooFilter');
+        $filter->setResource($this->resource);
+        $this->resource->shouldReceive('foo')->once()->andReturn('bar');
         $this->assertEquals('bar', $filter->foo());
     }
 
 
-    public function testFindingOfMissingConstructorArgsSkipsPresentArgument()
+    public function testFindingOfMissingConstructorArgsSkipsExistingArgument()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
-        $filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
-
-        $filter->setArguments('foo');
-
-        $filter->findMissingConstructorArgs();
-
-        $this->assertContains('foo', $filter->getArguments());
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $this->filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
+        $this->filter->setArguments('foo');
+        $this->filter->findMissingConstructorArgs();
+        $this->assertContains('foo', $this->filter->getArguments());
     }
 
 
     public function testFindingOfMissingConstructorArgsViaEnvironmentVariable()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
-        $filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
-        $filter->shouldReceive('getEnvironmentVariable')->once()->with('foo_bin')->andReturn('path/to/foo/bin');
-
-        $filter->findMissingConstructorArgs();
-
-        $this->assertContains('path/to/foo/bin', $filter->getArguments());
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $this->filter->shouldReceive('getExecutableFinder')->once()->andReturn(m::mock('Symfony\Component\Process\ExecutableFinder'));
+        $this->filter->shouldReceive('getEnvironmentVariable')->once()->with('foo_bin')->andReturn('path/to/foo/bin');
+        $this->filter->findMissingConstructorArgs();
+        $this->assertContains('path/to/foo/bin', $this->filter->getArguments());
     }
 
 
     public function testFindingOfMissingConstructorArgsViaExecutableFinder()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
-        $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
-
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $this->filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
         $finder->shouldReceive('find')->once()->with('foo')->andReturn('path/to/foo/bin');
-
-        $filter->findMissingConstructorArgs();
-
-        $this->assertContains('path/to/foo/bin', $filter->getArguments());
+        $this->filter->findMissingConstructorArgs();
+        $this->assertContains('path/to/foo/bin', $this->filter->getArguments());
     }
 
 
     public function testFindingOfMissingConstructorArgsSetsFilterNodePaths()
     {
         $filter = m::mock('Basset\Filter\Filter', array('FooFilter', array('path/to/node')))->shouldDeferMissing();
-        $filter->setResource($this->getResourceMock());
+        $filter->setResource($this->resource);
         $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
         $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
-
         $filter->shouldReceive('getEnvironmentVariable')->once()->with('foo_bin')->andReturn('path/to/foo/bin');
-
         $filter->findMissingConstructorArgs();
-
         $this->assertContains(array('path/to/node'), $filter->getArguments());
     }
 
 
-    public function testFindingOfMissingConstructorArgsIgnoresFilterForInvalidExecutables()
+    public function testFindingOfMissingConstructorArgsIgnoresFilterWithInvalidExecutables()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
-        $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
-
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
+        $this->filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
         $finder->shouldReceive('find')->once()->with('foo')->andReturn(false);
-
-        $filter->findMissingConstructorArgs();
-
-        $this->assertTrue($filter->isIgnored());
+        $this->filter->findMissingConstructorArgs();
+        $this->assertTrue($this->filter->isIgnored());
     }
 
 
     public function testFindingOfMissingConstructorArgsIsSkippedWhenNoConstructorPresent()
     {
-        $filter = $this->getFilterInstance();
-        $filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
-
-        $filter->findMissingConstructorArgs();
-    }
-
-
-    protected function getFilterInstance()
-    {
-        $mock = m::mock('Basset\Filter\Filter', array('FooFilter'))->shouldDeferMissing();
-        $mock->setResource($this->getResourceMock());
-
-        return $mock;
-    }
-
-
-    protected function getResourceMock()
-    {
-        return m::mock('Basset\Filter\FilterableInterface');
+        $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterStub');
+        $this->filter->findMissingConstructorArgs();
+        $this->assertEmpty($this->filter->getArguments());
     }
 
 

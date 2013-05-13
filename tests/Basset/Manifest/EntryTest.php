@@ -12,28 +12,149 @@ class EntryTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->data = array(
+            'fingerprints' => array(
+                'stylesheets' => 'foo-123.css'
+            ),
+            'development' => array(
+                'stylesheets' => array(
+                    'bar/baz.sass' => 'bar/baz.css'
+                ),
+                'javascripts' => array(
+                    'baz/qux.coffee' => 'baz/qux.js'
+                )
+            )
+        );
+
+        $this->entry = new Entry($this->data['fingerprints'], $this->data['development']);
+    }
+
+
     public function testDefaultArrayIsParsedCorrectly()
     {
-        $data = array('fingerprints' => array(), 'development' => array());
-        $entry = new Entry($data);
-        $this->assertEquals($data, $entry->toArray());
+        $this->assertEquals($this->data, $this->entry->toArray());
     }
 
 
-    public function testSettingOfFingerprint()
+    public function testAddingDevelopmentAssetToEntry()
     {
-        $entry = new Entry;
-        $entry->setFingerprint('foo', 'stylesheets');
-        $this->assertTrue($entry->hasFingerprint('stylesheets'));
-        $this->assertEquals('foo', $entry->getFingerprint('stylesheets'));
+        $this->entry->addDevelopmentAsset('foo/bar.sass', 'foo/bar.css', 'stylesheets');
+        $this->data['development']['stylesheets']['foo/bar.sass'] = 'foo/bar.css';
+        $this->assertEquals($this->data, $this->entry->toArray());
     }
 
 
-    public function testEntryCanBeConvertedToJson()
+    public function testAddingDevelopmentAssetToEntryFromAssetInstance()
     {
-        $data = array('fingerprints' => array(), 'development' => array());
-        $entry = new Entry($data);
-        $this->assertEquals(json_encode($data), $entry->toJson());
+        $asset = m::mock('Basset\Asset');
+        $asset->shouldReceive('getGroup')->once()->andReturn('stylesheets');
+        $asset->shouldReceive('getFingerprintedPath')->once()->andReturn('foo/bar.css');
+        $asset->shouldReceive('getRelativePath')->once()->andReturn('foo/bar.sass');
+
+        $this->entry->addDevelopmentAsset($asset);
+        $this->data['development']['stylesheets']['foo/bar.sass'] = 'foo/bar.css';
+        $this->assertEquals($this->data, $this->entry->toArray());
+    }
+
+
+    public function testGettingDevelopmentAsset()
+    {
+        $this->assertEquals('bar/baz.css', $this->entry->getDevelopmentAsset('bar/baz.sass', 'stylesheets'));
+    }
+
+
+    public function testGettingInvalidDevelopmentAssetReturnsNull()
+    {
+        $this->assertNull($this->entry->getDevelopmentAsset('foo/bar.sass', 'stylesheets'));
+    }
+
+
+    public function testGettingDevelopmentAssetFromAssetInstance()
+    {
+        $asset = m::mock('Basset\Asset');
+        $asset->shouldReceive('getGroup')->once()->andReturn('stylesheets');
+        $asset->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.sass');
+        $this->assertEquals('bar/baz.css', $this->entry->getDevelopmentAsset($asset));
+    }
+
+
+    public function testCheckingForDevelopmentAssetExistence()
+    {
+        $this->assertFalse($this->entry->hasDevelopmentAsset('foo/bar.css', 'stylesheets'));
+        $this->assertTrue($this->entry->hasDevelopmentAsset('bar/baz.sass', 'stylesheets'));
+    }
+
+
+    public function testGetAllDevelopmentAssets()
+    {
+        $this->assertEquals($this->data['development'], $this->entry->getDevelopmentAssets());
+    }
+
+
+    public function testGetAllDevelopmentAssetsForGivenGroup()
+    {
+        $this->assertEquals($this->data['development']['javascripts'], $this->entry->getDevelopmentAssets('javascripts'));
+    }
+
+
+    public function testCheckingForExistenceOfAnyDevelopmentAssets()
+    {
+        $this->assertTrue($this->entry->hasDevelopmentAssets());
+    }
+
+
+    public function testCheckingForExistenceOfSpecificDevelopmentAssetsGroup()
+    {
+        $this->entry->resetDevelopmentAssets('javascripts');
+        $this->assertFalse($this->entry->hasDevelopmentAssets('javascripts'));
+    }
+
+
+    public function testResettingAllDevelopmentAssets()
+    {
+        $this->entry->resetDevelopmentAssets();
+        $this->assertEmpty($this->entry->getDevelopmentAssets());
+    }
+
+
+    public function testResettingSpecificDevelopmentAssetsGroup()
+    {
+        $this->entry->resetDevelopmentAssets('javascripts');
+        $this->assertEmpty($this->entry->getDevelopmentAssets('javascripts'));
+    }
+
+
+    public function testSettingProductionFingerprintOnGroup()
+    {
+        $this->entry->setProductionFingerprint('javascripts', 'foo-321.js');
+        $this->assertEquals('foo-321.js', $this->entry->getProductionFingerprint('javascripts'));
+    }
+
+
+    public function testCheckingForExistenceOfFingerprint()
+    {
+        $this->assertTrue($this->entry->hasProductionFingerprint('stylesheets'));
+        $this->assertFalse($this->entry->hasProductionFingerprint('javascripts'));
+    }
+
+
+    public function testGettingAllProductionFingerprints()
+    {
+        $this->assertEquals($this->data['fingerprints'], $this->entry->getProductionFingerprints());
+    }
+
+
+    public function testGettingEntryAsJson()
+    {
+        $this->assertEquals(json_encode($this->data), $this->entry->toJson());
+    }
+
+
+    public function testGettingEntryAsArray()
+    {
+        $this->assertEquals($this->data, $this->entry->toArray());
     }
 
 

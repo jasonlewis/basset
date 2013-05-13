@@ -1,8 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Factory\FilterFactory;
-use Illuminate\Config\Repository as Config;
 
 class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -13,78 +11,49 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->config = m::mock('Illuminate\Config\Repository');
+        $this->factory = new Basset\Factory\FilterFactory($this->config);
+    }
+
+
     public function testMakeNewFilterInstanceFromString()
     {
-        $factory = new FilterFactory($config = $this->getConfigInstance());
-
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array());
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
-
-        $this->assertInstanceOf('Basset\Filter\Filter', $factory->make('FooFilter'));
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.FooFilter', 'FooFilter')->andReturn('FooFilter');
+        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
+        $this->assertInstanceOf('Basset\Filter\Filter', $this->factory->make('FooFilter'));
     }
 
 
-    public function testMakeFilterInstanceFromExistingInstance()
+    public function testMakeFilterInstanceFromExistingFilterInstance()
     {
-        $factory = new FilterFactory($this->getConfigInstance());
-
-        $filter = $this->getFilterMock();
-
-        $this->assertEquals($filter, $factory->make($filter));
+        $filter = m::mock('Basset\Filter\Filter');
+        $this->assertEquals($filter, $this->factory->make($filter));
     }
 
 
-    public function testMakeAliasedFilter()
+    public function testMakeFromConfigAlias()
     {
-        $factory = new FilterFactory($config = $this->getConfigInstance());
-
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
-            'filters' => array(
-                'foo' => 'FooFilter'
-            )
-        ));
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
-
-        $filter = $factory->make('foo');
-
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn('FooFilter');
+        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
+        $filter = $this->factory->make('foo');
         $this->assertEquals('FooFilter', $filter->getFilter());
     }
 
 
-    public function testMakeAliasedFilterWithCallback()
+    public function testMakeFromConfigAliasWithCallback()
     {
-        $factory = new FilterFactory($config = $this->getConfigInstance());
+        $filter = null;
+        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn(array('FooFilter', function($f) use (&$filter)
+        {
+            $filter = $f;
+            $fired = true;
+        }));
+        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
 
-        $fired = false;
-        $tester = $this;
-
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'aliases', 'basset')->andReturn(array(
-            'filters' => array(
-                'foo' => array('FooFilter', function($filter) use (&$fired, $tester)
-                {
-                    $fired = true;
-
-                    $tester->assertEquals('FooFilter', $filter->getFilter());
-                })
-            )
-        ));
-        $config->getLoader()->shouldReceive('load')->once()->with('testing', 'node_paths', 'basset')->andReturn(array());
-
-        $factory->make('foo');
-
-        $this->assertTrue($fired);
-    }
-
-
-    protected function getConfigInstance()
-    {
-        return new Config(m::mock('Illuminate\Config\LoaderInterface'), 'testing');
-    }
-
-
-    protected function getFilterMock()
-    {
-        return m::mock('Basset\Filter\Filter');
+        $this->factory->make('foo');
+        $this->assertInstanceOf('Basset\Filter\Filter', $filter);
     }
 
 

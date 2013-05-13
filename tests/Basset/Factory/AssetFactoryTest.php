@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Factory\AssetFactory;
 
 class AssetFactoryTest extends PHPUnit_Framework_TestCase {
 
@@ -12,63 +11,42 @@ class AssetFactoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->manager = m::mock('Basset\Factory\Manager');
+        $this->factory = new Basset\Factory\AssetFactory($this->files, $this->manager, __DIR__, 'testing');
+    }
+
+
     public function testMakeAsset()
     {
-        $files = $this->getFilesMock();
-        $manager = $this->getFactoryManagerMock();
-        $factory = new AssetFactory($files, $manager, __DIR__, 'testing');
-
-        $asset = $factory->make(__FILE__);
+        $asset = $this->factory->make(__FILE__);
 
         $this->assertEquals(basename(__FILE__), $asset->getRelativePath());
         $this->assertEquals(__FILE__, $asset->getAbsolutePath());
-        $this->assertInstanceOf('Basset\Asset', $asset);
     }
 
 
     public function testBuildingOfAbsolutePath()
     {
-        $files = $this->getFilesMock();
-        $manager = $this->getFactoryManagerMock();
-        $factory = new AssetFactory($files, $manager, __DIR__, 'testing');
-
-        $this->assertEquals(__FILE__, $factory->buildAbsolutePath(__FILE__));
-        $this->assertEquals('http://foo.com', $factory->buildAbsolutePath('http://foo.com'));
+        $this->assertEquals(__FILE__, $this->factory->buildAbsolutePath(__FILE__));
+        $this->assertEquals('http://foo.com', $this->factory->buildAbsolutePath('http://foo.com'));
+        $this->assertEquals('//foo.com', $this->factory->buildAbsolutePath('//foo.com'));
     }
-
 
     public function testBuildingOfRelativePath()
     {
-        $files = $this->getFilesMock();
-        $manager = $this->getFactoryManagerMock();
-        $factory = new AssetFactory($files, $manager, __DIR__, 'testing');
-
-        $this->assertEquals('foo.css', $factory->buildRelativePath(__DIR__.'/foo.css'));
-        $this->assertEquals('bar/foo.css', $factory->buildRelativePath(__DIR__.'/bar/foo.css'));
-        $this->assertEquals('http://foo.com', $factory->buildRelativePath('http://foo.com'));
+        $this->assertEquals('foo.css', $this->factory->buildRelativePath(__DIR__.'/foo.css'));
+        $this->assertEquals('bar/foo.css', $this->factory->buildRelativePath(__DIR__.'/bar/foo.css'));
+        $this->assertEquals('http://foo.com', $this->factory->buildRelativePath('http://foo.com'));
     }
 
 
     public function testBuildingOfRelativePathFromOutsidePublicDirectory()
     {
-        $files = $this->getFilesMock();
-        $manager = $this->getFactoryManagerMock();
-        $factory = new AssetFactory($files, $manager, __DIR__, 'testing');
-
-        $this->assertEquals(md5('path/to/outside').'/foo.css', $factory->buildRelativePath('path/to/outside/foo.css'));
-        $this->assertEquals(md5('path/to').'/bar.css', $factory->buildRelativePath('path/to/bar.css'));
-    }
-
-
-    protected function getFilesMock()
-    {
-        return m::mock('Illuminate\Filesystem\Filesystem');
-    }
-
-
-    protected function getFactoryManagerMock()
-    {
-        return m::mock('Basset\Factory\Manager');
+        $this->assertEquals(md5('path/to/outside').'/foo.css', $this->factory->buildRelativePath('path/to/outside/foo.css'));
+        $this->assertEquals(md5('path/to').'/bar.css', $this->factory->buildRelativePath('path/to/bar.css'));
     }
 
 

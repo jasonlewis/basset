@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Factory\Manager;
 
 class ManagerTest extends PHPUnit_Framework_TestCase {
 
@@ -12,53 +11,51 @@ class ManagerTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function setUp()
+    {
+        $this->manager = new Basset\Factory\Manager;
+    }
+
+
     public function testRegisterFactoryWithManager()
     {
-        $manager = new Manager;
+        $this->manager->register('foo', m::mock('Basset\Factory\FactoryInterface'));
+        $this->assertArrayHasKey('foo', $this->manager->getFactories());
 
-        $manager->register('foo', m::mock('Basset\Factory\FactoryInterface'));
-        $this->assertArrayHasKey('foo', $manager->getFactories());
+        $this->manager['bar'] = m::mock('Basset\Factory\FactoryInterface');
+        $this->assertArrayHasKey('bar', $this->manager->getFactories());
 
-        $manager['bar'] = m::mock('Basset\Factory\FactoryInterface');
-        $this->assertArrayHasKey('bar', $manager->getFactories());
-
-        $manager->baz = m::mock('Basset\Factory\FactoryInterface');
-        $this->assertArrayHasKey('baz', $manager->getFactories());
+        $this->manager->baz = m::mock('Basset\Factory\FactoryInterface');
+        $this->assertArrayHasKey('baz', $this->manager->getFactories());
     }
 
 
     public function testGettingFactoryFromManager()
     {
-        $manager = new Manager;
-
-        $manager->register('foo', $mock = m::mock('Basset\Factory\FactoryInterface'));
-        $this->assertEquals($mock, $manager->get('foo'));
-        $this->assertEquals($mock, $manager['foo']);
-        $this->assertEquals($mock, $manager->foo);
+        $this->manager->register('foo', $mock = m::mock('Basset\Factory\FactoryInterface'));
+        $this->assertEquals($mock, $this->manager->get('foo'));
+        $this->assertEquals($mock, $this->manager['foo']);
+        $this->assertEquals($mock, $this->manager->foo);
     }
 
 
     public function testCheckIfFactoryExists()
     {
-        $manager = new Manager;
-
-        $manager->register('foo', $mock = m::mock('Basset\Factory\FactoryInterface'));
-        $this->assertTrue($manager->has('foo'));
-        $this->assertTrue(isset($manager['foo']));
-        $this->assertFalse($manager->has('bar'));
-        $this->assertFalse(isset($manager['bar']));
+        $this->manager->register('foo', $mock = m::mock('Basset\Factory\FactoryInterface'));
+        $this->assertTrue($this->manager->has('foo'));
+        $this->assertTrue(isset($this->manager['foo']));
+        $this->assertFalse($this->manager->has('bar'));
+        $this->assertFalse(isset($this->manager['bar']));
     }
 
 
     public function testCountingOfFactories()
     {
-        $manager = new Manager;
+        $this->manager['foo'] = m::mock('Basset\Factory\FactoryInterface');
+        $this->manager['bar'] = m::mock('Basset\Factory\FactoryInterface');
+        $this->manager['baz'] = m::mock('Basset\Factory\FactoryInterface');
 
-        $manager['foo'] = m::mock('Basset\Factory\FactoryInterface');
-        $manager['bar'] = m::mock('Basset\Factory\FactoryInterface');
-        $manager['baz'] = m::mock('Basset\Factory\FactoryInterface');
-
-        $this->assertCount(3, $manager);
+        $this->assertCount(3, $this->manager);
     }
 
 
