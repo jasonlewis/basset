@@ -14,7 +14,7 @@ class DirectoryFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakingOfDirectory()
     {
-        $factory = new DirectoryFactory(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\Manager'), m::mock('Basset\AssetFinder'));
+        $factory = new DirectoryFactory(m::mock('Basset\Factory\Manager'), m::mock('Basset\AssetFinder'));
         $directory = $factory->make('foo');
         $this->assertInstanceOf('Basset\Directory', $directory);
     }

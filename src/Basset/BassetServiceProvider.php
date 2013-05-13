@@ -150,7 +150,7 @@ class BassetServiceProvider extends ServiceProvider {
 
             $factory['asset'] = new AssetFactory($app['files'], $factory, $app['path.public'], $app['env']);
 
-            $factory['directory'] = new DirectoryFactory($app['files'], $factory, $app['basset.finder']);
+            $factory['directory'] = new DirectoryFactory($factory, $app['basset.finder']);
 
             return $factory;
         });

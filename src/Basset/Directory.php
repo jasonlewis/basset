@@ -5,10 +5,10 @@ use Iterator;
 use SplFileInfo;
 use FilesystemIterator;
 use Basset\Factory\Manager;
+use UnexpectedValueException;
 use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Illuminate\Filesystem\Filesystem;
 use Basset\Exceptions\AssetExistsException;
 use Basset\Exceptions\AssetNotFoundException;
 use Basset\Exceptions\DirectoryNotFoundException;
@@ -21,13 +21,6 @@ class Directory extends Filterable {
      * @var string
      */
     protected $path;
-
-    /**
-     * Illuminate filesystem instance.
-     *
-     * @var \Illuminate\Filesystem\Filesystem
-     */
-    protected $files;
 
     /**
      * Basset factory manager instance.
@@ -61,15 +54,13 @@ class Directory extends Filterable {
      * Create a new directory instance.
      *
      * @param  string  $path
-     * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Factory\Manager  $factory
      * @param  \Basset\AssetFinder  $finder
      * @return void
      */
-    public function __construct($path, Filesystem $files, Manager $factory, AssetFinder $finder)
+    public function __construct($path, Manager $factory, AssetFinder $finder)
     {
         $this->path = $path;
-        $this->files = $files;
         $this->factory = $factory;
         $this->finder = $finder;
         $this->assets = $this->newCollection();
@@ -151,7 +142,14 @@ class Directory extends Filterable {
      */
     public function recursivelyIterateDirectory($path)
     {
-        return $this->files->exists($path) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path)) : array();
+        try
+        {
+            return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
+        }
+        catch (UnexpectedValueException $e)
+        {
+            return array();
+        }
     }
 
     /**
@@ -162,7 +160,14 @@ class Directory extends Filterable {
      */
     public function iterateDirectory($path)
     {
-        return $this->files->exists($path) ? new FilesystemIterator($path) : array();
+        try
+        {
+            return new FilesystemIterator($path);
+        }
+        catch (UnexpectedValueException $e)
+        {
+            return array();
+        }
     }
 
     /**

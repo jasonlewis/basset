@@ -7,13 +7,6 @@ use Illuminate\Filesystem\Filesystem;
 class DirectoryFactory implements FactoryInterface {
 
     /**
-     * Illuminate filesystem instance.
-     *
-     * @var \Illuminate\Filesystem\Filesystem
-     */
-    protected $files;
-
-    /**
      * Basset factory manager instance.
      *
      * @var \Basset\Factory\Manager
@@ -30,13 +23,12 @@ class DirectoryFactory implements FactoryInterface {
     /**
      * Create a new directory factory instance.
      *
-     * @param  Illuminate\Filesystem\Filesystem  $files
-     * @param  Basset\Factory\Manager  $factory
+     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\AssetFinder  $finder
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, AssetFinder $finder)
+    public function __construct(Manager $factory, AssetFinder $finder)
     {
-        $this->files = $files;
         $this->factory = $factory;
         $this->finder = $finder;
     }
@@ -49,7 +41,7 @@ class DirectoryFactory implements FactoryInterface {
      */
     public function make($path)
     {
-        return new Directory($path, $this->files, $this->factory, $this->finder);
+        return new Directory($path, $this->factory, $this->finder);
     }
 
 }
