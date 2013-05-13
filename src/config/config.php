@@ -230,6 +230,20 @@ return array(
             'JsMin' => array('JsMinFilter', function($filter)
             {
                 $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('JsMin');
+            }),
+
+            /*
+            |--------------------------------------------------------------------------
+            | UriRewrite Filter Alias
+            |--------------------------------------------------------------------------
+            |
+            | Filter gets a default argument of the path to the public directory.
+            |
+            */
+
+            'UriRewriteFilter' => array('UriRewriteFilter', function($filter)
+            {
+                $filter->setArguments(public_path());
             })
 
         )
