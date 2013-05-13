@@ -14,7 +14,7 @@ return array(
     | A default "application" collection is ready for immediate use. It makes
     | a couple of assumptions about your directory structure.
     |
-    | /app
+    | /public
     |    /assets
     |        /stylesheets
     |            /less
