@@ -47,7 +47,7 @@ class FilesystemBuilder extends StringBuilder {
 
         if ( ! $this->files->exists($this->buildPath))
         {
-            $this->files->makeDirectory($this->buildPath);
+            $this->files->makeDirectory($this->buildPath, 0777, true);
         }
 
         // If the development switch was given as true then we'll pass the collection and built
@@ -92,7 +92,7 @@ class FilesystemBuilder extends StringBuilder {
         // duplicates that exist within different collections.
         $buildPath = "{$this->buildPath}/{$collection->getName()}";
 
-        ! $this->files->exists($buildPath) and $this->files->makeDirectory($buildPath);
+        ! $this->files->exists($buildPath) and $this->files->makeDirectory($buildPath, 0777, true);
 
         $fileExtension = $collection->determineExtension($group);
 
@@ -111,7 +111,7 @@ class FilesystemBuilder extends StringBuilder {
                 $outputPath = "{$outputPath}/{$directoryName}";
             }
 
-            ! $this->files->exists($outputPath) and $this->files->makeDirectory($outputPath);
+            ! $this->files->exists($outputPath) and $this->files->makeDirectory($outputPath, 0777, true);
 
             $this->files->put("{$outputPath}/{$fileName}.{$fileExtension}", $this->gzip($assetContents));
         }
