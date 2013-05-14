@@ -59,6 +59,13 @@ class Asset extends Filterable {
     protected $lastModified;
 
     /**
+     * Group the asset belongs to, either stylesheets or javascripts.
+     * 
+     * @var string
+     */
+    protected $group;
+
+    /**
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
@@ -74,6 +81,19 @@ class Asset extends Filterable {
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->filters = new \Illuminate\Support\Collection;
+    }
+
+    /**
+     * Explicitly set the assets group.
+     * 
+     * @param  string  $group
+     * @return \Basset\Asset
+     */
+    public function setGroup($group)
+    {
+        $this->group = $group;
+
+        return $this;
     }
 
     /**
@@ -156,7 +176,7 @@ class Asset extends Filterable {
      */
     public function isJavascript()
     {
-        return in_array(pathinfo($this->absolutePath, PATHINFO_EXTENSION), array('js', 'coffee'));
+        return $this->getGroup() == 'javascripts';
     }
 
     /**
@@ -166,7 +186,7 @@ class Asset extends Filterable {
      */
     public function isStylesheet()
     {
-        return ! $this->isJavascript();
+        return $this->getGroup() == 'stylesheets';
     }
 
     /**
@@ -306,7 +326,50 @@ class Asset extends Filterable {
      */
     public function getGroup()
     {
-        return $this->isJavascript() ? 'javascripts' : 'stylesheets';
+        if ($this->group)
+        {
+            return $this->group;
+        }
+
+        return $this->group = $this->detectGroupFromContentType() ?: $this->detectGroupFromExtension();
+    }
+
+    /**
+     * Detect the group from the content type using cURL.
+     * 
+     * @return null|string
+     */
+    protected function detectGroupFromContentType()
+    {
+        if (extension_loaded('curl'))
+        {
+            $handler = curl_init($this->absolutePath);
+
+            curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($handler, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($handler, CURLOPT_HEADER, true);
+            curl_setopt($handler, CURLOPT_NOBODY, true);
+            curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, false);
+
+            curl_exec($handler);
+
+            if ( ! curl_errno($handler))
+            {
+                $contentType = curl_getinfo($handler, CURLINFO_CONTENT_TYPE);
+
+                return starts_with($contentType, 'text/css') ? 'stylesheets' : 'javascripts';
+            }
+        }
+    }
+
+    /**
+     * Detect group from the assets extension.
+     * 
+     * @return string
+     */
+    protected function detectGroupFromExtension()
+    {
+        return in_array(pathinfo($this->absolutePath, PATHINFO_EXTENSION), array('js', 'coffee')) ? 'javascripts' : 'stylesheets';
     }
 
     /**

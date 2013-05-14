@@ -42,8 +42,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGettingCollectionAssetsWithDefaultOrdering()
     {
         $this->directory->shouldReceive('getAssets')->andReturn($expected = new IlluminateCollection(array(
-            $this->newAsset('bar.css', 'path/to/bar.css', 1),
-            $this->newAsset('baz.css', 'path/to/baz.css', 2)
+            $this->newAsset('bar.css', 'path/to/bar.css', 'stylesheets', 1),
+            $this->newAsset('baz.css', 'path/to/baz.css', 'stylesheets', 2)
         )));
 
         $this->assertEquals($expected->all(), $this->collection->getAssets('stylesheets')->all());
@@ -53,10 +53,10 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGettingCollectionWithMultipleAssetGroupsReturnsOnlyRequestedGroup()
     {
         $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
-            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1),
-            $assets[] = $this->newAsset('bar.js', 'path/to/bar.js', 2),
-            $assets[] = $this->newAsset('baz.js', 'path/to/baz.js', 3),
-            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 4)
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 'stylesheets', 1),
+            $assets[] = $this->newAsset('bar.js', 'path/to/bar.js', 'javascripts', 2),
+            $assets[] = $this->newAsset('baz.js', 'path/to/baz.js', 'javascripts', 3),
+            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 'stylesheets', 4)
         )));
 
         $expected = array(0 => $assets[0], 3 => $assets[3]);
@@ -67,11 +67,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGettingCollectionAssetsWithCustomOrdering()
     {
         $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
-            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1), // Becomes 2nd
-            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 2), // Becomes 4th
-            $assets[] = $this->newAsset('baz.css', 'path/to/baz.css', 1), // Becomes 1st
-            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 4), // Becomes 5th
-            $assets[] = $this->newAsset('zin.css', 'path/to/zin.css', 3)  // Becomes 3rd
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 'stylesheets', 1), // Becomes 2nd
+            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 'stylesheets', 2), // Becomes 4th
+            $assets[] = $this->newAsset('baz.css', 'path/to/baz.css', 'stylesheets', 1), // Becomes 1st
+            $assets[] = $this->newAsset('qux.css', 'path/to/qux.css', 'stylesheets', 4), // Becomes 5th
+            $assets[] = $this->newAsset('zin.css', 'path/to/zin.css', 'stylesheets', 3)  // Becomes 3rd
         )));
 
         $expected = array($assets[2], $assets[0], $assets[4], $assets[1], $assets[3]);
@@ -82,8 +82,8 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     public function testGettingCollectionExcludedAssets()
     {
         $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
-            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 1),
-            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 2)
+            $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 'stylesheets', 1),
+            $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 'stylesheets', 2)
         )));
 
         $assets[1]->exclude();
@@ -92,11 +92,11 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function newAsset($relative, $absolute, $order)
+    public function newAsset($relative, $absolute, $group, $order)
     {
         $asset = new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), $absolute, $relative);
 
-        return $asset->setOrder($order);
+        return $asset->setOrder($order)->setGroup($group);
     }
 
 

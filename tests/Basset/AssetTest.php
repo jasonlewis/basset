@@ -22,6 +22,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $this->asset = new Asset($this->files, $this->filter, 'path/to/public/foo/bar.sass', 'foo/bar.sass');
         $this->asset->setOrder(1);
+        $this->asset->setGroup('stylesheets');
     }
 
 
@@ -47,6 +48,13 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertTrue($this->asset->isStylesheet());
         $this->assertFalse($this->asset->isJavascript());
+    }
+
+
+    public function testCheckingOfAssetGroupWhenNoGroupSupplied()
+    {
+        $this->asset->setGroup(null);
+        $this->assertTrue($this->asset->isStylesheet());
     }
 
 

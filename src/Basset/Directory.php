@@ -113,6 +113,40 @@ class Directory extends Filterable {
     }
 
     /**
+     * Find and add a javascript asset to the directory.
+     * 
+     * @param  string  $name
+     * @param  \Closure  $callback
+     * @return \Basset\Asset
+     */
+    public function javascript($name, Closure $callback = null)
+    {
+        return $this->add($name, function($asset) use ($callback)
+        {
+            $asset->setGroup('javascripts');
+
+            is_callable($callback) and call_user_func($callback, $asset);
+        });
+    }
+
+    /**
+     * Find and add a stylesheet asset to the directory.
+     * 
+     * @param  string  $name
+     * @param  \Closure  $callback
+     * @return \Basset\Asset
+     */
+    public function stylesheet($name, Closure $callback = null)
+    {
+        return $this->add($name, function($asset) use ($callback)
+        {
+            $asset->setGroup('stylesheets');
+
+            is_callable($callback) and call_user_func($callback, $asset);
+        });
+    }
+
+    /**
      * Change the working directory.
      *
      * @param  string  $path

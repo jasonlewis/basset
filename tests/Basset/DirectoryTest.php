@@ -18,8 +18,8 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
         $this->finder = m::mock('Basset\AssetFinder');
-        $this->asset = m::mock('Basset\Factory\AssetFactory');
         $this->filter = m::mock('Basset\Factory\FilterFactory');
+        $this->asset = m::mock('Basset\Factory\AssetFactory', array($this->files, $this->filter, 'path/to/public'))->shouldDeferMissing();
 
         $this->directory = new Directory($this->asset, $this->filter, $this->finder, 'foo');
     }
@@ -32,7 +32,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->asset->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
 
-        $this->assertInstanceOf('Basset\Asset', $this->directory->add('foo.css'));
+        $this->assertInstanceOf('Basset\Asset', $this->directory->stylesheet('foo.css'));
         $this->assertCount(1, $this->directory->getDirectoryAssets());
     }
 
@@ -44,7 +44,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetNotFoundException');
         $this->asset->shouldReceive('make')->once()->with(null)->andReturn($asset);
 
-        $this->assertInstanceOf('Basset\Asset', $this->directory->add('foo.css'));
+        $this->assertInstanceOf('Basset\Asset', $this->directory->stylesheet('foo.css'));
         $this->assertCount(0, $this->directory->getDirectoryAssets());
     }
 
@@ -59,7 +59,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetExistsException');
         $this->finder->shouldReceive('getCachedPath')->once()->with('foo.css')->andReturn('path/to/foo.css');
 
-        $this->assertEquals($this->directory->add('foo.css'), $this->directory->add('foo.css'));
+        $this->assertEquals($this->directory->stylesheet('foo.css'), $this->directory->stylesheet('foo.css'));
     }
 
 
@@ -72,7 +72,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
         $fired = false;
 
-        $this->directory->add('foo.css', function() use (&$fired) { $fired = true; });
+        $this->directory->stylesheet('foo.css', function() use (&$fired) { $fired = true; });
         $this->assertTrue($fired);
     }
 
@@ -223,8 +223,8 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->finder->shouldReceive('find')->once()->with('bar.css')->andReturn('path/to/bar.css');
         $this->asset->shouldReceive('make')->once()->with('path/to/bar.css')->andReturn($barAsset);
 
-        $this->directory->add('foo.css');
-        $this->directory->add('bar.css');
+        $this->directory->stylesheet('foo.css');
+        $this->directory->stylesheet('bar.css');
 
         $this->directory->except('foo.css');
 
@@ -245,8 +245,8 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->finder->shouldReceive('find')->once()->with('bar.css')->andReturn('path/to/bar.css');
         $this->asset->shouldReceive('make')->once()->with('path/to/bar.css')->andReturn($barAsset);
 
-        $this->directory->add('foo.css');
-        $this->directory->add('bar.css');
+        $this->directory->stylesheet('foo.css');
+        $this->directory->stylesheet('bar.css');
 
         $this->directory->only('foo.css');
 
