@@ -215,7 +215,7 @@ class Builder {
         // Compute the difference between the collections assets and the manifests assets. If we get
         // an array of values then the collection has changed since the last build and everything
         // should be rebuilt.
-        $difference = array_diff_assoc($assets->map(function($asset) { return $asset->getRelativePath(); })->flatten(), $manifest);
+        $difference = array_diff_assoc($manifest, $assets->map(function($asset) { return $asset->getRelativePath(); })->flatten());
 
         return ! empty($difference);
     }
