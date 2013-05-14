@@ -107,8 +107,8 @@ class Server {
         // throughout the building process to fetch assets and compare against the stored
         // manfiest of fingerprints.
         $collection = $this->environment[$collection];
-        
-        $response = array();
+
+        $response = $this->serveExcludedAssets($collection, $group);
 
         if ($this->manifest->has($collection))
         {
@@ -116,11 +116,11 @@ class Server {
 
             if ($this->environment->runningInProduction() and $entry->hasProductionFingerprint($group))
             {
-                $response = $this->serveProductionCollection($collection, $entry, $group);
+                $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group));
             }
             elseif ($entry->hasDevelopmentAssets($group))
             {
-                $response = $this->serveDevelopmentCollection($collection, $entry, $group);
+                $response = array_merge($response, $this->serveDevelopmentCollection($collection, $entry, $group));
             }
         }
 
@@ -137,13 +137,9 @@ class Server {
      */
     protected function serveProductionCollection(Collection $collection, Entry $entry, $group)
     {
-        $responses = $this->serveExcludedAssets($collection, $group);
-
         $fingerprint = $entry->getProductionFingerprint($group);
 
-        $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint));
-
-        return $responses;
+        return array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint)));
     }
 
     /**
@@ -156,7 +152,7 @@ class Server {
      */
     protected function serveDevelopmentCollection(Collection $collection, Entry $entry, $group)
     {
-        $responses = $this->serveExcludedAssets($collection, $group);
+        $responses = array();
 
         foreach ($entry->getDevelopmentAssets($group) as $path)
         {

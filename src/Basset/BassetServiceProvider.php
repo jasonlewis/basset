@@ -86,11 +86,8 @@ class BassetServiceProvider extends ServiceProvider {
 
                 foreach ($collections as $collection)
                 {
-                    try
-                    {
-                        $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets');
-                    }
-                    catch (BuildNotRequiredException $exception) {}
+                    try { $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets'); } catch (BuildNotRequiredException $e) {}
+                    try { $app['basset.builder']->buildAsDevelopment($collection, 'javascripts'); } catch (BuildNotRequiredException $e) {}
                 }
             }
         });
