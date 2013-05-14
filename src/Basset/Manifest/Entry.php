@@ -181,6 +181,17 @@ class Entry implements JsonableInterface, ArrayableInterface {
     }
 
     /**
+     * Reset a production fingerprint.
+     * 
+     * @param  string  $group
+     * @return void
+     */
+    public function resetProductionFingerprint($group)
+    {
+        $this->fingerprints[$group] = null;
+    }
+
+    /**
      * Reset all production fingerprints.
      * 
      * @return void

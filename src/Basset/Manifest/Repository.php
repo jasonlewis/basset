@@ -80,6 +80,19 @@ class Repository {
     }
 
     /**
+     * Remove a collection from the repository.
+     * 
+     * @param  string|\Basset\Collection  $collection
+     * @return void
+     */
+    public function remove($collection)
+    {
+        $collection = $this->getCollectionNameFromInstance($collection);
+
+        if ($this->has($collection)) unset($this->entries[$collection]);
+    }
+
+    /**
      * Get the collections name from a collection instance.
      * 
      * @param  string|\Basset\Collection  $collection
