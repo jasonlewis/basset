@@ -35,12 +35,53 @@ class Collection extends Filterable {
     }
 
     /**
-     * Get an array of assets filtered by a group.
+     * Get all the assets filtered by a group and without the excluded assets.
+     * 
+     * @param  string  $group
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAssetsWithoutExcluded($group = null)
+    {
+        return $this->getAssets($group, false);
+    }
+
+    /**
+     * Get all the assets filtered by a group and with the excluded assets.
      *
      * @param  string  $group
      * @return \Illuminate\Support\Collection
      */
-    public function getAssets($group = null)
+    public function getAssetsWithExcluded($group = null)
+    {
+        return $this->getAssets($group, true);
+    }
+
+    /**
+     * Get all the assets filtered by a group but only if the assets are excluded.
+     *
+     * @param  string  $group
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAssetsOnlyExcluded($group = null)
+    {
+        // Get all the assets for the given group and filter out assets that aren't listed
+        // as being excluded.
+        $assets = $this->getAssets($group, true)->filter(function($asset)
+        {
+            return $asset->isExcluded();
+        });
+
+        return $assets;
+    }
+
+    /**
+     * Get all the assets filtered by a group and if to include the excluded assets.
+     *
+     * @param  string  $group
+     * @param  bool  $excluded
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAssets($group = null, $excluded = true)
     {
         // Spin through all of the assets that belong to the given group and push them on
         // to the end of the array.
@@ -48,7 +89,7 @@ class Collection extends Filterable {
 
         foreach ($assets as $key => $asset)
         {
-            if ( ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
+            if ( ! $excluded and $asset->isExcluded() or ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
             {
                 $assets->forget($key);
             }
@@ -72,24 +113,6 @@ class Collection extends Filterable {
         });
 
         return $ordered;
-    }
-
-    /**
-     * Get an array of excluded assets filtered by a group.
-     *
-     * @param  string  $group
-     * @return \Illuminate\Support\Collection
-     */
-    public function getExcludedAssets($group = null)
-    {
-        // Get all the assets for the given group and filter out assets that aren't listed
-        // as being excluded.
-        $assets = $this->getAssets($group)->filter(function($asset)
-        {
-            return $asset->isExcluded();
-        });
-
-        return $assets;
     }
 
     /**

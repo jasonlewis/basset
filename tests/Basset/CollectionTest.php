@@ -88,7 +88,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
         $assets[1]->exclude();
 
-        $this->assertEquals(array(1 => $assets[1]), $this->collection->getExcludedAssets('stylesheets')->all());
+        $this->assertEquals(array(1 => $assets[1]), $this->collection->getAssetsOnlyExcluded('stylesheets')->all());
     }
 
 

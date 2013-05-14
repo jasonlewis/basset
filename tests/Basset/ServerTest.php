@@ -43,7 +43,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with($name);
         $this->environment->shouldReceive('runningInProduction')->andReturn(true);
 
-        $collection->shouldReceive('getExcludedAssets')->with($group)->andReturn(array());
+        $collection->shouldReceive('getAssetsOnlyExcluded')->with($group)->andReturn(array());
         $collection->shouldReceive('getName')->andReturn($name);
 
         $entry = $this->manifest->make($collection);
@@ -69,7 +69,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         $this->environment->shouldReceive('runningInProduction')->andReturn(false);
 
-        $collection->shouldReceive('getExcludedAssets')->with('stylesheets')->andReturn(array());
+        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getName')->andReturn('foo');
 
         $entry = $this->manifest->make($collection);
@@ -89,7 +89,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         $this->environment->shouldReceive('runningInProduction')->andReturn(true);
 
-        $collection->shouldReceive('getExcludedAssets')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
+        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
         $collection->shouldReceive('getName')->andReturn('foo');
 
         $asset->shouldReceive('getRelativePath')->andReturn('css/baz.css');

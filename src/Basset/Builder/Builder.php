@@ -120,7 +120,7 @@ class Builder {
     {
         // Get the assets of the given group from the collection. The collection is also responsible
         // for handling any ordering of the assets so that we just need to build them.
-        $assets = $collection->getAssets($group);
+        $assets = $collection->getAssetsWithoutExcluded($group);
 
         $entry = $this->manifest->make($name = $collection->getName());
 
@@ -147,8 +147,6 @@ class Builder {
         {
             foreach ($assets as $asset)
             {
-                if ($asset->isExcluded()) continue;
-                
                 $path = "{$this->buildPath}/{$name}/{$asset->getFingerprintedPath()}";
 
                 // If the build directory does not exist we'll attempt to recursively create it so we can

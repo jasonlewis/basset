@@ -173,7 +173,7 @@ class Server {
     {
         $responses = array();
 
-        foreach ($collection->getExcludedAssets($group) as $asset)
+        foreach ($collection->getAssetsOnlyExcluded($group) as $asset)
         {
             $path = $asset->getRelativePath();
 
