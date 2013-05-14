@@ -66,6 +66,29 @@ class Asset extends Filterable {
     protected $group;
 
     /**
+     * Array of allowed asset extensions.
+     * 
+     * @var array
+     */
+    protected $allowedExtensions = array(
+        'stylesheets' => array(
+            'css',
+            'sass',
+            'scss',
+            'less',
+            'styl',
+            'roo',
+            'gss'
+        ),
+        'javascripts' => array(
+            'js',
+            'coffee',
+            'dart',
+            'ts'
+        )
+    );
+
+    /**
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
@@ -331,7 +354,7 @@ class Asset extends Filterable {
             return $this->group;
         }
 
-        return $this->group = $this->detectGroupFromContentType() ?: $this->detectGroupFromExtension();
+        return $this->group = $this->detectGroupFromExtension() ?: $this->detectGroupFromContentType();
     }
 
     /**
@@ -369,7 +392,15 @@ class Asset extends Filterable {
      */
     protected function detectGroupFromExtension()
     {
-        return in_array(pathinfo($this->absolutePath, PATHINFO_EXTENSION), array('js', 'coffee')) ? 'javascripts' : 'stylesheets';
+        $extension = pathinfo($this->absolutePath, PATHINFO_EXTENSION);
+
+        foreach (array('stylesheets', 'javascripts') as $group)
+        {
+            if (in_array($extension, $this->allowedExtensions[$group]))
+            {
+                return $group;
+            }
+        }
     }
 
     /**
