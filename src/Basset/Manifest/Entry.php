@@ -150,6 +150,16 @@ class Entry implements JsonableInterface, ArrayableInterface {
     }
 
     /**
+     * Determine if entry has any fingerprints.
+     * 
+     * @return bool
+     */
+    public function hasProductionFingerprints()
+    {
+        return $this->hasProductionFingerprint('stylesheets') or $this->hasProductionFingerprint('javascripts');
+    }
+
+    /**
      * Get the entry fingerprint.
      *
      * @param  string  $group
@@ -168,6 +178,16 @@ class Entry implements JsonableInterface, ArrayableInterface {
     public function getProductionFingerprints()
     {
         return $this->fingerprints;
+    }
+
+    /**
+     * Reset all production fingerprints.
+     * 
+     * @return void
+     */
+    public function resetProductionFingerprints()
+    {
+        $this->fingerprints = array();
     }
 
     /**

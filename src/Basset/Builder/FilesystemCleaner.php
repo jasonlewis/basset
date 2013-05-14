@@ -2,6 +2,7 @@
 
 use Basset\Collection;
 use Basset\Environment;
+use Basset\Manifest\Entry;
 use Basset\Manifest\Repository;
 use Illuminate\Filesystem\Filesystem;
 
@@ -60,34 +61,84 @@ class FilesystemCleaner {
      */
     public function clean($collection = null)
     {
-        $collections = is_null($collection) ? $this->environment->getCollections() : array($collection);
+        if (is_null($collection))
+        {
+            $collections = array($collection instanceof Collection ? $collection : $this->environment[$collection]);
+        }
+        else
+        {
+            $collections = $this->environment->getCollections();
+        }
 
         foreach ($collections as $collection)
         {
             if ($this->manifest->has($collection))
             {
-                $this->cleanCollectionFiles($collection);
+                $this->cleanCollectionFiles($collection, $this->manifest->get($collection));
             }
         }
+
+        $this->manifest->save();
     }
 
     /**
      * Cleans a built collections files removing any outdated builds.
      * 
      * @param  \Basset\Collection  $collection
+     * @param  \Basset\Manifest\Entry  $entry
      * @return void
      */
-    protected function cleanCollectionFiles(Collection $collection)
+    protected function cleanCollectionFiles(Collection $collection, Entry $entry)
     {
-        $entry = $this->manifest->get($collection);
+        if ($entry->hasProductionFingerprints())
+        {
+            $this->cleanCollectionProductionFiles($collection, $entry);
+        }
+        else
+        {
+            $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getName().'-*.*');
 
+            $entry->resetProductionFingerprints();
+        }
+
+        if ($entry->hasDevelopmentAssets())
+        {
+            $this->cleanCollectionDevelopmentFiles($collection, $entry);
+        }
+        else
+        {
+            $this->files->deleteDirectory($this->buildPath.'/'.$collection->getName());
+
+            $entry->resetDevelopmentAssets();
+        }
+    }
+
+    /**
+     * Clean collection production files.
+     * 
+     * @param  \Basset\Collection  $collection
+     * @param  \Basset\Manifest\Entry  $entry
+     * @return void
+     */
+    protected function cleanCollectionProductionFiles(Collection $collection, Entry $entry)
+    {
         foreach ($entry->getProductionFingerprints() as $fingerprint)
         {
             $wildcardPath = $this->replaceFingerprintWithWildcard($fingerprint);
 
             $this->deleteMatchingFiles($this->buildPath.'/'.$wildcardPath, $fingerprint);
         }
+    }
 
+    /**
+     * Clean collection development files.
+     * 
+     * @param  \Basset\Collection  $collection
+     * @param  \Basset\Manifest\Entry  $entry
+     * @return void
+     */
+    protected function cleanCollectionDevelopmentFiles(Collection $collection, Entry $entry)
+    {
         foreach ($entry->getDevelopmentAssets() as $group => $assets)
         {
             foreach ($assets as $asset)
@@ -106,11 +157,11 @@ class FilesystemCleaner {
      * @param  string  $ignore
      * @return void
      */
-    protected function deleteMatchingFiles($wildcard, $ignore)
+    protected function deleteMatchingFiles($wildcard, $ignore = null)
     {
         foreach ($this->files->glob($wildcard) as $path)
         {
-            if (ends_with($path, $ignore)) continue;
+            if ( ! is_null($ignore) and ends_with($path, $ignore)) continue;
 
             $this->files->delete($path);
         }
