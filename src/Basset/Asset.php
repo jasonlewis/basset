@@ -140,7 +140,7 @@ class Asset extends Filterable {
     {
         $path = pathinfo($this->relativePath);
 
-        $fingerprint = md5(array_to_newlines($this->filters->map(function($f) { return $f->getFilter(); })->flatten()).$this->getLastModified());
+        $fingerprint = md5($this->filters->map(function($f) { return $f->getFilter(); })->toJson().$this->getLastModified());
 
         return "{$path['dirname']}/{$path['filename']}-{$fingerprint}.{$this->getUsableExtension()}";
     }

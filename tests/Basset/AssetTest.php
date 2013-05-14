@@ -29,7 +29,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('foo/bar.sass', $this->asset->getRelativePath());
         $this->assertEquals('path/to/public/foo/bar.sass', $this->asset->getAbsolutePath());
         $this->assertEquals('foo/bar.css', $this->asset->getUsablePath());
-        $this->assertEquals('foo/bar-0ff03741d33adbd00f160df5d6fba460.css', $this->asset->getFingerprintedPath());
+        $this->assertEquals('foo/bar-2a4bdbebcbf798cb0b59078d98136e3d.css', $this->asset->getFingerprintedPath());
         $this->assertEquals('css', $this->asset->getUsableExtension());
         $this->assertInstanceOf('Illuminate\Support\Collection', $this->asset->getFilters());
         $this->assertEquals('stylesheets', $this->asset->getGroup());
