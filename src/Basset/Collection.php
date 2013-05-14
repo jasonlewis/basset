@@ -44,7 +44,7 @@ class Collection extends Filterable {
     {
         // Spin through all of the assets that belong to the given group and push them on
         // to the end of the array.
-        $assets = $this->directory->getAssets();
+        $assets = clone $this->directory->getAssets();
 
         foreach ($assets as $key => $asset)
         {
