@@ -13,11 +13,11 @@ class AssetFactory implements FactoryInterface {
     protected $files;
 
     /**
-     * Basset factory manager instance.
+     * Basset filter factory instance.
      *
-     * @var \Basset\Factory\Manager
+     * @var \Basset\Factory\FilterFactory
      */
-    protected $factory;
+    protected $filter;
 
     /**
      * Path to the public directory.
@@ -39,13 +39,12 @@ class AssetFactory implements FactoryInterface {
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Factory\FilterFactory  $filter
      * @param  string  $publicPath
-     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $publicPath)
+    public function __construct(Filesystem $files, FilterFactory $filter, $publicPath)
     {
         $this->files = $files;
-        $this->factory = $factory;
+        $this->filter = $filter;
         $this->publicPath = $publicPath;
     }
 
@@ -61,7 +60,7 @@ class AssetFactory implements FactoryInterface {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        $asset = new Asset($this->files, $this->factory, $absolutePath, $relativePath);
+        $asset = new Asset($this->files, $this->filter, $absolutePath, $relativePath);
 
         return $asset->setOrder($this->nextAssetOrder());
     }

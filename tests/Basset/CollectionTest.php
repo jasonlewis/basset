@@ -16,7 +16,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->collection = new Collection('foo', $this->directory = m::mock('Basset\Directory'));
+        $this->collection = new Collection('foo', $this->directory = m::mock('Basset\Directory'), m::mock('Basset\Factory\FilterFactory'));
     }
 
 
@@ -94,7 +94,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
     public function newAsset($relative, $absolute, $order)
     {
-        $asset = new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\Manager'), $absolute, $relative);
+        $asset = new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), $absolute, $relative);
 
         return $asset->setOrder($order);
     }

@@ -2,19 +2,19 @@
 
 use Closure;
 use ArrayAccess;
-use Basset\Factory\Manager;
 use InvalidArgumentException;
+use Basset\Factory\AssetFactory;
+use Basset\Factory\FilterFactory;
 use Illuminate\Config\Repository;
-use Illuminate\Filesystem\Filesystem;
 
 class Environment implements ArrayAccess {
 
     /**
      * Asset collections.
      *
-     * @var \Illuminate\Support\Collection
+     * @var array
      */
-    protected $collections;
+    protected $collections = array();
 
     /**
      * Illuminate filesystem instance.
@@ -31,11 +31,18 @@ class Environment implements ArrayAccess {
     protected $config;
 
     /**
-     * Factory manager instance.
+     * Basset asset factory instance.
      *
-     * @var \Basset\Factory\Manager
+     * @var \Basset\Factory\AssetFactory
      */
-    protected $factory;
+    protected $assetFactory;
+
+    /**
+     * Basset filter factory instance.
+     *
+     * @var \Basset\Factory\FilterFactory
+     */
+    protected $filterFactory;
 
     /**
      * Asset finder instance.
@@ -54,21 +61,20 @@ class Environment implements ArrayAccess {
     /**
      * Create a new environment instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Illuminate\Config\Repository  $config
-     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\Factory\AssetFactory  $assetFactory
+     * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  \Basset\AssetFinder  $finder
      * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $config, Manager $factory, AssetFinder $finder, $applicationEnvironment)
+    public function __construct(Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $applicationEnvironment)
     {
-        $this->files = $files;
         $this->config = $config;
-        $this->factory = $factory;
+        $this->assetFactory = $assetFactory;
+        $this->filterFactory = $filterFactory;
         $this->finder = $finder;
         $this->applicationEnvironment = $applicationEnvironment;
-        $this->collections = new \Illuminate\Support\Collection;
     }
 
     /**
@@ -96,7 +102,7 @@ class Environment implements ArrayAccess {
         {
             $directory = $this->prepareDefaultDirectory();
 
-            $this->collections[$name] = new Collection($name, $directory);
+            $this->collections[$name] = new Collection($name, $directory, $this->filterFactory);
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with
@@ -119,7 +125,7 @@ class Environment implements ArrayAccess {
     {
         $path = $this->finder->setWorkingDirectory('/');
 
-        return $this->factory['directory']->make($path);
+        return new Directory($this->assetFactory, $this->filterFactory, $this->finder, $path);
     }
 
     /**

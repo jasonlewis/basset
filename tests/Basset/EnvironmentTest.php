@@ -14,16 +14,14 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
         $this->config = m::mock('Illuminate\Config\Repository');
-        $this->factory = m::mock('Basset\Factory\Manager');
+        $this->asset = m::mock('Basset\Factory\AssetFactory');
+        $this->filter = m::mock('Basset\Factory\FilterFactory');
         $this->finder = m::mock('Basset\AssetFinder');
 
         $this->finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
-        $this->factory->shouldReceive('offsetGet')->with('directory')->andReturn($directory = m::mock('Basset\Factory\DirectoryFactory'));
-        $directory->shouldReceive('make')->with('/')->andReturn(m::mock('Basset\Directory'));
 
-        $this->environment = new Environment($this->files, $this->config, $this->factory, $this->finder, 'testing');
+        $this->environment = new Environment($this->config, $this->asset, $this->filter, $this->finder, 'testing');
     }
 
 
@@ -63,7 +61,7 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
             'bar' => function(){}
         ));
         $this->assertCount(2, $this->environment->getCollections());
-        $this->assertArrayHasKey('foo', $this->environment->getCollections()->all());
+        $this->assertArrayHasKey('foo', $this->environment->getCollections());
     }
 
 

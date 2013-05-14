@@ -36,7 +36,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected $components = array(
         'AssetFinder',
-        'FactoryManager',
+        'Factories',
         'Server',
         'Manifest',
         'Builder',
@@ -54,12 +54,6 @@ class BassetServiceProvider extends ServiceProvider {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
         $this->app['basset.path.build'] = $this->app['path.public'].'/'.$this->app['config']['basset::build_path'];
-
-
-
-            $this->app['basset.factory']->register('asset', $this->app['basset.factory.asset']);
-            $this->app['basset.factory']->register('filter', $this->app['basset.factory.filter']);
-            $this->app['basset.factory']->register('directory', $this->app['basset.factory.directory']);
 
         // Register the collections defined in the configuration. By default an "application"
         // collection is provided with a clean installation of Basset.
@@ -142,15 +136,15 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the factory manager.
+     * Register the asset and filter factories.
      *
      * @return void
      */
-    protected function registerFactoryManager()
+    protected function registerFactories()
     {
         $this->app['basset.factory.asset'] = $this->app->share(function($app)
         {
-            return new AssetFactory($app['files'], $app['basset.factory'], $app['path.public']);
+            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['path.public']);
         });
 
         $this->app['basset.factory.filter'] = $this->app->share(function($app)
@@ -160,16 +154,6 @@ class BassetServiceProvider extends ServiceProvider {
             $nodePaths = $app['config']->get('basset::node_paths', array());
 
             return new FilterFactory($aliases, $nodePaths, $app['env']);
-        });
-
-        $this->app['basset.factory.directory'] = $this->app->share(function($app)
-        {
-            return new DirectoryFactory($app['basset.factory'], $app['basset.finder']);
-        });
-
-        $this->app['basset.factory'] = $this->app->share(function($app)
-        {
-            return new Manager;
         });
     }
 
@@ -215,7 +199,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Environment($app['files'], $app['config'], $app['basset.factory'], $app['basset.finder'], $app['env']);
+            return new Environment($app['config'], $app['basset.factory.asset'], $app['basset.factory.filter'], $app['basset.finder'], $app['env']);
         });
     }
 

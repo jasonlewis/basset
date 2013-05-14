@@ -1,6 +1,7 @@
 <?php namespace Basset;
 
 use Basset\Filter\Filterable;
+use Basset\Factory\FilterFactory;
 
 class Collection extends Filterable {
 
@@ -22,15 +23,15 @@ class Collection extends Filterable {
      * Create a new collection instance.
      *
      * @param  string  $name
-     * @param  \Basset\AssetFinder  $finder
-     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\Directory  $directory
      * @return void
      */
-    public function __construct($name, Directory $directory)
+    public function __construct($name, Directory $directory, FilterFactory $filterFactory)
     {
         $this->name = $name;
         $this->directory = $directory;
-        $this->filters = $this->newCollection();
+        $this->filterFactory = $filterFactory;
+        $this->filters = new \Illuminate\Support\Collection;
     }
 
     /**
@@ -63,7 +64,7 @@ class Collection extends Filterable {
             $this->orderAsset($asset, $ordered);
         }
 
-        $ordered = $this->newCollection($ordered);
+        $ordered = new \Illuminate\Support\Collection($ordered);
 
         $this->filters->each(function($filter) use (&$ordered)
         {

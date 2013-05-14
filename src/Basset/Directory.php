@@ -4,11 +4,12 @@ use Closure;
 use Iterator;
 use SplFileInfo;
 use FilesystemIterator;
-use Basset\Factory\Manager;
 use UnexpectedValueException;
 use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use Basset\Factory\AssetFactory;
+use Basset\Factory\FilterFactory;
 use Basset\Exceptions\AssetExistsException;
 use Basset\Exceptions\AssetNotFoundException;
 use Basset\Exceptions\DirectoryNotFoundException;
@@ -23,25 +24,18 @@ class Directory extends Filterable {
     protected $path;
 
     /**
-     * Basset factory manager instance.
+     * Basset filter factory instance.
      *
-     * @var \Basset\Factory\Manager
+     * @var \Basset\Factory\FilterFactory
      */
-    protected $factory;
+    protected $filterFactory;
 
     /**
-     * Asset collection.
+     * Basset asset factory instance.
      *
-     * @var \Illuminate\Support\Collection
+     * @var \Basset\Factory\FilterFactory
      */
-    protected $assets;
-
-    /**
-     * Directory collection.
-     * 
-     * @var \Illuminate\Support\Collection
-     */
-    protected $directories;
+    protected $assetFactory;
 
     /**
      * Basset asset finder instance.
@@ -51,21 +45,37 @@ class Directory extends Filterable {
     protected $finder;
 
     /**
+     * Collection of assets added to the directory.
+     *
+     * @var \Illuminate\Support\Collection
+     */
+    protected $assets;
+
+    /**
+     * Collection of nested directories.
+     * 
+     * @var \Illuminate\Support\Collection
+     */
+    protected $directories;
+
+    /**
      * Create a new directory instance.
      *
-     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\Factory\AssetFactory  $assetFactory
+     * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  \Basset\AssetFinder  $finder
      * @param  string  $path
      * @return void
      */
-    public function __construct(Manager $factory, AssetFinder $finder, $path)
+    public function __construct(AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $path)
     {
-        $this->factory = $factory;
+        $this->assetFactory = $assetFactory;
+        $this->filterFactory = $filterFactory;
         $this->finder = $finder;
         $this->path = $path;
-        $this->assets = $this->newCollection();
-        $this->filters = $this->newCollection();
-        $this->directories = $this->newCollection();
+        $this->assets = new \Illuminate\Support\Collection;
+        $this->directories = new \Illuminate\Support\Collection;
+        $this->filters = new \Illuminate\Support\Collection;
     }
 
     /**
@@ -79,7 +89,7 @@ class Directory extends Filterable {
     {
         try
         {
-            $asset = $this->factory['asset']->make($path = $this->finder->find($name));
+            $asset = $this->assetFactory->make($path = $this->finder->find($name));
 
             $asset->isRemote() and $asset->exclude();
 
@@ -87,7 +97,7 @@ class Directory extends Filterable {
         }
         catch (AssetNotFoundException $e)
         {
-            return $this->factory['asset']->make(null);
+            return $this->assetFactory->make(null);
         }
         catch (AssetExistsException $e)
         {
@@ -115,7 +125,7 @@ class Directory extends Filterable {
         {
             $path = $this->finder->setWorkingDirectory($path);
 
-            $this->directories[$path] = $this->factory['directory']->make($path);
+            $this->directories[$path] = new Directory($this->assetFactory, $this->filterFactory, $this->finder, $path);
 
             // Once we've set the working directory we'll fire the callback so that any added assets
             // are relative to the working directory. After the callback we can revert the working
@@ -130,7 +140,7 @@ class Directory extends Filterable {
         }
         catch (DirectoryNotFoundException $e)
         {
-            return $this->factory['directory']->make(null);
+            return new Directory($this->assetFactory, $this->filterFactory, $this->finder, null);
         }
     }
 

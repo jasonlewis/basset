@@ -1,7 +1,6 @@
 <?php namespace Basset\Filter;
 
 use Closure;
-use Illuminate\Support\Collection;
 
 abstract class Filterable {
 
@@ -21,14 +20,11 @@ abstract class Filterable {
      */
     public function apply($filter, Closure $callback = null)
     {
-        $filter = $this->factory['filter']->make($filter);
+        $filter = $this->filterFactory->make($filter);
 
         $filter->setResource($this);
 
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $filter);
-        }
+        is_callable($callback) and call_user_func($callback, $filter);
 
         return $this->filters[$filter->getFilter()] = $filter;
     }
@@ -41,17 +37,6 @@ abstract class Filterable {
     public function getFilters()
     {
         return $this->filters;
-    }
-
-    /**
-     * Create a new collection instance.
-     * 
-     * @param  array  $items
-     * @return \Illuminate\Support\Collection
-     */
-    public function newCollection(array $items = array())
-    {
-        return new Collection($items);
     }
 
 }

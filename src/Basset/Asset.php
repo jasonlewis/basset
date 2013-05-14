@@ -1,6 +1,6 @@
 <?php namespace Basset;
 
-use Basset\Factory\Manager;
+use Basset\Factory\FilterFactory;
 use Basset\Filter\Filterable;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
@@ -17,11 +17,11 @@ class Asset extends Filterable {
     protected $files;
 
     /**
-     * Basset factory manager instance.
+     * Basset filter factory instance.
      *
-     * @var Basset\Factory\Manager
+     * @var Basset\Factory\FilterFactory
      */
-    protected $factory;
+    protected $filterFactory;
 
     /**
      * Absolute path to the asset.
@@ -62,18 +62,18 @@ class Asset extends Filterable {
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
-     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, $absolutePath, $relativePath)
     {
         $this->files = $files;
-        $this->factory = $factory;
+        $this->filterFactory = $filterFactory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
-        $this->filters = $this->newCollection();
+        $this->filters = new \Illuminate\Support\Collection;
     }
 
     /**

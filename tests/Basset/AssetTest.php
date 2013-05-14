@@ -16,11 +16,11 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
-        $this->factory = m::mock('Basset\Factory\Manager');
+        $this->filter = m::mock('Basset\Factory\FilterFactory', array(array(), array(), 'testing'))->shouldDeferMissing();
 
         $this->files->shouldReceive('lastModified')->with('path/to/public/foo/bar.sass')->andReturn('1368422603');
 
-        $this->asset = new Asset($this->files, $this->factory, 'path/to/public/foo/bar.sass', 'foo/bar.sass');
+        $this->asset = new Asset($this->files, $this->filter, 'path/to/public/foo/bar.sass', 'foo/bar.sass');
         $this->asset->setOrder(1);
     }
 
@@ -52,7 +52,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHosted()
     {
-        $asset = new Asset($this->files, $this->factory, 'http://foo.com/bar.css', 'http://foo.com/bar.css');
+        $asset = new Asset($this->files, $this->filter, 'http://foo.com/bar.css', 'http://foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }
@@ -60,7 +60,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHostedWithRelativeProtocol()
     {
-        $asset = new Asset($this->files, $this->factory, '//foo.com/bar.css', '//foo.com/bar.css');
+        $asset = new Asset($this->files, $this->filter, '//foo.com/bar.css', '//foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }
@@ -84,9 +84,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testFiltersAreAppliedToAssets()
     {
-        $this->factory->shouldReceive('offsetGet')->once()->with('filter')->andReturn($filterFactory = m::mock('Basset\Factory\FilterFactory'));
-
-        $filterFactory->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = m::mock('Basset\Filter\Filter'));
+        $this->filter->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = m::mock('Basset\Filter\Filter'));
         
         $filter->shouldReceive('setResource')->once()->with($this->asset)->andReturn(m::self());
         $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
@@ -118,8 +116,6 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $vanFilter = m::mock('Basset\Filter\Filter', array('VanFilter', array(), 'testing'))->shouldDeferMissing();
         $vanFilterInstance = m::mock('stdClass, Assetic\Filter\FilterInterface');
         $vanFilter->shouldReceive('getClassName')->once()->andReturn($vanFilterInstance);
-
-        $this->factory->shouldReceive('offsetGet')->times(5)->with('filter')->andReturn(new FilterFactory(array(), array(), 'testing'));
 
         $this->asset->apply($fooFilter);
         $this->asset->apply($barFilter)->whenAssetIsJavascript();
@@ -157,7 +153,6 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $config = m::mock('Illuminate\Config\Repository');
 
         $this->files->shouldReceive('getRemote')->once()->with('path/to/public/foo/bar.sass')->andReturn($contents);
-        $this->factory->shouldReceive('offsetGet')->once()->with('filter')->andReturn(new FilterFactory(array(), array(), 'testing'));
 
         $this->asset->apply($filter);
 
