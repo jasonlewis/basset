@@ -27,13 +27,6 @@ class AssetFactory implements FactoryInterface {
     protected $publicPath;
 
     /**
-     * Application working environment.
-     *
-     * @var string
-     */
-    protected $appEnvironment;
-
-    /**
      * Number of assets produced by the factory.
      * 
      * @var int
@@ -44,17 +37,16 @@ class AssetFactory implements FactoryInterface {
      * Create a new asset factory instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
-     * @param  \Basset\Factory\Manager  $factory
+     * @param  \Basset\Factory\FilterFactory  $filter
      * @param  string  $publicPath
      * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $publicPath, $appEnvironment)
+    public function __construct(Filesystem $files, Manager $factory, $publicPath)
     {
         $this->files = $files;
         $this->factory = $factory;
         $this->publicPath = $publicPath;
-        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -69,7 +61,9 @@ class AssetFactory implements FactoryInterface {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        return new Asset($this->files, $this->factory, $absolutePath, $relativePath, $this->appEnvironment, $this->nextAssetOrder());
+        $asset = new Asset($this->files, $this->factory, $absolutePath, $relativePath);
+
+        return $asset->setOrder($this->nextAssetOrder());
     }
 
     /**

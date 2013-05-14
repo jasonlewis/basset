@@ -13,7 +13,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->filter = m::mock('Basset\Filter\Filter', array('FooFilter'))->shouldDeferMissing();
+        $this->filter = m::mock('Basset\Filter\Filter', array('FooFilter', array(), 'testing'))->shouldDeferMissing();
         $this->filter->setResource($this->resource = m::mock('Basset\Filter\Filterable'));
     }
 
@@ -31,8 +31,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testSettingFilterEnvironmentRequirement()
     {
-        $this->resource->shouldReceive('getApplicationEnvironment')->once()->andReturn('foo');
-        $this->filter->whenEnvironmentIs('foo');
+        $this->filter->whenEnvironmentIs('testing');
         $this->assertTrue($this->filter->processRequirements());
     }
 
@@ -124,7 +123,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testInvalidMethodsAreHandledByResource()
     {
-        $filter = new Basset\Filter\Filter('FooFilter');
+        $filter = new Basset\Filter\Filter('FooFilter', array(), 'testing');
         $filter->setResource($this->resource);
         $this->resource->shouldReceive('foo')->once()->andReturn('bar');
         $this->assertEquals('bar', $filter->foo());
@@ -163,7 +162,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testFindingOfMissingConstructorArgsSetsFilterNodePaths()
     {
-        $filter = m::mock('Basset\Filter\Filter', array('FooFilter', array('path/to/node')))->shouldDeferMissing();
+        $filter = m::mock('Basset\Filter\Filter', array('FooFilter', array('path/to/node'), 'testing'))->shouldDeferMissing();
         $filter->setResource($this->resource);
         $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
         $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));

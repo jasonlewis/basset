@@ -65,16 +65,25 @@ class Filter {
     protected $ignored = false;
 
     /**
+     * Application working environment.
+     * 
+     * @var string
+     */
+    protected $applicationEnvironment;
+
+    /**
      * Create a new filter instance.
      *
      * @param  string  $filter
      * @param  array  $nodePaths
+     * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct($filter, array $nodePaths = array())
+    public function __construct($filter, array $nodePaths, $applicationEnvironment)
     {
         $this->filter = $filter;
         $this->nodePaths = $nodePaths;
+        $this->applicationEnvironment = $applicationEnvironment;
     }
 
     /**
@@ -219,9 +228,11 @@ class Filter {
     {
         $environments = func_get_args();
 
-        return $this->when(function($asset) use ($environments)
+        $applicationEnvironment = $this->applicationEnvironment;
+
+        return $this->when(function($asset) use ($environments, $applicationEnvironment)
         {
-            return in_array($asset->getApplicationEnvironment(), $environments);
+            return in_array($applicationEnvironment, $environments);
         });
     }
 

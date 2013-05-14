@@ -55,6 +55,12 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app['basset.path.build'] = $this->app['path.public'].'/'.$this->app['config']['basset::build_path'];
 
+
+
+            $this->app['basset.factory']->register('asset', $this->app['basset.factory.asset']);
+            $this->app['basset.factory']->register('filter', $this->app['basset.factory.filter']);
+            $this->app['basset.factory']->register('directory', $this->app['basset.factory.directory']);
+
         // Register the collections defined in the configuration. By default an "application"
         // collection is provided with a clean installation of Basset.
         $collections = $this->app['config']->get('basset::collections', array());
@@ -142,17 +148,28 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected function registerFactoryManager()
     {
+        $this->app['basset.factory.asset'] = $this->app->share(function($app)
+        {
+            return new AssetFactory($app['files'], $app['basset.factory'], $app['path.public']);
+        });
+
+        $this->app['basset.factory.filter'] = $this->app->share(function($app)
+        {
+            $aliases = $app['config']->get('basset::aliases.filters', array());
+
+            $nodePaths = $app['config']->get('basset::node_paths', array());
+
+            return new FilterFactory($aliases, $nodePaths, $app['env']);
+        });
+
+        $this->app['basset.factory.directory'] = $this->app->share(function($app)
+        {
+            return new DirectoryFactory($app['basset.factory'], $app['basset.finder']);
+        });
+
         $this->app['basset.factory'] = $this->app->share(function($app)
         {
-            $factory = new Manager;
-
-            $factory['filter'] = new FilterFactory($app['config']);
-
-            $factory['asset'] = new AssetFactory($app['files'], $factory, $app['path.public'], $app['env']);
-
-            $factory['directory'] = new DirectoryFactory($factory, $app['basset.finder']);
-
-            return $factory;
+            return new Manager;
         });
     }
 

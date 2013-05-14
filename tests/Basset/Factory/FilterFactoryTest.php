@@ -13,15 +13,15 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->config = m::mock('Illuminate\Config\Repository');
-        $this->factory = new Basset\Factory\FilterFactory($this->config);
+        $this->factory = new Basset\Factory\FilterFactory(array('foo' => 'FooFilter', 'bar' => array('BarFilter', function($filter)
+        {
+            $filter->setArgument('foo');
+        })), array(), 'testing');
     }
 
 
     public function testMakeNewFilterInstanceFromString()
     {
-        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.FooFilter', 'FooFilter')->andReturn('FooFilter');
-        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
         $this->assertInstanceOf('Basset\Filter\Filter', $this->factory->make('FooFilter'));
     }
 
@@ -35,8 +35,6 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakeFromConfigAlias()
     {
-        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn('FooFilter');
-        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
         $filter = $this->factory->make('foo');
         $this->assertEquals('FooFilter', $filter->getFilter());
     }
@@ -44,16 +42,8 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function testMakeFromConfigAliasWithCallback()
     {
-        $filter = null;
-        $this->config->shouldReceive('get')->once()->with('basset::aliases.filters.foo', 'foo')->andReturn(array('FooFilter', function($f) use (&$filter)
-        {
-            $filter = $f;
-            $fired = true;
-        }));
-        $this->config->shouldReceive('get')->once()->with('basset::node_paths')->andReturn(array());
-
-        $this->factory->make('foo');
-        $this->assertInstanceOf('Basset\Filter\Filter', $filter);
+        $filter = $this->factory->make('bar');
+        $this->assertContains('foo', $filter->getArguments());
     }
 
 

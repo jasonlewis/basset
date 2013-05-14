@@ -41,7 +41,7 @@ class DirectoryFactory implements FactoryInterface {
      */
     public function make($path)
     {
-        return new Directory($path, $this->factory, $this->finder);
+        return new Directory($this->factory, $this->finder, $path);
     }
 
 }

@@ -25,13 +25,13 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->factory['directory'] = m::mock('Basset\Factory\DirectoryFactory');
         $this->factory['filter'] = m::mock('Basset\Factory\FilterFactory');
 
-        $this->directory = new Directory('foo', $this->factory, $this->finder);
+        $this->directory = new Directory($this->factory, $this->finder, 'foo');
     }
 
 
     public function testAddingBasicAssetFromPublicDirectory()
     {
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
@@ -43,7 +43,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingInvalidAssetReturnsBlankAssetInstance()
     {
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetNotFoundException');
         $this->factory['asset']->shouldReceive('make')->once()->with(null)->andReturn($asset);
@@ -55,7 +55,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingExistingAssetReturnsExistingAssetsInstance()
     {
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
@@ -69,7 +69,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingAssetFiresCallback()
     {
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
@@ -84,7 +84,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testChangingTheWorkingDirectory()
     {
         $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
-        $this->directory = new Directory('foo', $this->factory, $this->finder);
+        $this->directory = new Directory($this->factory, $this->finder, 'foo');
 
         $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
         $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn(m::mock('Basset\Directory'));
@@ -96,7 +96,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testChangingTheWorkingDirectoryToInvalidDirectoryReturnsBlankDirectoryInstance()
     {
         $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
-        $this->directory = new Directory('foo', $this->factory, $this->finder);
+        $this->directory = new Directory($this->factory, $this->finder, 'foo');
 
         $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(false);
         $this->factory['directory']->shouldReceive('make')->with(null)->andReturn(m::mock('Basset\Directory'));
@@ -108,7 +108,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testChangingTheWorkingDirectoryFiresCallback()
     {
         $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
-        $this->directory = new Directory('foo', $this->factory, $this->finder);
+        $this->directory = new Directory($this->factory, $this->finder, 'foo');
 
         $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
         $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn(m::mock('Basset\Directory'));
@@ -121,7 +121,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testRequireCurrentWorkingDirectory()
     {
-        $this->directory = m::mock('Basset\Directory[iterateDirectory]', array('foo', $this->factory, $this->finder));
+        $this->directory = m::mock('Basset\Directory[iterateDirectory]', array($this->factory, $this->finder, 'foo'));
         $this->directory->shouldReceive('iterateDirectory')->once()->with('foo')->andReturn($iterator = m::mock('Iterator'));
 
         $iterator->shouldReceive('rewind')->once();
@@ -134,7 +134,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $files[0]->shouldReceive('getPathname')->andReturn('foo/bar.css');
         $files[1]->shouldReceive('isFile')->andReturn(false);
 
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
         $this->finder->shouldReceive('find')->once()->with('foo/bar.css')->andReturn('foo/bar.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset);
 
@@ -145,9 +145,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testRequireDirectoryChangesDirectoryAndRequiresNewWorkingDirectory()
     {
-        $this->directory = m::mock('Basset\Directory[directory]', array('foo', $this->factory, $this->finder));
+        $this->directory = m::mock('Basset\Directory[directory]', array($this->factory, $this->finder, 'foo'));
 
-        $requireDirectory = m::mock('Basset\Directory[iterateDirectory]', array('foo/bar', $this->factory, $this->finder));
+        $requireDirectory = m::mock('Basset\Directory[iterateDirectory]', array($this->factory, $this->finder, 'foo/bar'));
         $this->directory->shouldReceive('directory')->with('bar')->andReturn($requireDirectory);
 
         $requireDirectory->shouldReceive('iterateDirectory')->once()->with('foo/bar')->andReturn($iterator = m::mock('Iterator'));
@@ -160,7 +160,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $file->shouldReceive('isFile')->andReturn(true);
         $file->shouldReceive('getPathname')->andReturn('foo/bar/baz.css');
 
-        $asset = new Asset($this->files, $this->factory, null, null, 'testing', 1);
+        $asset = new Asset($this->files, $this->factory, null, null);
         $this->finder->shouldReceive('find')->once()->with('foo/bar/baz.css')->andReturn('foo/bar/baz.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('foo/bar/baz.css')->andReturn($asset);
 
@@ -171,7 +171,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testRequireCurrentWorkingDirectoryTree()
     {
-        $this->directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('foo', $this->factory, $this->finder));
+        $this->directory = m::mock('Basset\Directory[recursivelyIterateDirectory]', array($this->factory, $this->finder, 'foo'));
         $this->directory->shouldReceive('recursivelyIterateDirectory')->once()->with('foo')->andReturn($iterator = m::mock('Iterator'));
 
         $iterator->shouldReceive('rewind')->once();
@@ -184,9 +184,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testRequireTreeChangesWorkingDirectoryAndRequiresNewDirectoryTree()
     {
-        $this->directory = m::mock('Basset\Directory[directory]', array('foo', $this->factory, $this->finder));
+        $this->directory = m::mock('Basset\Directory[directory]', array($this->factory, $this->finder, 'foo'));
 
-        $requireTree = m::mock('Basset\Directory[recursivelyIterateDirectory]', array('foo/bar', $this->factory, $this->finder));
+        $requireTree = m::mock('Basset\Directory[recursivelyIterateDirectory]', array($this->factory, $this->finder, 'foo/bar'));
         $this->directory->shouldReceive('directory')->once()->with('bar')->andReturn($requireTree);
 
         $requireTree->shouldReceive('recursivelyIterateDirectory')->once()->with('foo/bar')->andReturn($iterator = m::mock('Iterator'));
@@ -219,8 +219,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testExcludingOfAssetsFromDirectory()
     {
-        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css', 'testing', 1);
-        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css', 'testing', 1);
+        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css');
+        $fooAsset->setOrder(1);
+        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css');
+        $barAsset->setOrder(1);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($fooAsset);
@@ -239,8 +241,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testIncludingOfAssetsFromDirectory()
     {
-        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css', 'testing', 1);
-        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css', 'testing', 1);
+        $fooAsset = new Asset($this->files, $this->factory, 'path/to/foo.css', 'foo.css');
+        $fooAsset->setOrder(1);
+        $barAsset = new Asset($this->files, $this->factory, 'path/to/bar.css', 'bar.css');
+        $barAsset->setOrder(1);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->factory['asset']->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($fooAsset);
@@ -266,7 +270,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testGetAssetsFromDirectoryAndChildDirectories()
     {
         $this->finder = new AssetFinder($this->files, m::mock('Illuminate\Config\Repository'), 'path/to/public');
-        $this->directory = new Directory('foo', $this->factory, $this->finder);
+        $this->directory = new Directory($this->factory, $this->finder, 'foo');
 
         $this->files->shouldReceive('exists')->once()->with('path/to/public/css')->andReturn(true);
         $this->factory['directory']->shouldReceive('make')->with('path/to/public/css')->andReturn($childDirectory = m::mock('Basset\Directory'));

@@ -38,13 +38,6 @@ class Asset extends Filterable {
     protected $relativePath;
 
     /**
-     * Application working environment.
-     *
-     * @var string
-     */
-    protected $applicationEnvironment;
-
-    /**
      * Indicates if the asset is to be excluded.
      *
      * @var bool
@@ -72,18 +65,14 @@ class Asset extends Filterable {
      * @param  \Basset\Factory\Manager  $factory
      * @param  string  $absolutePath
      * @param  string  $relativePath
-     * @param  string  $applicationEnvironment
-     * @param  int  $order
      * @return void
      */
-    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath, $applicationEnvironment, $order)
+    public function __construct(Filesystem $files, Manager $factory, $absolutePath, $relativePath)
     {
         $this->files = $files;
         $this->factory = $factory;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
-        $this->applicationEnvironment = $applicationEnvironment;
-        $this->order = $order;
         $this->filters = $this->newCollection();
     }
 
@@ -339,24 +328,24 @@ class Asset extends Filterable {
     {
         // Spin through each of the applied assets and remove any where we don't get a class
         // that does not implement Assetic\Filter\FilterInterface.
-        $this->filters = $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
-        {
-            return $filter instanceof FilterInterface;
-        });
+        $filters = $this->prepareFilters();
 
-        $asset = new StringAsset($this->getContent(), $this->filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
+        $asset = new StringAsset($this->getContent(), $filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
 
         return $asset->dump();
     }
 
     /**
-     * Get the application environment.
+     * Prepare filters by filtering out those that do not apply to this asset.
      * 
-     * @return string
+     * @return \Illuminate\Support\Collection
      */
-    public function getApplicationEnvironment()
+    public function prepareFilters()
     {
-        return $this->applicationEnvironment;
+        return $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
+        {
+            return $filter instanceof FilterInterface;
+        });
     }
 
     /**

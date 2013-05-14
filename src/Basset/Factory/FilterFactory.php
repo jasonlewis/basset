@@ -7,21 +7,39 @@ use Basset\Filter\FilterableInterface;
 class FilterFactory implements FactoryInterface {
 
     /**
-     * Illuminate config repository.
-     *
-     * @var \Illuminate\Config\Repository
+     * Array of filter aliases.
+     * 
+     * @var array
      */
-    protected $config;
+    protected $aliases = array();
+
+    /**
+     * Array of node paths.
+     * 
+     * @var array
+     */
+    protected $nodePaths = array();
+
+    /**
+     * Application working environment.
+     * 
+     * @var string
+     */
+    protected $applicationEnvironment;
 
     /**
      * Create a new filter factory instance.
      *
-     * @param  \Illuminate\Config\Repository  $config
+     * @param  array  $aliases
+     * @param  array  $nodePaths
+     * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct(Repository $config)
+    public function __construct(array $aliases, array $nodePaths, $applicationEnvironment)
     {
-        $this->config = $config;
+        $this->aliases = $aliases;
+        $this->nodePaths = $nodePaths;
+        $this->applicationEnvironment = $applicationEnvironment;
     }
 
     /**
@@ -37,7 +55,7 @@ class FilterFactory implements FactoryInterface {
             return $filter;
         }
         
-        $filter = $this->config->get("basset::aliases.filters.{$filter}", $filter);
+        $filter = isset($this->aliases[$filter]) ? $this->aliases[$filter] : $filter;
 
         if (is_array($filter))
         {
@@ -47,7 +65,7 @@ class FilterFactory implements FactoryInterface {
         // If the filter was aliased and the value of the array was a callable closure then
         // we'll return and fire the callback on the filter instance so that any arguments
         // can be set for the filters constructor.
-        $filter = new Filter($filter, $this->config->get('basset::node_paths'));
+        $filter = new Filter($filter, $this->nodePaths, $this->applicationEnvironment);
 
         if (isset($callback) and is_callable($callback))
         {

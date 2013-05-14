@@ -53,16 +53,16 @@ class Directory extends Filterable {
     /**
      * Create a new directory instance.
      *
-     * @param  string  $path
      * @param  \Basset\Factory\Manager  $factory
      * @param  \Basset\AssetFinder  $finder
+     * @param  string  $path
      * @return void
      */
-    public function __construct($path, Manager $factory, AssetFinder $finder)
+    public function __construct(Manager $factory, AssetFinder $finder, $path)
     {
-        $this->path = $path;
         $this->factory = $factory;
         $this->finder = $finder;
+        $this->path = $path;
         $this->assets = $this->newCollection();
         $this->filters = $this->newCollection();
         $this->directories = $this->newCollection();
