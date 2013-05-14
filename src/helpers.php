@@ -9,9 +9,11 @@ if ( ! function_exists('basset_stylesheet'))
      */
     function basset_stylesheet()
     {
-        $collections = array_map(function($collection) { return "{$collection}.css"; }, array_flatten(func_get_args()));
+        $c = array(); $a = func_get_args();
 
-        return basset_collections($collections);
+        array_walk_recursive($a, function($v, $k) use (&$c) { is_numeric($k) ? ($c["{$v}.css"] = null) : $c["{$k}.css"] = $v; });
+
+        return basset_collections($c);
     }
 }
 
@@ -24,9 +26,11 @@ if ( ! function_exists('basset_javascript'))
      */
     function basset_javascript()
     {
-        $collections = array_map(function($collection) { return "{$collection}.js"; }, array_flatten(func_get_args()));
+        $c = array(); $a = func_get_args();
 
-        return basset_collections($collections);
+        array_walk_recursive($a, function($v, $k) use (&$c) { is_numeric($k) ? ($c["{$v}.js"] = null) : $c["{$k}.js"] = $v; });
+
+        return basset_collections($c);
     }
 }
 
@@ -40,12 +44,7 @@ if ( ! function_exists('basset_collections'))
      */
     function basset_collections(array $collections)
     {
-        $responses = array();
-
-        foreach ($collections as $collection)
-        {
-            $responses[] = app('basset.output')->collection($collection);
-        }
+        foreach ($collections as $collection => $format) $responses[] = app('basset.server')->collection($collection, $format);
 
         return array_to_newlines($responses);
     }

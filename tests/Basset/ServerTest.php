@@ -105,4 +105,22 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testServingCollectionsWithCustomFormat()
+    {
+        $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
+        $this->environment->shouldReceive('runningInProduction')->andReturn(true);
+
+        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
+        $collection->shouldReceive('getName')->andReturn('foo');
+
+        $entry = $this->manifest->make($collection);
+        $entry->setProductionFingerprint('stylesheets', 'foo-123.css');
+
+        $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+
+        $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo-123.css" media="print" />';
+        $this->assertEquals($expected, $this->server->stylesheets('foo', '<link rel="stylesheet" type="text/css" href="%s" media="print" />'));
+    }
+
+
 }

@@ -58,35 +58,38 @@ class Server {
      * Serve a collection where the group is determined by the the extension.
      * 
      * @param  string  $collection
+     * @param  string  $format
      * @return string
      */
-    public function collection($collection)
+    public function collection($collection, $format = null)
     {
         list($collection, $extension) = preg_split('/\.(css|js)/', $collection, 2, PREG_SPLIT_DELIM_CAPTURE);
 
-        return $this->serve($collection, $extension == 'css' ? 'stylesheets' : 'javascripts');
+        return $this->serve($collection, $extension == 'css' ? 'stylesheets' : 'javascripts', $format);
     }
 
     /**
      * Serve the stylesheets for a given collection.
      *
      * @param  string  $collection
+     * @param  string  $format
      * @return string
      */
-    public function stylesheets($collection)
+    public function stylesheets($collection, $format = null)
     {
-        return $this->serve($collection, 'stylesheets');
+        return $this->serve($collection, 'stylesheets', $format);
     }
 
     /**
      * Serve the javascripts for a given collection.
      *
      * @param  string  $collection
+     * @param  string  $format
      * @return string
      */
-    public function javascripts($collection)
+    public function javascripts($collection, $format = null)
     {
-        return $this->serve($collection, 'javascripts');
+        return $this->serve($collection, 'javascripts', $format);
     }
 
     /**
@@ -94,9 +97,10 @@ class Server {
      *
      * @param  string  $collection
      * @param  string  $group
+     * @param  string  $format
      * @return string
      */
-    public function serve($collection, $group)
+    public function serve($collection, $group, $format = null)
     {
         if ( ! isset($this->environment[$collection]))
         {
@@ -108,7 +112,7 @@ class Server {
         // manfiest of fingerprints.
         $collection = $this->environment[$collection];
 
-        $response = $this->serveExcludedAssets($collection, $group);
+        $response = $this->serveExcludedAssets($collection, $group, $format);
 
         if ($this->manifest->has($collection))
         {
@@ -116,11 +120,11 @@ class Server {
 
             if ($this->environment->runningInProduction() and $entry->hasProductionFingerprint($group))
             {
-                $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group));
+                $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group, $format));
             }
             elseif ($entry->hasDevelopmentAssets($group))
             {
-                $response = array_merge($response, $this->serveDevelopmentCollection($collection, $entry, $group));
+                $response = array_merge($response, $this->serveDevelopmentCollection($collection, $entry, $group, $format));
             }
         }
 
@@ -133,13 +137,14 @@ class Server {
      * @param  \Basset\Collection  $collection
      * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
+     * @param  string  $format
      * @return array
      */
-    protected function serveProductionCollection(Collection $collection, Entry $entry, $group)
+    protected function serveProductionCollection(Collection $collection, Entry $entry, $group, $format)
     {
         $fingerprint = $entry->getProductionFingerprint($group);
 
-        return array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint)));
+        return array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format));
     }
 
     /**
@@ -148,15 +153,16 @@ class Server {
      * @param  \Basset\Collection  $collection
      * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
+     * @param  string  $format
      * @return array
      */
-    protected function serveDevelopmentCollection(Collection $collection, Entry $entry, $group)
+    protected function serveDevelopmentCollection(Collection $collection, Entry $entry, $group, $format)
     {
         $responses = array();
 
         foreach ($entry->getDevelopmentAssets($group) as $path)
         {
-            $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($collection->getName().'/'.$path));
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($collection->getName().'/'.$path), $format);
         }
 
         return $responses;
@@ -167,9 +173,10 @@ class Server {
      *
      * @param  \Basset\Collection  $collection
      * @param  string  $group
+     * @param  string  $format
      * @return array
      */
-    protected function serveExcludedAssets(Collection $collection, $group)
+    protected function serveExcludedAssets(Collection $collection, $group, $format)
     {
         $responses = array();
 
@@ -177,7 +184,7 @@ class Server {
         {
             $path = $asset->getRelativePath();
 
-            $responses[] = $this->{'create'.studly_case($group).'Element'}($path);
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($path, $format);
         }
 
         return $responses;
@@ -203,22 +210,24 @@ class Server {
      * Create a stylesheets element for the specified path.
      *
      * @param  string  $path
+     * @param  string  $format
      * @return string
      */
-    protected function createStylesheetsElement($path)
+    protected function createStylesheetsElement($path, $format)
     {
-        return '<link rel="stylesheet" type="text/css" href="'.$this->getAssetUrl($path).'" />';
+        return sprintf($format ?: '<link rel="stylesheet" type="text/css" href="%s" />', $this->getAssetUrl($path));
     }
 
     /**
      * Create a javascripts element for the specified path.
      *
      * @param  string  $path
+     * @param  string  $format
      * @return string
      */
-    protected function createJavascriptsElement($path)
+    protected function createJavascriptsElement($path, $format)
     {
-        return '<script src="'.$this->getAssetUrl($path).'"></script>';
+        return sprintf($format ?: '<script src="%s"></script>', $this->getAssetUrl($path));
     }
 
     /**
