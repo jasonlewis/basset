@@ -88,10 +88,10 @@ class Builder {
         // If the build is empty or we're not forcing the build and the collection has already been
         // built or the collection itself has not changed then we'll throw an exception as there
         // is no point in rebuilding the collection.
+        empty($build) and $entry->resetProductionFingerprint($group);
+        
         if (empty($build) or ($fingerprint == $entry->getProductionFingerprint($group) and ! $this->force and $this->files->exists($path)))
         {
-            $entry->resetProductionFingerprint($group);
-
             throw new BuildNotRequiredException;
         }
         else
