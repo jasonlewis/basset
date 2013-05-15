@@ -67,12 +67,12 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     {
         $asset = new Asset($this->files, $this->filter, null, null);
 
-        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
-        $this->asset->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
+        $this->finder->shouldReceive('find')->once()->with('foo.js')->andReturn('path/to/foo.js');
+        $this->asset->shouldReceive('make')->once()->with('path/to/foo.js')->andReturn($asset);
 
         $fired = false;
 
-        $this->directory->stylesheet('foo.css', function() use (&$fired) { $fired = true; });
+        $this->directory->javascript('foo.js', function() use (&$fired) { $fired = true; });
         $this->assertTrue($fired);
     }
 
@@ -201,6 +201,13 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     public function testCanGetRecursiveDirectoryIterator()
     {
         $this->assertInstanceOf('RecursiveIteratorIterator', $this->directory->recursivelyIterateDirectory(__DIR__));
+    }
+
+
+    public function testGettingIteratorsReturnsBlankArrayForInvalidDirectories()
+    {
+        $this->assertEquals(array(), $this->directory->iterateDirectory('foo'));
+        $this->assertEquals(array(), $this->directory->recursivelyIterateDirectory('foo'));
     }
 
 
