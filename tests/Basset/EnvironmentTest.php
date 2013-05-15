@@ -65,4 +65,21 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testCheckingIfEnvironmentHasCollection()
+    {
+        $this->assertFalse($this->environment->has('foo'));
+        $this->environment->collection('foo');
+        $this->assertTrue($this->environment->has('foo'));
+    }
+
+
+    public function testCheckingIfRunningInProduction()
+    {
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
+        $this->assertFalse($this->environment->runningInProduction());
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
+        $this->assertTrue($this->environment->runningInProduction());
+    }
+
+
 }

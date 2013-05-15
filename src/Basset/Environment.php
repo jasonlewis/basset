@@ -187,7 +187,7 @@ class Environment implements ArrayAccess {
      */
     public function runningInProduction()
     {
-        return in_array($this->applicationEnvironment, (array) $this->config->get('basset::production', array()));
+        return in_array($this->applicationEnvironment, (array) $this->config->get('basset::production'));
     }
 
     /**
