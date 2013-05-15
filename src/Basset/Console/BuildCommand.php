@@ -42,6 +42,13 @@ class BuildCommand extends Command {
     protected $builder;
 
     /**
+     * Basset filesystem cleaner instance.
+     * 
+     * @var \Basset\Builder\FilesystemCleaner
+     */
+    protected $cleaner;
+
+    /**
      * Create a new basset compile command instance.
      *
      * @param  \Basset\Environment  $environment
@@ -71,22 +78,30 @@ class BuildCommand extends Command {
 
         if ($development = $this->input->getOption('dev'))
         {
-            $this->comment("Starting development build....");
+            $this->comment('Starting development build....');
         }
         else
         {
-            $this->comment("Starting production build....");
+            $this->comment('Starting production build....');
         }
 
-        foreach ($this->gatherCollections() as $name => $collection)
+        $collections = $this->gatherCollections();
+
+        if ($this->input->getOption('gzip') and ! function_exists('gzencode'))
+        {
+            $this->error('[gzip] Build will not use Gzip as the required dependencies are not available.');
+            $this->line('');
+        }
+
+        foreach ($collections as $name => $collection)
         {
             if ($development)
             {
-                $this->buildAsDevelopment($collection);
+                $this->buildAsDevelopment($name, $collection);
             }
             else
             {
-                $this->buildAsProduction($collection);
+                $this->buildAsProduction($name, $collection);
             }
 
             $this->cleaner->clean($name);
@@ -104,29 +119,31 @@ class BuildCommand extends Command {
     {
         if (in_array($method, array('buildAsDevelopment', 'buildAsProduction')))
         {
-            $collection = array_shift($parameters);
+            list($name, $collection) = $parameters;
 
             try
             {
                 $this->builder->{$method}($collection, 'stylesheets');
 
-                $this->line("<info>Stylesheets successfully built for collection:</info> {$collection->getName()}");
+                $this->line('<info>['.$name.']</info> Stylesheets successfully built.');
             }
             catch (BuildNotRequiredException $error)
             {
-                $this->line("<comment>Stylesheets build was not required for collection:</comment> {$collection->getName()}");
+                $this->line('<comment>['.$name.']</comment> Stylesheets build was not required for collection.');
             }
 
             try
             {
                 $this->builder->{$method}($collection, 'javascripts');
 
-                $this->line("<info>Javascripts successfully built for collection:</info> {$collection->getName()}");
+                $this->line('<info>['.$name.']</info> Javascripts successfully built.');
             }
             catch (BuildNotRequiredException $error)
             {
-                $this->line("<comment>Javascripts build was not required for collection:</comment> {$collection->getName()}");
+                $this->line('<comment>['.$name.']</comment> Javascripts build was not required for collection.');
             }
+
+            $this->line('');
         }
         else
         {
@@ -145,23 +162,23 @@ class BuildCommand extends Command {
         {
             if ( ! $this->environment->has($collection))
             {
-                $this->error("Could not find collection: {$collection}");
+                $this->comment('['.$collection.'] Collection not found.');
 
                 return array();
             }
 
-            $this->comment("Gathering assets for collection...");
+            $this->comment('Gathering assets for collection...');
 
             $collections = array($collection => $this->environment->collection($collection));
         }
         else
         {
-            $this->comment("Gathering all collections to build...");
+            $this->comment('Gathering all collections to build...');
 
             $collections = $this->environment->all();
         }
 
-        $this->line("");
+        $this->line('');
 
         return $collections;
     }
