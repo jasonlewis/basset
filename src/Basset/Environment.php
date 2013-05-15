@@ -133,7 +133,7 @@ class Environment implements ArrayAccess {
      *
      * @return array
      */
-    public function getCollections()
+    public function all()
     {
         return $this->collections;
     }
@@ -144,7 +144,7 @@ class Environment implements ArrayAccess {
      * @param  string  $name
      * @return bool
      */
-    public function hasCollection($name)
+    public function has($name)
     {
         return isset($this->collections[$name]);
     }
@@ -215,7 +215,7 @@ class Environment implements ArrayAccess {
      */
     public function offsetGet($offset)
     {
-        return $this->hasCollection($offset) ? $this->collection($offset) : null;
+        return $this->has($offset) ? $this->collection($offset) : null;
     }
 
     /**
@@ -237,7 +237,7 @@ class Environment implements ArrayAccess {
      */
     public function offsetExists($offset)
     {
-        return $this->hasCollection($offset);
+        return $this->has($offset);
     }
 
 }

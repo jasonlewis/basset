@@ -22,13 +22,6 @@ class Builder {
     protected $manifest;
 
     /**
-     * Basset filesystem cleaner instance.
-     * 
-     * @var \Basset\Builder\FilesystemCleaner
-     */
-    protected $cleaner;
-
-    /**
      * Path to built collections.
      * 
      * @var string
@@ -58,11 +51,10 @@ class Builder {
      * @param  string  $buildPath
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $manifest, FilesystemCleaner $cleaner, $buildPath)
+    public function __construct(Filesystem $files, Repository $manifest, $buildPath)
     {
         $this->files = $files;
         $this->manifest = $manifest;
-        $this->cleaner = $cleaner;
         $this->buildPath = $buildPath;
 
         $this->makeBuildPath();
@@ -98,14 +90,16 @@ class Builder {
         // is no point in rebuilding the collection.
         if (empty($build) or ($fingerprint == $entry->getProductionFingerprint($group) and ! $this->force and $this->files->exists($path)))
         {
+            $entry->resetProductionFingerprint($group);
+
             throw new BuildNotRequiredException;
         }
-        
-        $this->files->put($path, $build);
+        else
+        {
+            $this->files->put($path, $build);
 
-        $entry->setProductionFingerprint($group, $fingerprint);
-
-        return $this->processAfterBuild($collection);
+            $entry->setProductionFingerprint($group, $fingerprint);
+        }
     }
 
     /**
@@ -159,26 +153,11 @@ class Builder {
                 // to the manifest.
                 $entry->addDevelopmentAsset($asset);
             }
-
-            $this->processAfterBuild($collection);
         }
         else
         {
             throw new BuildNotRequiredException;
         }
-    }
-
-    /**
-     * Process the collection after a build.
-     * 
-     * @param  \Basset\Collection  $collection
-     * @return void
-     */
-    protected function processAfterBuild(Collection $collection)
-    {
-        $this->manifest->save();
-
-        $this->cleaner->clean($collection);
     }
 
     /**
@@ -284,16 +263,6 @@ class Builder {
     public function getFiles()
     {
         return $this->files;
-    }
-
-    /**
-     * Get the basset build cleaner instance.
-     * 
-     * @return \Basset\Builder\FilesystemCleaner
-     */
-    public function getCleaner()
-    {
-        return $this->cleaner;
     }
 
     /**

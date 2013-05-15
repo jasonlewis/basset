@@ -60,8 +60,8 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
             'foo' => function(){},
             'bar' => function(){}
         ));
-        $this->assertCount(2, $this->environment->getCollections());
-        $this->assertArrayHasKey('foo', $this->environment->getCollections());
+        $this->assertCount(2, $this->environment->all());
+        $this->assertArrayHasKey('foo', $this->environment->all());
     }
 
 

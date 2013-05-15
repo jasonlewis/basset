@@ -80,12 +80,12 @@ class Repository {
     }
 
     /**
-     * Remove a collection from the repository.
+     * Forget a collection from the repository.
      * 
      * @param  string|\Basset\Collection  $collection
      * @return void
      */
-    public function remove($collection)
+    public function forget($collection)
     {
         $collection = $this->getCollectionNameFromInstance($collection);
 
@@ -95,11 +95,11 @@ class Repository {
     /**
      * Get all the entries.
      * 
-     * @return \Illuminate\Support\Collection
+     * @return array
      */
     public function all()
     {
-        return $this->entries;
+        return $this->entries->all();
     }
 
     /**
@@ -143,6 +143,23 @@ class Repository {
         $path = $this->manifestPath.'/collections.json';
 
         $this->files->put($path, $this->entries->toJson());
+    }
+
+    /**
+     * Delete the manifest.
+     * 
+     * @return bool
+     */
+    public function delete()
+    {
+        if ($this->files->exists($path = $this->manifestPath.'/collections.json'))
+        {
+            return $this->files->delete($path);
+        }
+        else
+        {
+            return false;
+        }
     }
 
 }

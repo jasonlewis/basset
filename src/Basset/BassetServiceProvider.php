@@ -57,9 +57,7 @@ class BassetServiceProvider extends ServiceProvider {
 
         // Register the collections defined in the configuration. By default an "application"
         // collection is provided with a clean installation of Basset.
-        $collections = $this->app['config']->get('basset::collections', array());
-
-        $this->app['basset']->collections($collections);
+        $this->app['basset']->collections((array) $this->app['config']->get('basset::collections'));
 
         // When booting the application we need to load the collections stored within the manifest
         // repository. These collections indicate the fingerprints required to display the
@@ -80,16 +78,20 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app->before(function() use ($app)
         {
-            if ( ! $app['basset']->runningInProduction() and ! $app->runningUnitTests())
+            if ($app['basset']->runningInProduction() or $app->runningUnitTests())
             {
-                $collections = $app['basset']->getCollections();
-
-                foreach ($collections as $collection)
-                {
-                    try { $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets'); } catch (BuildNotRequiredException $e) {}
-                    try { $app['basset.builder']->buildAsDevelopment($collection, 'javascripts'); } catch (BuildNotRequiredException $e) {}
-                }
+                return;
             }
+            
+            $collections = $app['basset']->all();
+
+            foreach ($collections as $name => $collection)
+            {
+                try { $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets'); } catch (BuildNotRequiredException $e) {}
+                try { $app['basset.builder']->buildAsDevelopment($collection, 'javascripts'); } catch (BuildNotRequiredException $e) {}
+            }
+
+            $app['basset.builder.cleaner']->cleanAll();
         });
     }
 
@@ -178,7 +180,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.builder'] = $this->app->share(function($app)
         {
-            return new Builder($app['files'], $app['basset.manifest'], $app['basset.builder.cleaner'], $app['basset.path.build']);
+            return new Builder($app['files'], $app['basset.manifest'], $app['basset.path.build']);
         });
 
         $this->app['basset.builder.cleaner'] = $this->app->share(function($app)
@@ -223,9 +225,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['command.basset'] = $this->app->share(function($app)
         {
-            $meta = $app['config']->get('app.manifest');
-
-            return new BassetCommand($app['files'], $app['basset.builder.cleaner'], $meta);
+            return new BassetCommand($app['basset.manifest'], $app['basset'], $app['basset.builder.cleaner']);
         });
     }
 
@@ -238,7 +238,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['command.basset.build'] = $this->app->share(function($app)
         {
-            return new BuildCommand($app['basset'], $app['basset.builder']);
+            return new BuildCommand($app['basset'], $app['basset.builder'], $app['basset.builder.cleaner']);
         });
     }
 

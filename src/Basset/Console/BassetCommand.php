@@ -1,7 +1,8 @@
 <?php namespace Basset\Console;
 
+use Basset\Environment;
+use Basset\Manifest\Repository;
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 use Basset\Builder\FilesystemCleaner;
 use Basset\BassetServiceProvider as Basset;
 use Symfony\Component\Console\Input\InputOption;
@@ -23,11 +24,18 @@ class BassetCommand extends Command {
     protected $description = 'Interact with the Basset package';
 
     /**
-     * Illuminate filesystem instance.
+     * Basset manifest repository instance.
      * 
-     * @var \Illuminate\Filesystem\Filesystem
+     * @var \Basset\Manifest\Repository
      */
-    protected $files;
+    protected $manifest;
+
+    /**
+     * Basset environment instance.
+     * 
+     * @var \Basset\Environment
+     */
+    protected $environment;
 
     /**
      * Basset filesystem cleaner instance.
@@ -46,18 +54,18 @@ class BassetCommand extends Command {
     /**
      * Create a new basset command instance.
      * 
-     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Basset\Manifest\Repository  $manifest
+     * @param  \Basset\Environment  $environment
      * @param  \Basset\Builder\FilesystemCleaner  $cleaner
-     * @param  string  $manifestPath
      * @return void
      */
-    public function __construct(Filesystem $files, FilesystemCleaner $cleaner, $manifestPath)
+    public function __construct(Repository $manifest, Environment $environment, FilesystemCleaner $cleaner)
     {
         parent::__construct();
 
-        $this->files = $files;
+        $this->manifest = $manifest;
+        $this->environment = $environment;
         $this->cleaner = $cleaner;
-        $this->manifestPath = $manifestPath;
     }
 
     /**
@@ -67,15 +75,15 @@ class BassetCommand extends Command {
      */
     public function fire()
     {
-        if ( ! $this->input->getOption('reset-manifest') and ! $this->input->getOption('tidy-up'))
+        if ( ! $this->input->getOption('delete-manifest') and ! $this->input->getOption('tidy-up'))
         {
             $this->line('<info>Basset</info> version <comment>'.Basset::VERSION.'</comment>');
         }
         else
         {
-            if ($this->input->getOption('reset-manifest'))
+            if ($this->input->getOption('delete-manifest'))
             {
-                $this->resetCollectionManifest();
+                $this->deleteCollectionManifest();
             }
 
             if ($this->input->getOption('tidy-up'))
@@ -86,21 +94,19 @@ class BassetCommand extends Command {
     }
 
     /**
-     * Reset the collection manifest by deleting the file.
+     * Delete the collection manifest.
      * 
      * @return void
      */
-    protected function resetCollectionManifest()
+    protected function deleteCollectionManifest()
     {
-        if ($this->files->exists($path = $this->manifestPath.'/collections.json'))
+        if ($this->manifest->delete())
         {
-            $this->files->delete($path);
-
-            $this->info('Collection manifest has been successfully reset. All collections will need to be rebuilt.');
+            $this->info('Manifest has been deleted. All collections will are now required to be rebuilt.');
         }
         else
         {
-            $this->comment('Collection manifest does not need to be reset.');
+            $this->comment('Manifest does not exist or could not be deleted.');
         }
     }
 
@@ -111,23 +117,21 @@ class BassetCommand extends Command {
      */
     protected function tidyUpFilesystem()
     {
-        $collections = $this->input->getOption('tidy-up');
+        $collections = array_keys($this->environment->all()) + array_keys($this->manifest->all());
 
-        if ( ! array_filter($collections))
+        foreach ($collections as $collection)
         {
-            $this->cleaner->clean();
-
-            $this->info('Outdated collections on the filesystem have been tidied up.');
-        }
-        else
-        {
-            foreach (array_unique($collections) as $collection)
+            if ($this->input->getOption('verbose'))
             {
-                $this->cleaner->clean($collection);
-
-                $this->line('<info>Outdated collection on the filesystem has been tidied up:</info> '.$collection);
+                $this->line('['.$collection.'] Cleaning up files and manifest entries.');
             }
+
+            $this->cleaner->clean($collection);
         }
+
+        $this->input->getOption('verbose') and $this->line('');
+
+        $this->info('The filesystem and manifest have been tidied up.');
     }
 
     /**
@@ -138,8 +142,8 @@ class BassetCommand extends Command {
     protected function getOptions()
     {
         return array(
-            array('reset-manifest', null, InputOption::VALUE_NONE, 'Reset the collection manifest'),
-            array('tidy-up', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Tidy up the outdated collections on the filesystem')
+            array('delete-manifest', null, InputOption::VALUE_NONE, 'Delete the collection manifest'),
+            array('tidy-up', null, InputOption::VALUE_NONE, 'Tidy up the outdated collections and manifest entries')
         );
     }
 

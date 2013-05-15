@@ -6,6 +6,7 @@ use Basset\Environment;
 use Basset\Builder\Builder;
 use Illuminate\Console\Command;
 use Basset\Manifest\Repository;
+use Basset\Builder\FilesystemCleaner;
 use Basset\Exceptions\BuildNotRequiredException;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -45,14 +46,16 @@ class BuildCommand extends Command {
      *
      * @param  \Basset\Environment  $environment
      * @param  \Basset\Builder\Builder  $builder
+     * @param  \Basset\Builder\FilesystemCleaner  $cleaner
      * @return void
      */
-    public function __construct(Environment $environment, Builder $builder)
+    public function __construct(Environment $environment, Builder $builder, FilesystemCleaner $cleaner)
     {
         parent::__construct();
 
         $this->environment = $environment;
         $this->builder = $builder;
+        $this->cleaner = $cleaner;
     }
 
     /**
@@ -75,7 +78,7 @@ class BuildCommand extends Command {
             $this->comment("Starting production build....");
         }
 
-        foreach ($this->gatherCollections() as $collection)
+        foreach ($this->gatherCollections() as $name => $collection)
         {
             if ($development)
             {
@@ -85,6 +88,8 @@ class BuildCommand extends Command {
             {
                 $this->buildAsProduction($collection);
             }
+
+            $this->cleaner->clean($name);
         }
     }
 
@@ -138,22 +143,22 @@ class BuildCommand extends Command {
     {
         if ( ! is_null($collection = $this->input->getArgument('collection')))
         {
-            if ( ! $this->environment->hasCollection($collection))
+            if ( ! $this->environment->has($collection))
             {
                 $this->error("Could not find collection: {$collection}");
 
-                return;
+                return array();
             }
 
             $this->comment("Gathering assets for collection...");
 
-            $collections = array($this->environment->collection($collection));
+            $collections = array($collection => $this->environment->collection($collection));
         }
         else
         {
             $this->comment("Gathering all collections to build...");
 
-            $collections = $this->environment->getCollections();
+            $collections = $this->environment->all();
         }
 
         $this->line("");

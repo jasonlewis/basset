@@ -54,29 +54,47 @@ class FilesystemCleaner {
     }
 
     /**
-     * Cleans a built collection and the manifest entries.
-     *
-     * @param  string|\Basset\Collection  $collection
+     * Clean all built collections and the manifest entries.
+     * 
      * @return void
      */
-    public function clean($collection = null)
+    public function cleanAll()
     {
-        if (is_null($collection))
-        {
-            $collections = array($collection instanceof Collection ? $collection : $this->environment[$collection]);
-        }
-        else
-        {
-            $collections = $this->environment->getCollections();
-        }
+        $collections = array_keys($this->environment->all()) + array_keys($this->manifest->all());
 
         foreach ($collections as $collection)
         {
-            if ($this->manifest->has($collection))
-            {
-                $this->cleanCollectionFiles($collection, $this->manifest->get($collection));
-            }
+            $this->clean($collection);
         }
+    }
+
+    /**
+     * Cleans a built collection and the manifest entries.
+     *
+     * @param  string  $collection
+     * @return void
+     */
+    public function clean($collection)
+    {
+        $entry = $this->manifest->get($collection);
+
+        // If the collection exists on the environment then we'll proceed with cleaning the filesystem
+        // This removes any double-up production and development builds.
+        if (isset($this->environment[$collection]))
+        {
+            $this->cleanFilesystem($this->environment[$collection], $entry);
+        }
+
+        // If the collection does not exist on the environment then we'll instrcut the manifest to
+        // forget this collection.
+        else
+        {
+            $this->manifest->forget($collection);
+        }
+
+        // Cleaning the manifest is important as it will also remove unnecessary files from the
+        // filesystem if a collection has been removed.
+        $this->cleanManifest($collection, $entry);
 
         $this->manifest->save();
     }
@@ -88,26 +106,32 @@ class FilesystemCleaner {
      * @param  \Basset\Manifest\Entry  $entry
      * @return void
      */
-    protected function cleanCollectionFiles(Collection $collection, Entry $entry)
+    protected function cleanFilesystem(Collection $collection, Entry $entry)
     {
-        if ($entry->hasProductionFingerprints())
+        $this->cleanProductionFiles($collection, $entry);
+
+        $this->cleanDevelopmentFiles($collection, $entry);
+    }
+
+    /**
+     * Clean the collections manifest entry.
+     * 
+     * @param  string  $collection
+     * @param  \Basset\Manifest\Entry  $entry
+     * @return void
+     */
+    protected function cleanManifest($collection, Entry $entry)
+    {
+        if ( ! $entry->hasProductionFingerprints() or ! isset($this->environment[$collection]))
         {
-            $this->cleanCollectionProductionFiles($collection, $entry);
-        }
-        else
-        {
-            $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getName().'-*.*');
+            $this->deleteMatchingFiles($this->buildPath.'/'.$collection.'-*.*');
 
             $entry->resetProductionFingerprints();
         }
 
-        if ($entry->hasDevelopmentAssets())
+        if ( ! $entry->hasDevelopmentAssets() or ! isset($this->environment[$collection]))
         {
-            $this->cleanCollectionDevelopmentFiles($collection, $entry);
-        }
-        else
-        {
-            $this->files->deleteDirectory($this->buildPath.'/'.$collection->getName());
+            $this->files->deleteDirectory($this->buildPath.'/'.$collection);
 
             $entry->resetDevelopmentAssets();
         }
@@ -120,7 +144,7 @@ class FilesystemCleaner {
      * @param  \Basset\Manifest\Entry  $entry
      * @return void
      */
-    protected function cleanCollectionProductionFiles(Collection $collection, Entry $entry)
+    protected function cleanProductionFiles(Collection $collection, Entry $entry)
     {
         foreach ($entry->getProductionFingerprints() as $fingerprint)
         {
@@ -137,7 +161,7 @@ class FilesystemCleaner {
      * @param  \Basset\Manifest\Entry  $entry
      * @return void
      */
-    protected function cleanCollectionDevelopmentFiles(Collection $collection, Entry $entry)
+    protected function cleanDevelopmentFiles(Collection $collection, Entry $entry)
     {
         foreach ($entry->getDevelopmentAssets() as $group => $assets)
         {
