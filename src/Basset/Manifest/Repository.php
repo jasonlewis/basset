@@ -93,6 +93,16 @@ class Repository {
     }
 
     /**
+     * Get all the entries.
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    public function all()
+    {
+        return $this->entries;
+    }
+
+    /**
      * Get the collections name from a collection instance.
      * 
      * @param  string|\Basset\Collection  $collection
