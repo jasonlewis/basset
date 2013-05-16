@@ -81,16 +81,22 @@ class Builder {
         // collection needs to be rebuilt.
         $build = array_to_newlines($assets->map(function($asset) { return $asset->build(); })->all());
 
-        $fingerprint = $collection->getName().'-'.md5($build).'.'.$collection->getExtension($group);
+        // If the build is empty then we'll reset the fingerprint on the manifest entry and throw the
+        // exception as there's no point going any further.
+        if (empty($build))
+        {
+            $entry->resetProductionFingerprint($group);
+
+            throw new BuildNotRequiredException;
+        }
+
+        $fingerprint = $name.'-'.md5($build).'.'.$collection->getExtension($group);
 
         $path = $this->buildPath.'/'.$fingerprint;
 
-        // If the build is empty or we're not forcing the build and the collection has already been
-        // built or the collection itself has not changed then we'll throw an exception as there
-        // is no point in rebuilding the collection.
-        empty($build) and $entry->resetProductionFingerprint($group);
-        
-        if (empty($build) or ($fingerprint == $entry->getProductionFingerprint($group) and ! $this->force and $this->files->exists($path)))
+        // If the collection has already been built and we're not forcing the build then we'll throw
+        // the exception here as we don't need to rebuild the collection.
+        if ($fingerprint == $entry->getProductionFingerprint($group) and ! $this->force and $this->files->exists($path))
         {
             throw new BuildNotRequiredException;
         }
