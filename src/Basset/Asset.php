@@ -71,21 +71,8 @@ class Asset extends Filterable {
      * @var array
      */
     protected $allowedExtensions = array(
-        'stylesheets' => array(
-            'css',
-            'sass',
-            'scss',
-            'less',
-            'styl',
-            'roo',
-            'gss'
-        ),
-        'javascripts' => array(
-            'js',
-            'coffee',
-            'dart',
-            'ts'
-        )
+        'stylesheets' => array('css', 'sass', 'scss', 'less', 'styl', 'roo', 'gss'),
+        'javascripts' => array('js', 'coffee', 'dart', 'ts')
     );
 
     /**
@@ -104,43 +91,6 @@ class Asset extends Filterable {
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->filters = new \Illuminate\Support\Collection;
-    }
-
-    /**
-     * Explicitly set the assets group.
-     * 
-     * @param  string  $group
-     * @return \Basset\Asset
-     */
-    public function setGroup($group)
-    {
-        $this->group = $group;
-
-        return $this;
-    }
-
-    /**
-     * Get the usable path of the asset.
-     * 
-     * @return string
-     */
-    public function getUsablePath()
-    {
-        $extension = pathinfo($path = $this->getRelativePath(), PATHINFO_EXTENSION);
-
-        $path = strstr($path, ".{$extension}", true);
-
-        return "{$path}.{$this->getUsableExtension()}";
-    }
-
-    /**
-     * Get the usable extension of the asset.
-     *
-     * @return string
-     */
-    public function getUsableExtension()
-    {
-        return $this->isJavascript() ? 'js' : 'css';
     }
 
     /**
@@ -164,17 +114,27 @@ class Asset extends Filterable {
     }
 
     /**
-     * Get the fingerprinted path to the asset.
+     * Get the build path to the asset.
      * 
      * @return string
      */
-    public function getFingerprintedPath()
+    public function getBuildPath()
     {
         $path = pathinfo($this->relativePath);
 
         $fingerprint = md5($this->filters->map(function($f) { return $f->getFilter(); })->toJson().$this->getLastModified());
 
-        return "{$path['dirname']}/{$path['filename']}-{$fingerprint}.{$this->getUsableExtension()}";
+        return "{$path['dirname']}/{$path['filename']}-{$fingerprint}.{$this->getBuildExtension()}";
+    }
+
+    /**
+     * Get the build extension of the asset.
+     *
+     * @return string
+     */
+    public function getBuildExtension()
+    {
+        return $this->isJavascript() ? 'js' : 'css';
     }
 
     /**
@@ -340,6 +300,19 @@ class Asset extends Filterable {
     public function isIncluded()
     {
         return ! $this->excluded;
+    }
+
+    /**
+     * Set the assets group.
+     * 
+     * @param  string  $group
+     * @return \Basset\Asset
+     */
+    public function setGroup($group)
+    {
+        $this->group = $group;
+
+        return $this;
     }
 
     /**

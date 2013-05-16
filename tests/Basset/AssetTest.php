@@ -30,17 +30,20 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertEquals('foo/bar.sass', $this->asset->getRelativePath());
         $this->assertEquals('path/to/public/foo/bar.sass', $this->asset->getAbsolutePath());
-        $this->assertEquals('foo/bar.css', $this->asset->getUsablePath());
-        $this->assertEquals('foo/bar-2a4bdbebcbf798cb0b59078d98136e3d.css', $this->asset->getFingerprintedPath());
-        $this->assertEquals('css', $this->asset->getUsableExtension());
+        $this->assertEquals('foo/bar-2a4bdbebcbf798cb0b59078d98136e3d.css', $this->asset->getBuildPath());
+        $this->assertEquals('css', $this->asset->getBuildExtension());
         $this->assertInstanceOf('Illuminate\Support\Collection', $this->asset->getFilters());
         $this->assertEquals('stylesheets', $this->asset->getGroup());
+        $this->assertEquals('1368422603', $this->asset->getLastModified());
     }
 
 
-    public function testAssetsCanBeExcluded()
+    public function testAssetsCanBeExcludedAndIncluded()
     {
-        $this->assertTrue($this->asset->exclude()->isExcluded());
+        $this->asset->exclude();
+        $this->assertTrue($this->asset->isExcluded());
+        $this->asset->include();
+        $this->assertTrue($this->asset->isIncluded());
     }
 
 

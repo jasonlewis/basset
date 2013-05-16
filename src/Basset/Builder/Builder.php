@@ -126,7 +126,7 @@ class Builder {
         {
             $assets = $assets->filter(function($asset) use ($entry)
             {
-                return ! $entry->hasDevelopmentAsset($asset) or $asset->getFingerprintedPath() != $entry->getDevelopmentAsset($asset);
+                return ! $entry->hasDevelopmentAsset($asset) or $asset->getBuildPath() != $entry->getDevelopmentAsset($asset);
             });
         }
 
@@ -141,7 +141,7 @@ class Builder {
         {
             foreach ($assets as $asset)
             {
-                $path = "{$this->buildPath}/{$name}/{$asset->getFingerprintedPath()}";
+                $path = "{$this->buildPath}/{$name}/{$asset->getBuildPath()}";
 
                 // If the build directory does not exist we'll attempt to recursively create it so we can
                 // build the asset to the directory.
