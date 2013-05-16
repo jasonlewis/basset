@@ -102,7 +102,7 @@ class Builder {
         }
         else
         {
-            $this->files->put($path, $build);
+            $this->files->put($path, $this->gzip($build));
 
             $entry->setProductionFingerprint($group, $fingerprint);
         }
@@ -128,19 +128,22 @@ class Builder {
         // for any possible changes. If the asset is not in the collections manifest entry or the
         // fingerprint on the asset does match the manifest fingerprint then the asset will
         // be rebuilt.
-        if ( ! $this->collectionHasChanged($assets, $entry, $group) and ! $this->force)
+
+        // If the collection definition has changed when compared to the manifest entry or if the
+        // collection is being forcefully rebuilt then we'll reset the development assets.
+        if ($this->collectionDefinitionHasChanged($assets, $entry, $group) or $this->force)
+        {
+            $entry->resetDevelopmentAssets($group);
+        }
+
+        // Otherwise we'll look at each of the assets and see if the entry has the asset or if
+        // the assets build path differs from that of the manifest entry.
+        else
         {
             $assets = $assets->filter(function($asset) use ($entry)
             {
                 return ! $entry->hasDevelopmentAsset($asset) or $asset->getBuildPath() != $entry->getDevelopmentAsset($asset);
             });
-        }
-
-        // Otherwise if there are changes to the actual collection itself we'll reset the development
-        // assets on the entry so we can add the assets in in the new order they may be defined.
-        else
-        {
-            $entry->resetDevelopmentAssets($group);
         }
 
         if ( ! $assets->isEmpty())
@@ -167,14 +170,14 @@ class Builder {
     }
 
     /**
-     * Determine if the collections assets have changed.
+     * Determine if the collections definition has changed when compared to the manifest.
      * 
      * @param  \Illuminate\Support\Collection  $assets
      * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
      * @return bool
      */
-    protected function collectionHasChanged($assets, $entry, $group)
+    protected function collectionDefinitionHasChanged($assets, $entry, $group)
     {
         // If the manifest entry doesn't even have the group registered then it's obvious that the
         // collection has changed and needs to be rebuilt.
@@ -183,19 +186,11 @@ class Builder {
             return true;
         }
 
+        // Get the development assets from the manifest entry and flatten the keys so that we have
+        // an array of relative paths that we can compare from.
         $manifest = $entry->getDevelopmentAssets($group);
 
-        // With no group the entire manifest will be flattened using the relative asset paths as values.
-        if (is_null($group))
-        {
-            $manifest = array_flatten(array_map(function($group){ return array_keys($group); }, $manifest));
-        }
-
-        // The same applies here except we'll be using a given group on the manifest.
-        else
-        {
-            $manifest = array_flatten(array_keys($manifest));
-        }
+        $manifest = array_flatten(array_keys($manifest));
 
         // Compute the difference between the collections assets and the manifests assets. If we get
         // an array of values then the collection has changed since the last build and everything
@@ -259,26 +254,6 @@ class Builder {
         $this->force = $force;
 
         return $this;
-    }
-
-    /**
-     * Get the illumiante filesystem instance.
-     * 
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFiles()
-    {
-        return $this->files;
-    }
-
-    /**
-     * Get the basset manifest repository instance.
-     * 
-     * @return \Basset\Manifest\Repository
-     */
-    public function getManifest()
-    {
-        return $this->manifest;
     }
 
 }
