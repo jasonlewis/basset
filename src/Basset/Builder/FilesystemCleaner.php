@@ -94,7 +94,7 @@ class FilesystemCleaner {
 
         // Cleaning the manifest is important as it will also remove unnecessary files from the
         // filesystem if a collection has been removed.
-        $this->cleanManifest($collection, $entry);
+        $this->cleanManifestFiles($collection, $entry);
 
         $this->manifest->save();
     }
@@ -114,13 +114,13 @@ class FilesystemCleaner {
     }
 
     /**
-     * Clean the collections manifest entry.
+     * Clean the collections manifest entry files.
      * 
      * @param  string  $collection
      * @param  \Basset\Manifest\Entry  $entry
      * @return void
      */
-    protected function cleanManifest($collection, Entry $entry)
+    protected function cleanManifestFiles($collection, Entry $entry)
     {
         if ( ! $entry->hasProductionFingerprints() or ! isset($this->environment[$collection]))
         {
