@@ -130,6 +130,13 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testFindingOfMissingConstructorArgsWithInvalidClassReturnsCurrentInstance()
+    {
+        $this->filter->shouldReceive('getClassName')->once()->andReturn(null);
+        $this->assertEquals($this->filter, $this->filter->findMissingConstructorArgs());
+    }
+
+
     public function testFindingOfMissingConstructorArgsSkipsExistingArgument()
     {
         $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
