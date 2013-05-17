@@ -47,7 +47,7 @@ class Entry implements JsonableInterface, ArrayableInterface {
         {
             $group = $value->getGroup();
 
-            $fingerprint = $value->getFingerprintedPath();
+            $fingerprint = $value->getBuildPath();
 
             $value = $value->getRelativePath();
         }
