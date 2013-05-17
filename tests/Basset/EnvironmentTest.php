@@ -14,14 +14,13 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->config = m::mock('Illuminate\Config\Repository');
         $this->asset = m::mock('Basset\Factory\AssetFactory');
         $this->filter = m::mock('Basset\Factory\FilterFactory');
         $this->finder = m::mock('Basset\AssetFinder');
 
         $this->finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
 
-        $this->environment = new Environment($this->config, $this->asset, $this->filter, $this->finder, 'testing');
+        $this->environment = new Environment($this->asset, $this->filter, $this->finder);
     }
 
 
@@ -70,15 +69,6 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
         $this->assertFalse($this->environment->has('foo'));
         $this->environment->collection('foo');
         $this->assertTrue($this->environment->has('foo'));
-    }
-
-
-    public function testCheckingIfRunningInProduction()
-    {
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
-        $this->assertFalse($this->environment->runningInProduction());
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
-        $this->assertTrue($this->environment->runningInProduction());
     }
 
 

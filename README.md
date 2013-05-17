@@ -45,6 +45,11 @@ Basset also ships with a facade which provides the static syntax for creating co
 
 ### Changes
 
+#### v4.0.0 Beta 2
+
+- Added logging when assets, directories, and filters are not found or fail to load.
+
+
 #### v4.0.0 Beta 1
 
 - Collections are displayed with `basset_javascripts()` and `basset_stylesheets()`.

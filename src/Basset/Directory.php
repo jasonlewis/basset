@@ -4,6 +4,7 @@ use Closure;
 use Iterator;
 use SplFileInfo;
 use FilesystemIterator;
+use Illuminate\Log\Writer;
 use UnexpectedValueException;
 use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
@@ -22,6 +23,13 @@ class Directory extends Filterable {
      * @var string
      */
     protected $path;
+
+    /**
+     * Illuminate log writer instance.
+     * 
+     * @var \Illuminate\Log\Writer
+     */
+    protected $log;
 
     /**
      * Basset filter factory instance.
@@ -61,14 +69,16 @@ class Directory extends Filterable {
     /**
      * Create a new directory instance.
      *
+     * @param  \Illuminate\Log\Writer  $log
      * @param  \Basset\Factory\AssetFactory  $assetFactory
      * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  \Basset\AssetFinder  $finder
      * @param  string  $path
      * @return void
      */
-    public function __construct(AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $path)
+    public function __construct(Writer $log, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $path)
     {
+        $this->log = $log;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
         $this->finder = $finder;
@@ -97,6 +107,8 @@ class Directory extends Filterable {
         }
         catch (AssetNotFoundException $e)
         {
+            $this->log->error(sprintf('Asset "%s" could not be found in "%s"', $name, $this->path));
+
             return $this->assetFactory->make(null);
         }
         catch (AssetExistsException $e)
@@ -159,7 +171,7 @@ class Directory extends Filterable {
         {
             $path = $this->finder->setWorkingDirectory($path);
 
-            $this->directories[$path] = new Directory($this->assetFactory, $this->filterFactory, $this->finder, $path);
+            $this->directories[$path] = new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, $path);
 
             // Once we've set the working directory we'll fire the callback so that any added assets
             // are relative to the working directory. After the callback we can revert the working
@@ -174,7 +186,9 @@ class Directory extends Filterable {
         }
         catch (DirectoryNotFoundException $e)
         {
-            return new Directory($this->assetFactory, $this->filterFactory, $this->finder, null);
+            $this->log->error(sprintf('Directory "%s" could not be found in "%s"', $path, $this->path));
+
+            return new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, null);
         }
     }
 

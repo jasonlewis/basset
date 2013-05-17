@@ -2,10 +2,10 @@
 
 use Closure;
 use ArrayAccess;
+use Illuminate\Log\Writer;
 use InvalidArgumentException;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
-use Illuminate\Config\Repository;
 
 class Environment implements ArrayAccess {
 
@@ -17,18 +17,11 @@ class Environment implements ArrayAccess {
     protected $collections = array();
 
     /**
-     * Illuminate filesystem instance.
-     *
-     * @var \Illuminate\Filesystem\Filesystem
+     * Illuminate log writer instance.
+     * 
+     * @var \Illuminate\Log\Writer
      */
-    protected $files;
-
-    /**
-     * Illuminate config repository instance.
-     *
-     * @var \Illuminate\Config\Repository
-     */
-    protected $config;
+    protected $log;
 
     /**
      * Basset asset factory instance.
@@ -52,29 +45,20 @@ class Environment implements ArrayAccess {
     protected $finder;
 
     /**
-     * Application working environment.
-     * 
-     * @var string
-     */
-    protected $applicationEnvironment;
-
-    /**
      * Create a new environment instance.
      *
-     * @param  \Illuminate\Config\Repository  $config
+     * @param  \Illuminate\Log\Writer  $log
      * @param  \Basset\Factory\AssetFactory  $assetFactory
      * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  \Basset\AssetFinder  $finder
-     * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct(Repository $config, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $applicationEnvironment)
+    public function __construct(Writer $log, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder)
     {
-        $this->config = $config;
+        $this->log = $log;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
         $this->finder = $finder;
-        $this->applicationEnvironment = $applicationEnvironment;
     }
 
     /**
@@ -125,7 +109,7 @@ class Environment implements ArrayAccess {
     {
         $path = $this->finder->setWorkingDirectory('/');
 
-        return new Directory($this->assetFactory, $this->filterFactory, $this->finder, $path);
+        return new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, $path);
     }
 
     /**
@@ -178,16 +162,6 @@ class Environment implements ArrayAccess {
         {
             $this->make($name, $callback);
         }
-    }
-
-    /**
-     * Determine if running in production environment.
-     *
-     * @return bool
-     */
-    public function runningInProduction()
-    {
-        return in_array($this->applicationEnvironment, (array) $this->config->get('basset::production'));
     }
 
     /**

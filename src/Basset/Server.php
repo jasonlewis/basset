@@ -38,20 +38,29 @@ class Server {
     protected $url;
 
     /**
+     * The application working environment.
+     * 
+     * @var string
+     */
+    protected $appEnvironment;
+
+    /**
      * Create a new output server instance.
      *
      * @param  \Basset\Environment  $environment
      * @param  \Basset\Manifest\Manifest  $manifest
      * @param  \Illuminate\Config\Repository  $config
      * @param  \Illuminate\Routing\UrlGenerator  $url
+     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Environment $environment, Manifest $manifest, Config $config, UrlGenerator $url)
+    public function __construct(Environment $environment, Manifest $manifest, Config $config, UrlGenerator $url, $appEnvironment)
     {
         $this->environment = $environment;
         $this->manifest = $manifest;
         $this->config = $config;
         $this->url = $url;
+        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -118,7 +127,7 @@ class Server {
         {
             $entry = $this->manifest->get($collection);
 
-            if ($this->environment->runningInProduction() and $entry->hasProductionFingerprint($group))
+            if ($this->runningInProduction() and $entry->hasProductionFingerprint($group))
             {
                 $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group, $format));
             }
@@ -206,6 +215,16 @@ class Server {
         }
 
         return $path;
+    }
+
+    /**
+     * Determine if the application is running in production mode.
+     * 
+     * @return bool
+     */
+    protected function runningInProduction()
+    {
+        return in_array($this->appEnvironment, (array) $this->config->get('basset::production'));
     }
 
     /**

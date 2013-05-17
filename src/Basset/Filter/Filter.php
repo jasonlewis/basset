@@ -1,8 +1,10 @@
 <?php namespace Basset\Filter;
 
 use Closure;
+use Basset\Asset;
 use ReflectionClass;
 use ReflectionException;
+use Illuminate\Log\Writer;
 use Assetic\Filter\FilterInterface;
 use Symfony\Component\Process\ExecutableFinder;
 
@@ -72,15 +74,24 @@ class Filter {
     protected $applicationEnvironment;
 
     /**
+     * Illuminate log writer instance.
+     * 
+     * @var \Illuminate\Log\Writer
+     */
+    protected $log;
+
+    /**
      * Create a new filter instance.
      *
+     * @param  \Illuminate\Log\Writer  $log
      * @param  string  $filter
      * @param  array  $nodePaths
      * @param  string  $applicationEnvironment
      * @return void
      */
-    public function __construct($filter, array $nodePaths, $applicationEnvironment)
+    public function __construct(Writer $log, $filter, array $nodePaths, $applicationEnvironment)
     {
+        $this->log = $log;
         $this->filter = $filter;
         $this->nodePaths = $nodePaths;
         $this->applicationEnvironment = $applicationEnvironment;
@@ -133,6 +144,10 @@ class Filter {
                     }
                     else
                     {
+                        // There was a problem locating the path to the argument, we'll log that the
+                        // filter was ignored here so that the developer can debug this better.
+                        $this->log->error(sprintf('Failed to find required constructor argument for filter "%s". (%s)', $this->filter, $parameter));
+
                         $this->ignored = true;
                     }
                 }
@@ -403,6 +418,8 @@ class Filter {
 
         if ($this->ignored or is_null($class) or ! $this->processRequirements())
         {
+            $this->log->error(sprintf('"%s" will not be applied to asset "%s" due to failing requirements or invalid filter name.', $this->filter, $this->resource->getRelativePath()));
+            
             return;
         }
 

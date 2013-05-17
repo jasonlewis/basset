@@ -125,6 +125,18 @@ return array(
 
     /*
     |--------------------------------------------------------------------------
+    | Logging
+    |--------------------------------------------------------------------------
+    |
+    | Basset will log problems encountered such as assets that could not be
+    | found or problems with filters. Basset will log to app/storage/logs.
+    |
+    */
+
+    'logging' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Asset and Filter Aliases
     |--------------------------------------------------------------------------
     |

@@ -36,6 +36,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected $components = array(
         'AssetFinder',
+        'Logger',
         'Factories',
         'Server',
         'Manifest',
@@ -52,6 +53,10 @@ class BassetServiceProvider extends ServiceProvider {
     public function boot()
     {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
+
+        // Tell the logger to use a rotating files setup to log problems encountered during
+        // Bassets operation.
+        $this->app['basset.log']->useDailyFiles($this->app['path.storage'].'/logs/basset.txt', 0, 'error');
 
         // Register the build path with the application so that bindings that make use of the
         // build path can easily pull it from the container.
@@ -83,7 +88,7 @@ class BassetServiceProvider extends ServiceProvider {
 
         $this->app->before(function() use ($app)
         {
-            if ($app['basset']->runningInProduction() or $app->runningUnitTests()) return;
+            if (in_array($app['env'], (array) $app['config']->get('basset::production')) or $app->runningUnitTests()) return;
             
             foreach ($app['basset']->all() as $collection)
             {
@@ -170,7 +175,20 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.server'] = $this->app->share(function($app)
         {
-            return new Server($app['basset'], $app['basset.manifest'], $app['config'], $app['url']);
+            return new Server($app['basset'], $app['basset.manifest'], $app['config'], $app['url'], $app['env']);
+        });
+    }
+
+    /**
+     * Register the logger.
+     * 
+     * @return void
+     */
+    protected function registerLogger()
+    {
+        $this->app['basset.log'] = $this->app->share(function($app)
+        {
+            return clone $app['log'];
         });
     }
 
@@ -192,7 +210,7 @@ class BassetServiceProvider extends ServiceProvider {
 
             $nodePaths = $app['config']->get('basset::node_paths', array());
 
-            return new FilterFactory($aliases, $nodePaths, $app['env']);
+            return new FilterFactory($app['basset.log'], $aliases, $nodePaths, $app['env']);
         });
     }
 
@@ -238,7 +256,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Environment($app['config'], $app['basset.factory.asset'], $app['basset.factory.filter'], $app['basset.finder'], $app['env']);
+            return new Environment($app['basset.log'], $app['basset.factory.asset'], $app['basset.factory.filter'], $app['basset.finder']);
         });
     }
 

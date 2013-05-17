@@ -24,7 +24,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->config = m::mock('Illuminate\Config\Repository');
         $this->url = new UrlGenerator(new RouteCollection, Request::create('http://localhost', 'GET'));
 
-        $this->server = new Server($this->environment, $this->manifest, $this->config, $this->url);
+        $this->server = new Server($this->environment, $this->manifest, $this->config, $this->url, 'testing');
     }
 
 
@@ -41,7 +41,8 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     public function testServingProductionCollectionReturnsExpectedHtml($name, $group, $fingerprint, $expected)
     {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with($name);
-        $this->environment->shouldReceive('runningInProduction')->andReturn(true);
+
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with($group)->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn($name);
@@ -67,7 +68,8 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     public function testServingDevelopmentCollectionReturnsExpectedHtml()
     {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
-        $this->environment->shouldReceive('runningInProduction')->andReturn(false);
+        
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
@@ -87,7 +89,8 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     public function testExcludedAssetsAreServedBeforeBuiltCollectionHtml()
     {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
-        $this->environment->shouldReceive('runningInProduction')->andReturn(true);
+        
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
@@ -108,7 +111,8 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     public function testServingCollectionsWithCustomFormat()
     {
         $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
-        $this->environment->shouldReceive('runningInProduction')->andReturn(true);
+        
+        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
