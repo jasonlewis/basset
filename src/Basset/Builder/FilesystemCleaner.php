@@ -163,7 +163,7 @@ class FilesystemCleaner {
      */
     protected function cleanDevelopmentFiles(Collection $collection, Entry $entry)
     {
-        foreach ($entry->getDevelopmentAssets() as $group => $assets)
+        foreach ($entry->getDevelopmentAssets() as $assets)
         {
             foreach ($assets as $asset)
             {
