@@ -2,10 +2,10 @@
 
 use Closure;
 use Iterator;
+use Exception;
 use SplFileInfo;
 use FilesystemIterator;
 use Illuminate\Log\Writer;
-use UnexpectedValueException;
 use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
@@ -199,10 +199,7 @@ class Directory extends Filterable {
         {
             return new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         }
-        catch (UnexpectedValueException $e)
-        {
-            return array();
-        }
+        catch (Exception $e) { return false; }
     }
 
     /**
@@ -217,10 +214,7 @@ class Directory extends Filterable {
         {
             return new FilesystemIterator($path);
         }
-        catch (UnexpectedValueException $e)
-        {
-            return array();
-        }
+        catch (Exception $e) { return false; }
     }
 
     /**
@@ -236,9 +230,12 @@ class Directory extends Filterable {
             return $this->directory($path)->requireDirectory();
         }
 
-        $iterator = $this->iterateDirectory($this->path);
+        if ($iterator = $this->iterateDirectory($this->path))
+        {
+            return $this->processRequire($iterator);
+        }
 
-        return $this->processRequire($iterator);
+        return $this;
     }
 
     /**
@@ -254,9 +251,12 @@ class Directory extends Filterable {
             return $this->directory($path)->requireTree();
         }
 
-        $iterator = $this->recursivelyIterateDirectory($this->path);
+        if ($iterator = $this->recursivelyIterateDirectory($this->path))
+        {
+            return $this->processRequire($iterator);
+        }
 
-        return $this->processRequire($iterator);
+        return $this;
     }
 
     /**

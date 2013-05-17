@@ -195,10 +195,10 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testGettingIteratorsReturnsBlankArrayForInvalidDirectories()
+    public function testGettingIteratorsReturnsFalseForInvalidDirectories()
     {
-        $this->assertEquals(array(), $this->directory->iterateDirectory('foo'));
-        $this->assertEquals(array(), $this->directory->recursivelyIterateDirectory('foo'));
+        $this->assertFalse($this->directory->iterateDirectory('foo'));
+        $this->assertFalse($this->directory->recursivelyIterateDirectory('foo'));
     }
 
 
