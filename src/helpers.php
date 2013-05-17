@@ -45,6 +45,13 @@ if ( ! function_exists('basset_assets'))
     {
         $collections = array(); $args = func_get_args();
 
+        // If no arguments were supplied get all the collections and add both the stylesheet and javascript
+        // flavors as arguments.
+        if (empty($args))
+        {
+            foreach (app('basset')->all() as $identifier => $collection) $args[] = array("{$identifier}.css", "{$identifier}.js");
+        }
+
         array_walk_recursive($args, function($v, $k) use (&$collections) { is_numeric($k) ? ($collections[$v] = null) : ($collections[$k] = $v); });
 
         foreach ($collections as $collection => $format) $responses[] = app('basset.server')->collection($collection, $format);
