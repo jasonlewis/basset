@@ -52,20 +52,6 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAddingExistingAssetReturnsExistingAssetsInstance()
-    {
-        $asset = new Asset($this->files, $this->filter, null, null);
-
-        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
-        $this->asset->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
-
-        $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetExistsException');
-        $this->finder->shouldReceive('getCachedPath')->once()->with('foo.css')->andReturn('path/to/foo.css');
-
-        $this->assertEquals($this->directory->stylesheet('foo.css'), $this->directory->stylesheet('foo.css'));
-    }
-
-
     public function testAddingAssetFiresCallback()
     {
         $asset = new Asset($this->files, $this->filter, null, null);

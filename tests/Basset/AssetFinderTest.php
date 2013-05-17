@@ -146,30 +146,4 @@ class AssetFinderTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    /**
-     * @expectedException Basset\Exceptions\AssetExistsException
-     */
-    public function testFindSameAssetTwiceThrowsAssetExistsException()
-    {
-        $this->config->shouldReceive('get')->twice()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
-
-        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
-
-        $this->finder->find('foo.css');
-        $this->finder->find('foo.css');
-    }
-
-
-    public function testCanGetCachedAssetPath()
-    {
-        $this->config->shouldReceive('get')->once()->with('basset::aliases.assets.foo.css', 'foo.css')->andReturn('foo.css');
-
-        $this->files->shouldReceive('exists')->once()->with('path/to/public/foo.css')->andReturn(true);
-
-        $this->finder->find('foo.css');
-
-        $this->assertEquals('path/to/public/foo.css', $this->finder->getCachedPath('foo.css'));
-    }
-
-
 }

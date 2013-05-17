@@ -28,7 +28,7 @@ return array(
 
     'collections' => array(
 
-        'application' => function($collection)
+        /*'application' => function($collection)
         {
             // Switch to the stylesheets directory and require the "less" and "sass" directories.
             // These directories both have a filter applied to them so that the built
@@ -53,7 +53,7 @@ return array(
             });
 
             $directory->apply('JsMin');
-        }
+        }*/
 
     ),
 

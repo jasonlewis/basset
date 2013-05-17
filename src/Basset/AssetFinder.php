@@ -37,13 +37,6 @@ class AssetFinder {
     protected $hints = array();
 
     /**
-     * Array of cached asset paths.
-     * 
-     * @var array
-     */
-    protected $cached = array();
-
-    /**
      * Create a new asset finder instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
@@ -70,18 +63,13 @@ class AssetFinder {
     {
         $name = $this->config->get("basset::aliases.assets.{$name}", $name);
 
-        if (array_key_exists($name, $this->cached))
-        {
-            throw new AssetExistsException;
-        }
-
         // Spin through an array of methods ordered by the priority of how an asset should be found.
         // Once we find a non-null path we'll return that path breaking from the loop.
         foreach (array('RemotelyHosted', 'PackageAsset', 'WorkingDirectory', 'PublicPath', 'AbsolutePath') as $method)
         {
             if ($path = $this->{'find'.$method}($name))
             {
-                return $this->cached[$name] = $path;
+                return $path;
             }
         }
 
@@ -271,17 +259,6 @@ class AssetFinder {
     protected function prefixPublicPath($path)
     {
         return rtrim($this->publicPath.'/'.ltrim($path, '/'), '/');
-    }
-
-    /**
-     * Get the path to a cached asset.
-     * 
-     * @param  string  $name
-     * @return string
-     */
-    public function getCachedPath($name)
-    {
-        return $this->cached[$name];
     }
 
     /**

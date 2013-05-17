@@ -11,7 +11,6 @@ use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
-use Basset\Exceptions\AssetExistsException;
 use Basset\Exceptions\AssetNotFoundException;
 use Basset\Exceptions\DirectoryNotFoundException;
 
@@ -110,10 +109,6 @@ class Directory extends Filterable {
             $this->log->error(sprintf('Asset "%s" could not be found in "%s"', $name, $this->path));
 
             return $this->assetFactory->make(null);
-        }
-        catch (AssetExistsException $e)
-        {
-            $path = $this->finder->getCachedPath($name);
         }
 
         if (is_callable($callback))
