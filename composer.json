@@ -17,7 +17,6 @@
         "illuminate/config": "4.0.*",
         "illuminate/console": "4.0.*",
         "illuminate/filesystem": "4.0.*",
-        "illuminate/http": "4.0.*",
         "illuminate/routing": "4.0.*",
         "illuminate/support": "4.0.*",
         "symfony/process": "2.3.*"
