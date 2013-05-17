@@ -1,6 +1,6 @@
 <?php
 
-if ( ! function_exists('basset_stylesheet'))
+if ( ! function_exists('basset_stylesheets'))
 {
     /**
      * Ouput the stylesheets for several collections.
@@ -17,7 +17,7 @@ if ( ! function_exists('basset_stylesheet'))
     }
 }
 
-if ( ! function_exists('basset_javascript'))
+if ( ! function_exists('basset_javascripts'))
 {
     /**
      * Ouput the javascripts for several collections.
@@ -34,7 +34,7 @@ if ( ! function_exists('basset_javascript'))
     }
 }
 
-if ( ! function_exists('basset_collections'))
+if ( ! function_exists('basset_assets'))
 {
     /**
      * Output a given group for an array of collections.
