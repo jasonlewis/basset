@@ -53,14 +53,20 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
-        $this->app['basset.path.build'] = $this->app['path.public'].'/'.$this->app['config']['basset::build_path'];
+        // Register the build path with the application so that bindings that make use of the
+        // build path can easily pull it from the container.
+        $this->app->instance('basset.path.build', $this->app['path.public'].'/'.$this->app['config']->get('basset::build_path'));
 
-        // Register the collections defined in the configuration. By default an "application"
-        // collection is provided with a clean installation of Basset.
-        $this->app['basset']->collections((array) $this->app['config']->get('basset::collections'));
+        // Collections can be defined as an array in the configuration file. We'll register
+        // this array of collections with the environment.
+        $this->app['basset']->collections($this->app['config']->get('basset::collections'));
 
+        // Load the local manifest that contains the fingerprinted paths to both production
+        // and development builds.
         $this->app['basset.manifest']->load();
 
+        // Before running any of the routes we'll build any outstanding collections that
+        // may have changed assets or a changed collection definition.        
         $this->buildOutstandingCollections();
     }
 
@@ -69,23 +75,27 @@ class BassetServiceProvider extends ServiceProvider {
      * 
      * @return void
      */
-    public function buildOutstandingCollections()
+    protected function buildOutstandingCollections()
     {
         $app = $this->app;
 
         $this->app->before(function() use ($app)
         {
-            if ($app['basset']->runningInProduction() or $app->runningUnitTests())
-            {
-                return;
-            }
+            if ($app['basset']->runningInProduction() or $app->runningUnitTests()) return;
             
-            $collections = $app['basset']->all();
-
-            foreach ($collections as $name => $collection)
+            foreach ($app['basset']->all() as $collection)
             {
-                try { $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets'); } catch (BuildNotRequiredException $e) {}
-                try { $app['basset.builder']->buildAsDevelopment($collection, 'javascripts'); } catch (BuildNotRequiredException $e) {}
+                try
+                {
+                    $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets');
+                }
+                catch (BuildNotRequiredException $e) {}
+
+                try
+                {
+                    $app['basset.builder']->buildAsDevelopment($collection, 'javascripts');
+                }
+                catch (BuildNotRequiredException $e) {}
             }
 
             $app['basset.builder.cleaner']->cleanAll();
@@ -237,16 +247,6 @@ class BassetServiceProvider extends ServiceProvider {
         {
             return new BuildCommand($app['basset'], $app['basset.builder'], $app['basset.builder.cleaner']);
         });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return array('basset', 'basset.manifest', 'basset.server', 'basset.factory', 'basset.builder', 'basset.builder.cleaner', 'basset.finder');
     }
 
 }
