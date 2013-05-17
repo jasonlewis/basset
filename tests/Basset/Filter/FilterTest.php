@@ -13,7 +13,8 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->filter = m::mock('Basset\Filter\Filter', array('FooFilter', array(), 'testing'))->shouldDeferMissing();
+        $this->log = m::mock('Illuminate\Log\Writer');
+        $this->filter = m::mock('Basset\Filter\Filter', array($this->log, 'FooFilter', array(), 'testing'))->shouldDeferMissing();
         $this->filter->setResource($this->resource = m::mock('Basset\Filter\Filterable'));
     }
 
@@ -123,7 +124,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testInvalidMethodsAreHandledByResource()
     {
-        $filter = new Basset\Filter\Filter('FooFilter', array(), 'testing');
+        $filter = new Basset\Filter\Filter($this->log, 'FooFilter', array(), 'testing');
         $filter->setResource($this->resource);
         $this->resource->shouldReceive('foo')->once()->andReturn('bar');
         $this->assertEquals('bar', $filter->foo());
@@ -169,7 +170,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testFindingOfMissingConstructorArgsSetsFilterNodePaths()
     {
-        $filter = m::mock('Basset\Filter\Filter', array('FooFilter', array('path/to/node'), 'testing'))->shouldDeferMissing();
+        $filter = m::mock('Basset\Filter\Filter', array($this->log, 'FooFilter', array('path/to/node'), 'testing'))->shouldDeferMissing();
         $filter->setResource($this->resource);
         $filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
         $filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
@@ -181,6 +182,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
 
     public function testFindingOfMissingConstructorArgsIgnoresFilterWithInvalidExecutables()
     {
+        $this->log->shouldReceive('error')->once();
         $this->filter->shouldReceive('getClassName')->once()->andReturn('FilterWithConstructorStub');
         $this->filter->shouldReceive('getExecutableFinder')->once()->andReturn($finder = m::mock('Symfony\Component\Process\ExecutableFinder'));
         $finder->shouldReceive('find')->once()->with('foo')->andReturn(false);

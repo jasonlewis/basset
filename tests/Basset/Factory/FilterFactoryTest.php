@@ -13,7 +13,8 @@ class FilterFactoryTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->factory = new Basset\Factory\FilterFactory(array('foo' => 'FooFilter', 'bar' => array('BarFilter', function($filter)
+        $this->log = m::mock('Illuminate\Log\Writer');
+        $this->factory = new Basset\Factory\FilterFactory($this->log, array('foo' => 'FooFilter', 'bar' => array('BarFilter', function($filter)
         {
             $filter->setArgument('foo');
         })), array(), 'testing');

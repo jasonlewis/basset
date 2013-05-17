@@ -50,7 +50,7 @@ class EntryTest extends PHPUnit_Framework_TestCase {
     {
         $asset = m::mock('Basset\Asset');
         $asset->shouldReceive('getGroup')->once()->andReturn('stylesheets');
-        $asset->shouldReceive('getFingerprintedPath')->once()->andReturn('foo/bar.css');
+        $asset->shouldReceive('getBuildPath')->once()->andReturn('foo/bar.css');
         $asset->shouldReceive('getRelativePath')->once()->andReturn('foo/bar.sass');
 
         $this->entry->addDevelopmentAsset($asset);
