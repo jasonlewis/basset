@@ -1,7 +1,7 @@
 <?php namespace Basset\Builder;
 
 use Basset\Collection;
-use Basset\Manifest\Repository;
+use Basset\Manifest\Manifest;
 use Illuminate\Filesystem\Filesystem;
 use Basset\Exceptions\BuildNotRequiredException;
 
@@ -15,9 +15,9 @@ class Builder {
     protected $files;
 
     /**
-     * Basset manifest repository instance.
+     * Basset manifest instance.
      * 
-     * @var \Basset\Manifest\Repository
+     * @var \Basset\Manifest\Manifest
      */
     protected $manifest;
 
@@ -46,12 +46,12 @@ class Builder {
      * Create a new builder instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
-     * @param  \Basset\Manifest\Repository  $manifest
+     * @param  \Basset\Manifest\Manifest  $manifest
      * @param  \Basset\Builder\FilesystemCleaner  $cleaner
      * @param  string  $buildPath
      * @return void
      */
-    public function __construct(Filesystem $files, Repository $manifest, $buildPath)
+    public function __construct(Filesystem $files, Manifest $manifest, $buildPath)
     {
         $this->files = $files;
         $this->manifest = $manifest;

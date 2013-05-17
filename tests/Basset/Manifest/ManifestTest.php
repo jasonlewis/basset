@@ -1,7 +1,6 @@
 <?php
 
 use Mockery as m;
-use Basset\Manifest\Repository;
 
 class RepositoryTest extends PHPUnit_Framework_TestCase {
 
@@ -15,7 +14,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->files = new Illuminate\Filesystem\Filesystem;
-        $this->manifest = new Repository($this->files, __DIR__.'/fixtures');
+        $this->manifest = new Basset\Manifest\Manifest($this->files, __DIR__.'/fixtures');
     }
 
 
@@ -68,7 +67,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
     public function testWritesChangedEntriesToManifest()
     {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
-        $this->manifest = new Repository($this->files, __DIR__.'/fixtures');
+        $this->manifest = new Basset\Manifest\Manifest($this->files, __DIR__.'/fixtures');
 
         $entry = $this->manifest->make('foo');
         $entry->setProductionFingerprint('stylesheets', 'foo-123.css');

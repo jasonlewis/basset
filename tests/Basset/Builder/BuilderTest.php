@@ -15,7 +15,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
     {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
         $this->files->shouldReceive('exists')->once()->with('foo')->andReturn(true);
-        $this->manifest = m::mock('Basset\Manifest\Repository');
+        $this->manifest = m::mock('Basset\Manifest\Manifest');
         $this->collection = m::mock('Basset\Collection');
         $this->builder = new Basset\Builder\Builder($this->files, $this->manifest, 'foo');
     }

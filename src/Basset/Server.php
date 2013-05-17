@@ -3,8 +3,8 @@
 use Basset\Collection;
 use Basset\Environment;
 use Basset\Manifest\Entry;
+use Basset\Manifest\Manifest;
 use Illuminate\Routing\UrlGenerator;
-use Basset\Manifest\Repository as Manifest;
 use Illuminate\Config\Repository as Config;
 
 class Server {
@@ -17,9 +17,9 @@ class Server {
     protected $environment;
 
     /**
-     * Basset manifest repository instance.
+     * Basset manifest instance.
      * 
-     * @var \Basset\Manifest\Repository
+     * @var \Basset\Manifest\Manifest
      */
     protected $manifest;
 
@@ -41,7 +41,7 @@ class Server {
      * Create a new output server instance.
      *
      * @param  \Basset\Environment  $environment
-     * @param  \Basset\Manifest\Repository  $manifest
+     * @param  \Basset\Manifest\Manifest  $manifest
      * @param  \Illuminate\Config\Repository  $config
      * @param  \Illuminate\Routing\UrlGenerator  $url
      * @return void

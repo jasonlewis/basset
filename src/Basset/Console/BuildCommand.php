@@ -5,7 +5,6 @@ use Basset\Collection;
 use Basset\Environment;
 use Basset\Builder\Builder;
 use Illuminate\Console\Command;
-use Basset\Manifest\Repository;
 use Basset\Builder\FilesystemCleaner;
 use Basset\Exceptions\BuildNotRequiredException;
 use Symfony\Component\Console\Input\InputOption;

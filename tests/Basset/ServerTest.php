@@ -3,7 +3,7 @@
 use Mockery as m;
 use Basset\Server;
 use Illuminate\Http\Request;
-use Basset\Manifest\Repository;
+use Basset\Manifest\Manifest;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Routing\RouteCollection;
@@ -20,7 +20,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->environment = m::mock('Basset\Environment');
-        $this->manifest = new Repository(new Filesystem, 'meta');
+        $this->manifest = new Manifest(new Filesystem, 'meta');
         $this->config = m::mock('Illuminate\Config\Repository');
         $this->url = new UrlGenerator(new RouteCollection, Request::create('http://localhost', 'GET'));
 

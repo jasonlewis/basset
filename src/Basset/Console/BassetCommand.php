@@ -1,7 +1,7 @@
 <?php namespace Basset\Console;
 
 use Basset\Environment;
-use Basset\Manifest\Repository;
+use Basset\Manifest\Manifest;
 use Illuminate\Console\Command;
 use Basset\Builder\FilesystemCleaner;
 use Basset\BassetServiceProvider as Basset;
@@ -24,9 +24,9 @@ class BassetCommand extends Command {
     protected $description = 'Interact with the Basset package';
 
     /**
-     * Basset manifest repository instance.
+     * Basset manifest instance.
      * 
-     * @var \Basset\Manifest\Repository
+     * @var \Basset\Manifest\Manifest
      */
     protected $manifest;
 
@@ -54,12 +54,12 @@ class BassetCommand extends Command {
     /**
      * Create a new basset command instance.
      * 
-     * @param  \Basset\Manifest\Repository  $manifest
+     * @param  \Basset\Manifest\Manifest  $manifest
      * @param  \Basset\Environment  $environment
      * @param  \Basset\Builder\FilesystemCleaner  $cleaner
      * @return void
      */
-    public function __construct(Repository $manifest, Environment $environment, FilesystemCleaner $cleaner)
+    public function __construct(Manifest $manifest, Environment $environment, FilesystemCleaner $cleaner)
     {
         parent::__construct();
 

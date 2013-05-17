@@ -3,7 +3,7 @@
 use Basset\Collection;
 use Basset\Environment;
 use Basset\Manifest\Entry;
-use Basset\Manifest\Repository;
+use Basset\Manifest\Manifest;
 use Illuminate\Filesystem\Filesystem;
 
 class FilesystemCleaner {
@@ -16,9 +16,9 @@ class FilesystemCleaner {
     protected $environment;
 
     /**
-     * Basset manifest repository instance.
+     * Basset manifest instance.
      *
-     * @var \Basset\Manifest\Repository
+     * @var \Basset\Manifest\Manifest
      */
     protected $manifest;
 
@@ -40,12 +40,12 @@ class FilesystemCleaner {
      * Create a new build cleaner instance.
      *
      * @param  \Basset\Environment  $environment
-     * @param  \Basset\Manifest\Repository  $manifest
+     * @param  \Basset\Manifest\Manifest  $manifest
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  string  $buildPath
      * @return void
      */
-    public function __construct(Environment $environment, Repository $manifest, Filesystem $files, $buildPath)
+    public function __construct(Environment $environment, Manifest $manifest, Filesystem $files, $buildPath)
     {
         $this->environment = $environment;
         $this->manifest = $manifest;
@@ -200,26 +200,6 @@ class FilesystemCleaner {
     protected function replaceFingerprintWithWildcard($value)
     {
         return preg_replace('/(.*?)-([\w\d]{32})\.(.*?)/', '$1-*.$3', $value);
-    }
-
-    /**
-     * Get the manifest repository instance.
-     * 
-     * @return \Basset\Manifest\Repository
-     */
-    public function getManifest()
-    {
-        return $this->manifest;
-    }
-
-    /**
-     * Get the illuminate filesystem instance.
-     * 
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFiles()
-    {
-        return $this->files;
     }
 
 }

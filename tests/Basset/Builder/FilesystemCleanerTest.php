@@ -14,7 +14,7 @@ class FilesystemCleanerTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->environment = m::mock('Basset\Environment');
-        $this->manifest = m::mock('Basset\Manifest\Repository');
+        $this->manifest = m::mock('Basset\Manifest\Manifest');
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
 
         $this->cleaner = new Basset\Builder\FilesystemCleaner($this->environment, $this->manifest, $this->files, 'path/to/builds');

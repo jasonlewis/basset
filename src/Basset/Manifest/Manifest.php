@@ -3,7 +3,7 @@
 use Basset\Collection;
 use Illuminate\Filesystem\Filesystem;
 
-class Repository {
+class Manifest {
 
     /**
      * Illuminate filesystem instance.
@@ -27,7 +27,7 @@ class Repository {
     protected $entries;
 
     /**
-     * Create a new collection repository instance.
+     * Create a new manifest instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  string  $manifestPath

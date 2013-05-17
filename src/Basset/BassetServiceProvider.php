@@ -2,7 +2,7 @@
 
 use Basset\Factory\Manager;
 use Basset\Builder\Builder;
-use Basset\Manifest\Repository;
+use Basset\Manifest\Manifest;
 use Basset\Console\BuildCommand;
 use Basset\Console\CleanCommand;
 use Basset\Factory\AssetFactory;
@@ -59,9 +59,6 @@ class BassetServiceProvider extends ServiceProvider {
         // collection is provided with a clean installation of Basset.
         $this->app['basset']->collections((array) $this->app['config']->get('basset::collections'));
 
-        // When booting the application we need to load the collections stored within the manifest
-        // repository. These collections indicate the fingerprints required to display the
-        // collections correctly.
         $this->app['basset.manifest']->load();
 
         $this->buildOutstandingCollections();
@@ -167,7 +164,7 @@ class BassetServiceProvider extends ServiceProvider {
         {
             $meta = $app['config']->get('app.manifest');
 
-            return new Repository($app['files'], $meta);
+            return new Manifest($app['files'], $meta);
         });
     }
 
