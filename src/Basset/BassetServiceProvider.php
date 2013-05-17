@@ -68,6 +68,8 @@ class BassetServiceProvider extends ServiceProvider {
         // Before running any of the routes we'll build any outstanding collections that
         // may have changed assets or a changed collection definition.        
         $this->buildOutstandingCollections();
+
+        $this->registerBladeExtensions();
     }
 
     /**
@@ -99,6 +101,37 @@ class BassetServiceProvider extends ServiceProvider {
             }
 
             $app['basset.builder.cleaner']->cleanAll();
+        });
+    }
+
+    /**
+     * Register the Blade extensions with the compiler.
+     * 
+     * @return void
+     */
+    protected function registerBladeExtensions()
+    {
+        $blade = $this->app['view']->getEngineResolver()->resolve('blade')->getCompiler();
+
+        $blade->extend(function($value, $compiler)
+        {
+            $matcher = $compiler->createMatcher('javascripts');
+            
+            return preg_replace($matcher, '$1<?php echo basset_javascripts$2; ?>', $value);
+        });
+
+        $blade->extend(function($value, $compiler)
+        {
+            $matcher = $compiler->createMatcher('stylesheets');
+            
+            return preg_replace($matcher, '$1<?php echo basset_stylesheets$2; ?>', $value);
+        });
+
+        $blade->extend(function($value, $compiler)
+        {
+            $matcher = $compiler->createMatcher('assets');
+            
+            return preg_replace($matcher, '$1<?php echo basset_assets$2; ?>', $value);
         });
     }
 
