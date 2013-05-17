@@ -37,7 +37,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
     {
         $collection = m::mock('Basset\Collection');
         $collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
         $entry->shouldReceive('resetProductionFingerprint')->once()->with('stylesheets');
@@ -56,7 +56,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
 
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
         $this->collection->shouldReceive('getExtension')->once()->with('stylesheets')->andReturn('css');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
@@ -75,7 +75,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
 
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
         $this->collection->shouldReceive('getExtension')->once()->with('stylesheets')->andReturn('css');
 
         $fingerprint = 'foo-'.md5('body { }').'.css';
@@ -97,7 +97,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
 
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
         $this->collection->shouldReceive('getExtension')->once()->with('stylesheets')->andReturn('css');
 
         $fingerprint = 'foo-'.md5('body { }').'.css';
@@ -120,7 +120,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
 
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
         $this->collection->shouldReceive('getExtension')->once()->with('stylesheets')->andReturn('css');
 
         $fingerprint = 'foo-'.md5('body { }').'.css';
@@ -142,7 +142,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
     public function testBuildingDevelopmentCollectionWithNoAssetsThrowsBuildNotRequiredException()
     {
         $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
         $entry->shouldReceive('hasDevelopmentAssets')->once()->with('stylesheets')->andReturn(false);
@@ -161,7 +161,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.css');
         $assets[0]->shouldReceive('getBuildPath')->once()->andReturn('bar/baz-123.css');
@@ -190,7 +190,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
         $entry->shouldReceive('hasDevelopmentAssets')->once()->with('stylesheets')->andReturn(false);
@@ -221,7 +221,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.css');
         $assets[0]->shouldReceive('getBuildPath')->once()->andReturn('bar/baz-123.css');
@@ -258,7 +258,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
         $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
-        $this->collection->shouldReceive('getName')->once()->andReturn('foo');
+        $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $asset->shouldReceive('getRelativePath')->once()->andReturn('bar/baz.css');
         $asset->shouldReceive('getBuildPath')->once()->andReturn('bar/baz-123.css');

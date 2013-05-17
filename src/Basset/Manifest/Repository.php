@@ -103,14 +103,14 @@ class Repository {
     }
 
     /**
-     * Get the collections name from a collection instance.
+     * Get the collections identifier from a collection instance.
      * 
      * @param  string|\Basset\Collection  $collection
      * @return string
      */
     protected function getCollectionNameFromInstance($collection)
     {
-        return $collection instanceof Collection ? $collection->getName() : $collection;
+        return $collection instanceof Collection ? $collection->getIdentifier() : $collection;
     }
 
     /**

@@ -160,9 +160,11 @@ class Server {
     {
         $responses = array();
 
+        $identifier = $collection->getIdentifier();
+
         foreach ($entry->getDevelopmentAssets($group) as $path)
         {
-            $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($collection->getName().'/'.$path), $format);
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($identifier.'/'.$path), $format);
         }
 
         return $responses;

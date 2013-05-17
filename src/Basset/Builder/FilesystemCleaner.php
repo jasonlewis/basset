@@ -169,7 +169,7 @@ class FilesystemCleaner {
             {
                 $wildcardPath = $this->replaceFingerprintWithWildcard($asset);
 
-                $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getName().'/'.$wildcardPath, $asset);
+                $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getIdentifier().'/'.$wildcardPath, $asset);
             }
         }
     }

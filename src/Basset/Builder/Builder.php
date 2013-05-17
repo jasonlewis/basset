@@ -74,7 +74,7 @@ class Builder {
         // for handling any ordering of the assets so that we just need to build them.
         $assets = $collection->getAssetsWithoutExcluded($group);
 
-        $entry = $this->manifest->make($name = $collection->getName());
+        $entry = $this->manifest->make($identifier = $collection->getIdentifier());
 
         // Build the assets and transform the array into a newline separated string. We'll use this
         // as a basis for the collections fingerprint and it will decide as to whether the
@@ -90,7 +90,7 @@ class Builder {
             throw new BuildNotRequiredException;
         }
 
-        $fingerprint = $name.'-'.md5($build).'.'.$collection->getExtension($group);
+        $fingerprint = $identifier.'-'.md5($build).'.'.$collection->getExtension($group);
 
         $path = $this->buildPath.'/'.$fingerprint;
 
@@ -122,7 +122,7 @@ class Builder {
         // for handling any ordering of the assets so that we just need to build them.
         $assets = $collection->getAssetsWithoutExcluded($group);
 
-        $entry = $this->manifest->make($name = $collection->getName());
+        $entry = $this->manifest->make($identifier = $collection->getIdentifier());
 
         // If there are no changes to the collection then we'll instead look at each asset individually
         // for any possible changes. If the asset is not in the collections manifest entry or the
@@ -150,7 +150,7 @@ class Builder {
         {
             foreach ($assets as $asset)
             {
-                $path = "{$this->buildPath}/{$name}/{$asset->getBuildPath()}";
+                $path = "{$this->buildPath}/{$identifier}/{$asset->getBuildPath()}";
 
                 // If the build directory does not exist we'll attempt to recursively create it so we can
                 // build the asset to the directory.

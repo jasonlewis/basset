@@ -44,7 +44,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive('runningInProduction')->andReturn(true);
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with($group)->andReturn(array());
-        $collection->shouldReceive('getName')->andReturn($name);
+        $collection->shouldReceive('getIdentifier')->andReturn($name);
 
         $entry = $this->manifest->make($collection);
         $entry->setProductionFingerprint($group, $fingerprint);
@@ -70,7 +70,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive('runningInProduction')->andReturn(false);
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
-        $collection->shouldReceive('getName')->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $entry = $this->manifest->make($collection);
         $entry->addDevelopmentAsset('bar.less', 'bar.css', 'stylesheets');
@@ -90,7 +90,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive('runningInProduction')->andReturn(true);
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
-        $collection->shouldReceive('getName')->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $asset->shouldReceive('getRelativePath')->andReturn('css/baz.css');
 
@@ -111,7 +111,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive('runningInProduction')->andReturn(true);
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
-        $collection->shouldReceive('getName')->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $entry = $this->manifest->make($collection);
         $entry->setProductionFingerprint('stylesheets', 'foo-123.css');

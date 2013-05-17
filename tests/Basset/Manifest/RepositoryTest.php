@@ -60,7 +60,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
     public function testManifestUsesCollectionInstanceToGetEntryName()
     {
         $collection = m::mock('Basset\Collection');
-        $collection->shouldReceive('getName')->once()->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
         $this->assertInstanceOf('Basset\Manifest\Entry', $this->manifest->make($collection));
     }
 

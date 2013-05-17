@@ -48,7 +48,7 @@ class FilesystemCleanerTest extends PHPUnit_Framework_TestCase {
         $this->environment->shouldReceive('offsetExists')->times(3)->with('foo')->andReturn(true);
         $this->environment->shouldReceive('offsetGet')->once()->with('foo')->andReturn($collection = m::mock('Basset\Collection'));
 
-        $collection->shouldReceive('getName')->twice()->andReturn('foo');
+        $collection->shouldReceive('getIdentifier')->twice()->andReturn('foo');
 
         $entry->shouldReceive('getProductionFingerprints')->once()->andReturn(array(
             'foo-37b51d194a7513e45b56f6524f2d51f2.css',

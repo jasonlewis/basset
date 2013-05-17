@@ -6,11 +6,11 @@ use Basset\Factory\FilterFactory;
 class Collection extends Filterable {
 
     /**
-     * Name of collection.
+     * The collection identifier.
      *
      * @var string
      */
-    protected $name;
+    protected $identifier;
 
     /**
      * The default directory of the collection.
@@ -22,13 +22,13 @@ class Collection extends Filterable {
     /**
      * Create a new collection instance.
      *
-     * @param  string  $name
+     * @param  string  $identifier
      * @param  \Basset\Directory  $directory
      * @return void
      */
-    public function __construct($name, Directory $directory, FilterFactory $filterFactory)
+    public function __construct($identifier, Directory $directory, FilterFactory $filterFactory)
     {
-        $this->name = $name;
+        $this->identifier = $identifier;
         $this->directory = $directory;
         $this->filterFactory = $filterFactory;
         $this->filters = new \Illuminate\Support\Collection;
@@ -141,13 +141,13 @@ class Collection extends Filterable {
     }
 
     /**
-     * Get the name of the collection.
+     * Get the identifier of the collection.
      *
      * @return string
      */
-    public function getName()
+    public function getIdentifier()
     {
-        return $this->name;
+        return $this->identifier;
     }
 
     /**
