@@ -37,14 +37,15 @@ if ( ! function_exists('basset_javascripts'))
 if ( ! function_exists('basset_assets'))
 {
     /**
-     * Output a given group for an array of collections.
+     * Output the assets for a collection as defined by the extension.
      * 
-     * @param  array  $collections
      * @return string
      */
-    function basset_assets(array $collections)
+    function basset_assets()
     {
-        $responses = array();
+        $collections = array(); $args = func_get_args();
+
+        array_walk_recursive($args, function($v, $k) use (&$collections) { is_numeric($k) ? ($collections[$v] = null) : ($collections[$k] = $v); });
 
         foreach ($collections as $collection => $format) $responses[] = app('basset.server')->collection($collection, $format);
 
