@@ -13,7 +13,7 @@ if ( ! function_exists('basset_stylesheets'))
 
         array_walk_recursive($a, function($v, $k) use (&$c) { is_numeric($k) ? ($c["{$v}.css"] = null) : ($c["{$k}.css"] = $v); });
 
-        return basset_collections($c);
+        return basset_assets($c);
     }
 }
 
@@ -30,7 +30,7 @@ if ( ! function_exists('basset_javascripts'))
 
         array_walk_recursive($a, function($v, $k) use (&$c) { is_numeric($k) ? ($c["{$v}.js"] = null) : ($c["{$k}.js"] = $v); });
 
-        return basset_collections($c);
+        return basset_assets($c);
     }
 }
 

@@ -18,7 +18,7 @@ class Facade extends IlluminateFacade {
      */
     public static function show()
     {
-    	return basset_collections(func_get_args());
+    	return basset_assets(func_get_args());
     }
 
 }
