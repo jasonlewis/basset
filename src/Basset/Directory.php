@@ -98,11 +98,15 @@ class Directory extends Filterable {
     {
         try
         {
-            $asset = $this->assetFactory->make($path = $this->finder->find($name));
+            $path = $this->finder->find($name);
 
-            $asset->isRemote() and $asset->exclude();
+            if(false === isset($this->assets[$path])) {
+                $asset = $this->assetFactory->make($path);
 
-            $this->assets[$path] = $asset;
+                $asset->isRemote() and $asset->exclude();
+
+                $this->assets[$path] = $asset;
+            }
         }
         catch (AssetNotFoundException $e)
         {
