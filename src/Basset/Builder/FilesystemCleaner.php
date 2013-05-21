@@ -183,12 +183,17 @@ class FilesystemCleaner {
      */
     protected function deleteMatchingFiles($wildcard, $ignore = null)
     {
-        foreach ($this->files->glob($wildcard) as $path)
+        $removeFiles = $this->files->glob($wildcard);
+        if (!is_null($removeFiles) and $removeFiles !== false && is_array($removeFiles) && !empty($removeFiles))
         {
-            if ( ! is_null($ignore) and ends_with($path, $ignore)) continue;
+            foreach ($removeFiles as $path)
+            {
+                if ( ! is_null($ignore) and ends_with($path, $ignore)) continue;
 
-            $this->files->delete($path);
+                $this->files->delete($path);
+            }
         }
+        
     }
 
     /**
