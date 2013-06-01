@@ -117,15 +117,12 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $barFilter = m::mock('Basset\Filter\Filter', array($barLog = m::mock('Illuminate\Log\Writer'), 'BarFilter', array(), 'testing'))->shouldDeferMissing();
         $barFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
-        $barLog->shouldReceive('error')->once();
 
         $bazFilter = m::mock('Basset\Filter\Filter', array($bazLog = m::mock('Illuminate\Log\Writer'), 'BazFilter', array(), 'testing'))->shouldDeferMissing();
         $bazFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
-        $bazLog->shouldReceive('error')->once();
 
         $quxFilter = m::mock('Basset\Filter\Filter', array($quxLog = m::mock('Illuminate\Log\Writer'), 'QuxFilter', array(), 'testing'))->shouldDeferMissing();
         $quxFilter->shouldReceive('getClassName')->once()->andReturn(m::mock('stdClass, Assetic\Filter\FilterInterface'));
-        $quxLog->shouldReceive('error')->once();
 
         $vanFilter = m::mock('Basset\Filter\Filter', array(m::mock('Illuminate\Log\Writer'), 'VanFilter', array(), 'testing'))->shouldDeferMissing();
         $vanFilterInstance = m::mock('stdClass, Assetic\Filter\FilterInterface');

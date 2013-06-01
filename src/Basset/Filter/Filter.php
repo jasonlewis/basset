@@ -414,14 +414,12 @@ class Filter {
      */
     public function getInstance()
     {
-        $class = $this->getClassName();
-
-        if ($this->ignored or is_null($class) or ! $this->processRequirements())
+        if ( ! $class = $this->getClassName())
         {
-            $this->log->error(sprintf('"%s" will not be applied to asset "%s" due to failing requirements or invalid filter name.', $this->filter, $this->resource->getRelativePath()));
-            
-            return;
+            $this->log->error(sprintf('"%s" will not be applied to asset "%s" due to an invalid filter name.', $this->filter, $this->resource->getRelativePath()));
         }
+
+        if ($this->ignored or is_null($class) or ! $this->processRequirements()) return;
 
         // If the class returned is already implements Assetic\Filter\FilterInterface then
         // we can set the instance directly and not worry about using reflection.
