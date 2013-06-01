@@ -1,5 +1,6 @@
 <?php namespace Basset;
 
+use Illuminate\Log\Writer;
 use Basset\Factory\Manager;
 use Basset\Builder\Builder;
 use Basset\Manifest\Manifest;
@@ -188,7 +189,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.log'] = $this->app->share(function($app)
         {
-            return clone $app['log'];
+            return new Writer(new \Monolog\Logger('basset'), $app['events']);
         });
     }
 
