@@ -169,7 +169,7 @@ return array(
 
             'Less' => array('LessFilter', function($filter)
             {
-                $filter->whenAssetIs('*.less')->findMissingConstructorArgs();
+                $filter->whenAssetIs('.*\.less')->findMissingConstructorArgs();
             }),
 
             /*
@@ -184,7 +184,7 @@ return array(
 
             'Sass' => array('Sass\ScssFilter', function($filter)
             {
-                $filter->whenAssetIs('*.(sass|scss)')->findMissingConstructorArgs();
+                $filter->whenAssetIs('.*\.(sass|scss)')->findMissingConstructorArgs();
             }),
 
             /*
@@ -199,7 +199,7 @@ return array(
 
             'CoffeeScript' => array('CoffeeScriptFilter', function($filter)
             {
-                $filter->whenAssetIs('*.coffee')->findMissingConstructorArgs();
+                $filter->whenAssetIs('.*\.coffee')->findMissingConstructorArgs();
             }),
 
             /*

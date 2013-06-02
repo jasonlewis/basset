@@ -230,7 +230,7 @@ class Filter {
     {
         return $this->when(function($asset) use ($pattern)
         {
-            return str_is($pattern, $asset->getRelativePath());
+            return (bool) preg_match('#'.$pattern.'#', $asset->getRelativePath());
         });
     }
 

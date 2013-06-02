@@ -57,7 +57,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     {
         $this->resource->shouldReceive('getRelativePath')->times(3)->andReturn('foo/bar.css');
 
-        $this->filter->whenAssetIs('foo*');
+        $this->filter->whenAssetIs('.*\.css');
         $this->assertTrue($this->filter->processRequirements());
 
         $this->filter->whenAssetIs('foo/baz.css');

@@ -131,8 +131,8 @@ class AssetTest extends PHPUnit_Framework_TestCase {
         $this->asset->apply($fooFilter);
         $this->asset->apply($barFilter)->whenAssetIsJavascript();
         $this->asset->apply($bazFilter)->whenEnvironmentIs('production');
-        $this->asset->apply($quxFilter)->whenAssetIs('*.js');
-        $this->asset->apply($vanFilter)->whenAssetIs('*.sass');
+        $this->asset->apply($quxFilter)->whenAssetIs('.*\.js');
+        $this->asset->apply($vanFilter)->whenAssetIs('.*\.sass');
 
         $filters = $this->asset->prepareFilters();
 
