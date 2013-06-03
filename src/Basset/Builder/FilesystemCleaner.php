@@ -184,7 +184,7 @@ class FilesystemCleaner {
     protected function deleteMatchingFiles($wildcard, $ignore = null)
     {
         $removeFiles = $this->files->glob($wildcard);
-        if (!is_null($removeFiles) and $removeFiles !== false and is_array($removeFiles) and !empty($removeFiles))
+        if (is_array($removeFiles))
         {
             foreach ($removeFiles as $path)
             {
