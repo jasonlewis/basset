@@ -71,8 +71,21 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         
         $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
 
-        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
+        $collection->shouldReceive('getAssetsWithExcluded')->once()->with('stylesheets')->andReturn($assets = array(
+            m::mock('Basset\Asset'),
+            m::mock('Basset\Asset'),
+            m::mock('Basset\Asset')
+        ));
+
+        $assets[0]->shouldReceive('isIncluded')->once()->andReturn(true);
+        $assets[0]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
+        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar.less');
+        $assets[1]->shouldReceive('isIncluded')->once()->andReturn(false);
+        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('qux.css');
+        $assets[2]->shouldReceive('isIncluded')->once()->andReturn(true);
+        $assets[2]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
+        $assets[2]->shouldReceive('getRelativePath')->once()->andReturn('baz.sass');
 
         $entry = $this->manifest->make($collection);
         $entry->addDevelopmentAsset('bar.less', 'bar.css', 'stylesheets');
@@ -81,6 +94,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
 
         $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo/bar.css" />'.PHP_EOL.
+                    '<link rel="stylesheet" type="text/css" href="http://localhost/qux.css" />'.PHP_EOL.
                     '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo/baz.css" />';
         $this->assertEquals($expected, $this->server->serve('foo', 'stylesheets'));
     }

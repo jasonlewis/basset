@@ -121,7 +121,7 @@ class Server {
         // manfiest of fingerprints.
         $collection = $this->environment[$collection];
 
-        $response = $this->serveExcludedAssets($collection, $group, $format);
+        $response = array();
 
         if ($this->manifest->has($collection))
         {
@@ -153,7 +153,9 @@ class Server {
     {
         $fingerprint = $entry->getProductionFingerprint($group);
 
-        return array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format));
+        $response = $this->serveExcludedAssets($collection, $group, $format);
+
+        return array_merge($response, array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format)));
     }
 
     /**
@@ -171,9 +173,18 @@ class Server {
 
         $identifier = $collection->getIdentifier();
 
-        foreach ($entry->getDevelopmentAssets($group) as $path)
+        foreach ($collection->getAssetsWithExcluded($group) as $asset)
         {
-            $responses[] = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($identifier.'/'.$path), $format);
+            if ($asset->isIncluded() and $path = $entry->getDevelopmentAsset($asset))
+            {
+                $path = $this->prefixBuildPath($identifier.'/'.$path);
+            }
+            else
+            {
+                $path = $asset->getRelativePath();
+            }
+
+            $responses[] = $this->{'create'.studly_case($group).'Element'}($path, $format);
         }
 
         return $responses;
