@@ -43,7 +43,7 @@ if ( ! function_exists('basset_assets'))
      */
     function basset_assets()
     {
-        $collections = array(); $args = func_get_args();
+        $collections = $responses = array(); $args = func_get_args();
 
         // If no arguments were supplied get all the collections and add both the stylesheet and javascript
         // flavors as arguments.
