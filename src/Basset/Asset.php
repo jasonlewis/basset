@@ -349,7 +349,7 @@ class Asset extends Filterable {
     {
         if (extension_loaded('curl'))
         {
-            $this->log->error('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
+            $this->log->warning('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
 
             $handler = curl_init($this->absolutePath);
 

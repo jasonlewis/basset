@@ -61,14 +61,14 @@ class BassetServiceProvider extends ServiceProvider {
         // Bassets operation but only when debugging is enabled.
         if ($this->app['config']->get('basset::debug', false))
         {
-            $this->app['basset.log']->useDailyFiles($this->app['path.storage'].'/logs/basset.txt', 0, 'error');
+            $this->app['basset.log']->useDailyFiles($this->app['path.storage'].'/logs/basset.txt', 0, 'warning');
         }
 
         // If debugging is disabled we'll use a null handler to essentially send all logged
         // messages into a blackhole.
         else
         {
-            $handler = new NullHandler(MonologLogger::ERROR);
+            $handler = new NullHandler(MonologLogger::WARNING);
 
             $this->app['basset.log']->getMonolog()->pushHandler($handler);
         }
