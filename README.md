@@ -48,6 +48,8 @@ Basset also ships with a facade which provides the static syntax for creating co
 #### v4.0.0 Beta 2
 
 - Added logging when assets, directories, and filters are not found or fail to load.
+- Allow logging to be enabled or disabled via configuration.
+- Warn users when cURL is being used to detect an assets group.
 
 
 #### v4.0.0 Beta 1
