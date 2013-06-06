@@ -239,9 +239,9 @@ return array(
             |
             */
 
-            'JsMin' => array('JsMinFilter', function($filter)
+            'JsMin' => array('JSMinFilter', function($filter)
             {
-                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('JsMin');
+                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('JSMin');
             }),
 
             /*
