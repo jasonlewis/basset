@@ -4,11 +4,13 @@ use Illuminate\Log\Writer;
 use Basset\Factory\Manager;
 use Basset\Builder\Builder;
 use Basset\Manifest\Manifest;
+use Monolog\Handler\NullHandler;
 use Basset\Console\BuildCommand;
 use Basset\Console\CleanCommand;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
+use Monolog\Logger as MonologLogger;
 use Basset\Factory\DirectoryFactory;
 use Basset\Builder\FilesystemCleaner;
 use Illuminate\Support\ServiceProvider;
@@ -56,8 +58,20 @@ class BassetServiceProvider extends ServiceProvider {
         $this->package('jasonlewis/basset', 'basset', __DIR__.'/../');
 
         // Tell the logger to use a rotating files setup to log problems encountered during
-        // Bassets operation.
-        $this->app['basset.log']->useDailyFiles($this->app['path.storage'].'/logs/basset.txt', 0, 'error');
+        // Bassets operation but only when debugging is enabled.
+        if ($this->app['config']->get('basset::debug', false))
+        {
+            $this->app['basset.log']->useDailyFiles($this->app['path.storage'].'/logs/basset.txt', 0, 'error');
+        }
+
+        // If debugging is disabled we'll use a null handler to essentially send all logged
+        // messages into a blackhole.
+        else
+        {
+            $handler = new NullHandler(MonologLogger::ERROR);
+
+            $this->app['basset.log']->getMonolog()->pushHandler($handler);
+        }
 
         // Register the build path with the application so that bindings that make use of the
         // build path can easily pull it from the container.
