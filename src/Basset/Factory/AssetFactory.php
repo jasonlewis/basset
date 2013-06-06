@@ -1,6 +1,7 @@
 <?php namespace Basset\Factory;
 
 use Basset\Asset;
+use Illuminate\Log\Writer;
 use Illuminate\Filesystem\Filesystem;
 
 class AssetFactory implements FactoryInterface {
@@ -18,6 +19,13 @@ class AssetFactory implements FactoryInterface {
      * @var \Basset\Factory\FilterFactory
      */
     protected $filter;
+
+    /**
+     * Illuminate log writer instance.
+     * 
+     * @var \Illuminate\Log\Writer
+     */
+    protected $log;
 
     /**
      * Path to the public directory.
@@ -38,13 +46,15 @@ class AssetFactory implements FactoryInterface {
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Factory\FilterFactory  $filter
+     * @param  \Illuminate\Log\Writer  $log
      * @param  string  $publicPath
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filter, $publicPath)
+    public function __construct(Filesystem $files, FilterFactory $filter, Writer $log, $publicPath)
     {
         $this->files = $files;
         $this->filter = $filter;
+        $this->log = $log;
         $this->publicPath = $publicPath;
     }
 
@@ -60,7 +70,7 @@ class AssetFactory implements FactoryInterface {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        $asset = new Asset($this->files, $this->filter, $absolutePath, $relativePath);
+        $asset = new Asset($this->files, $this->filter, $this->log, $absolutePath, $relativePath);
 
         return $asset->setOrder($this->nextAssetOrder());
     }

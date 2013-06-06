@@ -20,7 +20,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
         $this->finder = m::mock('Basset\AssetFinder');
         $this->filter = m::mock('Basset\Factory\FilterFactory');
-        $this->asset = m::mock('Basset\Factory\AssetFactory', array($this->files, $this->filter, 'path/to/public'))->shouldDeferMissing();
+        $this->asset = m::mock('Basset\Factory\AssetFactory', array($this->files, $this->filter, $this->log, 'path/to/public'))->shouldDeferMissing();
 
         $this->directory = new Directory($this->log, $this->asset, $this->filter, $this->finder, 'foo');
     }
@@ -28,7 +28,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingBasicAssetFromPublicDirectory()
     {
-        $asset = new Asset($this->files, $this->filter, null, null);
+        $asset = new Asset($this->files, $this->filter, $this->log, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
         $this->asset->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
@@ -40,7 +40,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingInvalidAssetReturnsBlankAssetInstance()
     {
-        $asset = new Asset($this->files, $this->filter, null, null);
+        $asset = new Asset($this->files, $this->filter, $this->log, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andThrow('Basset\Exceptions\AssetNotFoundException');
         $this->asset->shouldReceive('make')->once()->with(null)->andReturn($asset);
@@ -54,7 +54,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingAssetFiresCallback()
     {
-        $asset = new Asset($this->files, $this->filter, null, null);
+        $asset = new Asset($this->files, $this->filter, $this->log, null, null);
 
         $this->finder->shouldReceive('find')->once()->with('foo.js')->andReturn('path/to/foo.js');
         $this->asset->shouldReceive('make')->once()->with('path/to/foo.js')->andReturn($asset);
@@ -118,7 +118,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $files[0]->shouldReceive('getPathname')->andReturn('foo/bar.css');
         $files[1]->shouldReceive('isFile')->andReturn(false);
 
-        $asset = new Asset($this->files, $this->filter, null, null);
+        $asset = new Asset($this->files, $this->filter, $this->log, null, null);
         $this->finder->shouldReceive('find')->once()->with('foo/bar.css')->andReturn('foo/bar.css');
         $this->asset->shouldReceive('make')->once()->with('foo/bar.css')->andReturn($asset);
 
@@ -144,7 +144,7 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
         $file->shouldReceive('isFile')->andReturn(true);
         $file->shouldReceive('getPathname')->andReturn('foo/bar/baz.css');
 
-        $asset = new Asset($this->files, $this->filter, null, null);
+        $asset = new Asset($this->files, $this->filter, $this->log, null, null);
         $this->finder->shouldReceive('find')->once()->with('foo/bar/baz.css')->andReturn('foo/bar/baz.css');
         $this->asset->shouldReceive('make')->once()->with('foo/bar/baz.css')->andReturn($asset);
 
@@ -210,9 +210,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testExcludingOfAssetsFromDirectory()
     {
-        $fooAsset = new Asset($this->files, $this->filter, 'path/to/foo.css', 'foo.css');
+        $fooAsset = new Asset($this->files, $this->filter, $this->log, 'path/to/foo.css', 'foo.css');
         $fooAsset->setOrder(1);
-        $barAsset = new Asset($this->files, $this->filter, 'path/to/bar.css', 'bar.css');
+        $barAsset = new Asset($this->files, $this->filter, $this->log, 'path/to/bar.css', 'bar.css');
         $barAsset->setOrder(1);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');
@@ -232,9 +232,9 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
 
     public function testIncludingOfAssetsFromDirectory()
     {
-        $fooAsset = new Asset($this->files, $this->filter, 'path/to/foo.css', 'foo.css');
+        $fooAsset = new Asset($this->files, $this->filter, $this->log, 'path/to/foo.css', 'foo.css');
         $fooAsset->setOrder(1);
-        $barAsset = new Asset($this->files, $this->filter, 'path/to/bar.css', 'bar.css');
+        $barAsset = new Asset($this->files, $this->filter, $this->log, 'path/to/bar.css', 'bar.css');
         $barAsset->setOrder(1);
 
         $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path/to/foo.css');

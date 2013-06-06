@@ -1,9 +1,10 @@
 <?php namespace Basset;
 
-use Basset\Factory\FilterFactory;
+use Illuminate\Log\Writer;
 use Basset\Filter\Filterable;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
+use Basset\Factory\FilterFactory;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 
@@ -22,6 +23,13 @@ class Asset extends Filterable {
      * @var Basset\Factory\FilterFactory
      */
     protected $filterFactory;
+
+    /**
+     * Illuminate log writer instance.
+     * 
+     * @var \Illuminate\Log\Writer
+     */
+    protected $log;
 
     /**
      * Absolute path to the asset.
@@ -80,14 +88,16 @@ class Asset extends Filterable {
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Factory\FilterFactory  $filterFactory
+     * @param  \Illuminate\Log\Writer  $log
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, Writer $log, $absolutePath, $relativePath)
     {
         $this->files = $files;
         $this->filterFactory = $filterFactory;
+        $this->log = $log;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->filters = new \Illuminate\Support\Collection;
@@ -339,6 +349,8 @@ class Asset extends Filterable {
     {
         if (extension_loaded('curl'))
         {
+            $this->log->error('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
+
             $handler = curl_init($this->absolutePath);
 
             curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
