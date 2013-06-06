@@ -131,7 +131,7 @@ class Server {
             {
                 $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group, $format));
             }
-            elseif ($entry->hasDevelopmentAssets($group))
+            else
             {
                 $response = array_merge($response, $this->serveDevelopmentCollection($collection, $entry, $group, $format));
             }
