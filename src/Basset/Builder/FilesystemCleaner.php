@@ -169,7 +169,7 @@ class FilesystemCleaner {
             {
                 $wildcardPath = $this->replaceFingerprintWithWildcard($asset);
 
-                $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getIdentifier().'/'.$wildcardPath, $asset);
+                $this->deleteMatchingFiles($this->buildPath.'/'.$collection->getIdentifier().'/'.$wildcardPath, array_values($assets));
             }
         }
     }
@@ -178,16 +178,25 @@ class FilesystemCleaner {
      * Delete matching files from the wildcard glob search except the ignored file.
      * 
      * @param  string  $wildcard
-     * @param  string  $ignore
+     * @param  array|string  $ignored
      * @return void
      */
-    protected function deleteMatchingFiles($wildcard, $ignore = null)
+    protected function deleteMatchingFiles($wildcard, $ignored = null)
     {
         if (is_array($files = $this->files->glob($wildcard)))
         {
             foreach ($files as $path)
             {
-                if ( ! is_null($ignore) and ends_with($path, $ignore)) continue;
+                if ( ! is_null($ignored))
+                {
+                    // Spin through each of the ignored assets and if the current file path ends
+                    // with any of the ignored asset paths then we'll skip this asset as it
+                    // needs to be kept.
+                    foreach ((array) $ignored as $ignore)
+                    {
+                        if (ends_with($path, $ignore)) continue 2;
+                    }
+                }
 
                 $this->files->delete($path);
             }
