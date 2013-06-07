@@ -1,66 +1,27 @@
 <?php namespace Basset;
 
 use Basset\Collection;
-use Basset\Environment;
 use Basset\Manifest\Entry;
 use Basset\Manifest\Manifest;
-use Illuminate\Routing\UrlGenerator;
-use Illuminate\Config\Repository as Config;
 
 class Server {
 
     /**
-     * Basset environment instance.
+     * Laravel application instance.
      * 
-     * @var \Basset\Environment
+     * @var \Illuminate\Foundation\Application
      */
-    protected $environment;
-
-    /**
-     * Basset manifest instance.
-     * 
-     * @var \Basset\Manifest\Manifest
-     */
-    protected $manifest;
-
-    /**
-     * Illuminate config repository instance.
-     *
-     * @var \Illuminate\Config\Repository
-     */
-    protected $config;
-
-    /**
-     * Illuminate url generator instance.
-     *
-     * @var \Illuminate\Routing\UrlGenerator
-     */
-    protected $url;
-
-    /**
-     * The application working environment.
-     * 
-     * @var string
-     */
-    protected $appEnvironment;
+    protected $collections;
 
     /**
      * Create a new output server instance.
      *
-     * @param  \Basset\Environment  $environment
-     * @param  \Basset\Manifest\Manifest  $manifest
-     * @param  \Illuminate\Config\Repository  $config
-     * @param  \Illuminate\Routing\UrlGenerator  $url
-     * @param  string  $appEnvironment
+     * @param  \Illuminate\Foundation\Application
      * @return void
      */
-    public function __construct(Environment $environment, Manifest $manifest, Config $config, UrlGenerator $url, $appEnvironment)
+    public function __construct($app)
     {
-        $this->environment = $environment;
-        $this->manifest = $manifest;
-        $this->config = $config;
-        $this->url = $url;
-        $this->appEnvironment = $appEnvironment;
+        $this->app = $app;
     }
 
     /**
@@ -111,33 +72,33 @@ class Server {
      */
     public function serve($collection, $group, $format = null)
     {
-        if ( ! isset($this->environment[$collection]))
+        if ( ! isset($this->app['basset'][$collection]))
         {
-            return;
+            return '<!-- Basset could not find collection: '.$collection.' -->';
         }
 
         // Get the collection instance from the array of collections. This instance will be used
         // throughout the building process to fetch assets and compare against the stored
         // manfiest of fingerprints.
-        $collection = $this->environment[$collection];
+        $collection = $this->app['basset'][$collection];
 
-        $response = array();
-
-        if ($this->manifest->has($collection))
+        if ($entry = $this->app['basset.manifest']->get($collection))
         {
-            $entry = $this->manifest->get($collection);
-
             if ($this->runningInProduction() and $entry->hasProductionFingerprint($group))
             {
-                $response = array_merge($response, $this->serveProductionCollection($collection, $entry, $group, $format));
+                $response = $this->serveProductionCollection($collection, $entry, $group, $format);
             }
             else
             {
-                $response = array_merge($response, $this->serveDevelopmentCollection($collection, $entry, $group, $format));
+                $response = $this->serveDevelopmentCollection($collection, $entry, $group, $format);
             }
-        }
 
-        return array_to_newlines($response);
+            return array_to_newlines($response);
+        }
+        else
+        {
+            return '<!-- Basset could not find manifest entry for collection: '.$collection->getIdentifer().' -->';
+        }
     }
 
     /**
@@ -220,7 +181,7 @@ class Server {
      */
     protected function prefixBuildPath($path)
     {
-        if ($buildPath = $this->config->get('basset::build_path'))
+        if ($buildPath = $this->app['config']->get('basset::build_path'))
         {
             $path = "{$buildPath}/{$path}";
         }
@@ -235,7 +196,7 @@ class Server {
      */
     protected function runningInProduction()
     {
-        return in_array($this->appEnvironment, (array) $this->config->get('basset::production'));
+        return in_array($this->app['env'], (array) $this->app['config']->get('basset::production'));
     }
 
     /**
@@ -247,7 +208,7 @@ class Server {
      */
     protected function createStylesheetsElement($path, $format)
     {
-        return sprintf($format ?: '<link rel="stylesheet" type="text/css" href="%s" />', $this->getAssetUrl($path));
+        return sprintf($format ?: '<link rel="stylesheet" type="text/css" href="%s" />', $this->buildAssetUrl($path));
     }
 
     /**
@@ -259,18 +220,18 @@ class Server {
      */
     protected function createJavascriptsElement($path, $format)
     {
-        return sprintf($format ?: '<script src="%s"></script>', $this->getAssetUrl($path));
+        return sprintf($format ?: '<script src="%s"></script>', $this->buildAssetUrl($path));
     }
 
     /**
-     * Get the URL to an asset.
+     * Build the URL to an asset.
      * 
      * @param  string  $path
      * @return string
      */
-    public function getAssetUrl($path)
+    public function buildAssetUrl($path)
     {
-        return starts_with($path, '//') ? $path : $this->url->asset($path);
+        return starts_with($path, '//') ? $path : $this->app['url']->asset($path);
     }
 
 }

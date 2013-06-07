@@ -19,19 +19,22 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->environment = m::mock('Basset\Environment');
-        $this->manifest = new Manifest(new Filesystem, 'meta');
-        $this->config = m::mock('Illuminate\Config\Repository');
-        $this->url = new UrlGenerator(new RouteCollection, Request::create('http://localhost', 'GET'));
+        $this->app = array(
+            'env' => 'testing',
+            'url' => new UrlGenerator(new RouteCollection, Request::create('http://localhost', 'GET')),
+            'config' => m::mock('Illuminate\Config\Repository'),
+            'basset' => m::mock('Basset\Environment'),
+            'basset.manifest' => new Manifest(new Filesystem, 'meta')
+        );
 
-        $this->server = new Server($this->environment, $this->manifest, $this->config, $this->url, 'testing');
+        $this->server = new Server($this->app);
     }
 
 
-    public function testServingInvalidCollectionReturnsNothing()
+    public function testServingInvalidCollectionReturnsHtmlComment()
     {
-        $this->environment->shouldReceive('offsetExists')->once()->with('foo')->andReturn(false);
-        $this->assertNull($this->server->serve('foo', 'stylesheets'));
+        $this->app['basset']->shouldReceive('offsetExists')->once()->with('foo')->andReturn(false);
+        $this->assertEquals('<!-- Basset could not find collection: foo -->', $this->server->serve('foo', 'stylesheets'));
     }
 
 
@@ -40,17 +43,17 @@ class ServerTest extends PHPUnit_Framework_TestCase {
      */
     public function testServingProductionCollectionReturnsExpectedHtml($name, $group, $fingerprint, $expected)
     {
-        $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with($name);
+        $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with($name);
 
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
+        $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with($group)->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn($name);
 
-        $entry = $this->manifest->make($collection);
+        $entry = $this->app['basset.manifest']->make($collection);
         $entry->setProductionFingerprint($group, $fingerprint);
 
-        $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+        $this->app['config']->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
 
         $this->assertEquals($expected, $this->server->{$group}($name));
     }
@@ -67,9 +70,9 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
     public function testServingDevelopmentCollectionReturnsExpectedHtml()
     {
-        $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
+        $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
+        $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
 
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
         $collection->shouldReceive('getAssetsWithExcluded')->once()->with('stylesheets')->andReturn($assets = array(
@@ -87,11 +90,11 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $assets[2]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
         $assets[2]->shouldReceive('getRelativePath')->once()->andReturn('baz.sass');
 
-        $entry = $this->manifest->make($collection);
+        $entry = $this->app['basset.manifest']->make($collection);
         $entry->addDevelopmentAsset('bar.less', 'bar.css', 'stylesheets');
         $entry->addDevelopmentAsset('baz.sass', 'baz.css', 'stylesheets');
 
-        $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+        $this->app['config']->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
 
         $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo/bar.css" />'.PHP_EOL.
                     '<link rel="stylesheet" type="text/css" href="http://localhost/qux.css" />'.PHP_EOL.
@@ -102,19 +105,19 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
     public function testExcludedAssetsAreServedBeforeBuiltCollectionHtml()
     {
-        $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
+        $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
+        $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $asset->shouldReceive('getRelativePath')->andReturn('css/baz.css');
 
-        $entry = $this->manifest->make($collection);
+        $entry = $this->app['basset.manifest']->make($collection);
         $entry->setProductionFingerprint('stylesheets', 'bar-123.css');
 
-        $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+        $this->app['config']->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
 
         $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/css/baz.css" />'.PHP_EOL.
                     '<link rel="stylesheet" type="text/css" href="http://localhost/assets/bar-123.css" />';
@@ -124,17 +127,17 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
     public function testServingCollectionsWithCustomFormat()
     {
-        $this->environment->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
+        $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         
-        $this->config->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
+        $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
         $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
-        $entry = $this->manifest->make($collection);
+        $entry = $this->app['basset.manifest']->make($collection);
         $entry->setProductionFingerprint('stylesheets', 'foo-123.css');
 
-        $this->config->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+        $this->app['config']->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
 
         $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo-123.css" media="print" />';
         $this->assertEquals($expected, $this->server->stylesheets('foo', '<link rel="stylesheet" type="text/css" href="%s" media="print" />'));

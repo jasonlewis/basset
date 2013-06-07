@@ -190,7 +190,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.server'] = $this->app->share(function($app)
         {
-            return new Server($app['basset'], $app['basset.manifest'], $app['config'], $app['url'], $app['env']);
+            return new Server($app);
         });
     }
 
