@@ -84,13 +84,6 @@ class Asset extends Filterable {
     );
 
     /**
-     * The build type being performed on the asset.
-     * 
-     * @var string
-     */
-    protected $build = 'development';
-
-    /**
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
@@ -393,6 +386,16 @@ class Asset extends Filterable {
                 return $group;
             }
         }
+    }
+
+    /**
+     * A raw asset is just excluded from the build process.
+     * 
+     * @return \Basset\Asset
+     */
+    public function raw()
+    {
+        return $this->exclude();
     }
 
     /**

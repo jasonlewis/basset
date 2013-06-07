@@ -334,6 +334,18 @@ class Directory extends Filterable {
     }
 
     /**
+     * All assets within directory will be served raw.
+     * 
+     * @return \Basset\Directory
+     */
+    public function raw()
+    {
+        $this->assets->each(function($asset) { $asset->raw(); });
+
+        return $this;
+    }
+
+    /**
      * Get the path to the directory.
      *
      * @return string

@@ -124,11 +124,6 @@ class Builder {
 
         $entry = $this->manifest->make($identifier = $collection->getIdentifier());
 
-        // If there are no changes to the collection then we'll instead look at each asset individually
-        // for any possible changes. If the asset is not in the collections manifest entry or the
-        // fingerprint on the asset does match the manifest fingerprint then the asset will
-        // be rebuilt.
-
         // If the collection definition has changed when compared to the manifest entry or if the
         // collection is being forcefully rebuilt then we'll reset the development assets.
         if ($this->collectionDefinitionHasChanged($assets, $entry, $group) or $this->force)
