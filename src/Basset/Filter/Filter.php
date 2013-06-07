@@ -541,6 +541,16 @@ class Filter {
     }
 
     /**
+     * Get the array of node paths.
+     * 
+     * @return array
+     */
+    public function getNodePath()
+    {
+        return $this->nodePaths;
+    }
+
+    /**
      * Dynamically chain uncallable methods to the belonging resource.
      *
      * @param  string  $method
