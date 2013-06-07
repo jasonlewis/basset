@@ -51,6 +51,8 @@ Basset also ships with a facade which provides the static syntax for creating co
 - Allow logging to be enabled or disabled via configuration.
 - Warn users when cURL is being used to detect an assets group.
 - Allow an array of filters to be applied to an asset.
+- Added `whenProductionBuild` and `whenDevelopmentBuild` as filter requirements.
+- `CssMin` and `JsMin` are only applied on a production build and not on the production environment.
 
 
 #### v4.0.0 Beta 1

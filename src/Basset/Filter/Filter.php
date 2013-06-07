@@ -81,6 +81,13 @@ class Filter {
     protected $log;
 
     /**
+     * Indicates if the build is a production build.
+     * 
+     * @var bool
+     */
+    protected $production = false;
+
+    /**
      * Create a new filter instance.
      *
      * @param  \Illuminate\Log\Writer  $log
@@ -278,6 +285,32 @@ class Filter {
     }
 
     /**
+     * Add a production build requirement to the filter.
+     * 
+     * @return \Basset\Filter\Filter
+     */
+    public function whenProductionBuild()
+    {
+        return $this->when(function($asset, $filter)
+        {
+            return $filter->getProduction() === true;
+        });
+    }
+
+    /**
+     * Add a development build requirement to the filter.
+     * 
+     * @return \Basset\Filter\Filter
+     */
+    public function whenDevelopmentBuild()
+    {
+        return $this->when(function($asset, $filter)
+        {
+            return $filter->getProduction() === false;
+        });
+    }
+
+    /**
      * Add a before filtering callback.
      *
      * @param  \Closure  $callback
@@ -465,7 +498,7 @@ class Filter {
     {
         foreach ($this->requirements as $requirement)
         {
-            if ( ! call_user_func($requirement, $this->resource))
+            if ( ! call_user_func($requirement, $this->resource, $this))
             {
                 return false;
             }
@@ -482,6 +515,29 @@ class Filter {
     public function getRequirements()
     {
         return $this->requirements;
+    }
+
+    /**
+     * Set the production build indicator.
+     * 
+     * @param  bool  $production
+     * @return \Basset\Filter\Filter
+     */
+    public function setProduction($production)
+    {
+        $this->production = $production;
+
+        return $this;
+    }
+
+    /**
+     * Get the production build indicator.
+     * 
+     * @return bool
+     */
+    public function getProduction()
+    {
+        return $this->production;
     }
 
     /**

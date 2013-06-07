@@ -226,7 +226,7 @@ return array(
 
             'CssMin' => array('CssMinFilter', function($filter)
             {
-                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('CssMin');
+                $filter->whenProductionBuild()->whenClassExists('CssMin');
             }),
 
             /*
@@ -241,7 +241,7 @@ return array(
 
             'JsMin' => array('JSMinFilter', function($filter)
             {
-                $filter->whenEnvironmentIs('production', 'prod')->whenClassExists('JSMin');
+                $filter->whenProductionBuild()->whenClassExists('JSMin');
             }),
 
             /*

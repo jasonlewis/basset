@@ -84,6 +84,13 @@ class Asset extends Filterable {
     );
 
     /**
+     * The build type being performed on the asset.
+     * 
+     * @var string
+     */
+    protected $build = 'development';
+
+    /**
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
@@ -401,13 +408,12 @@ class Asset extends Filterable {
     /**
      * Build the asset.
      *
+     * @param  bool  $production
      * @return string
      */
-    public function build()
+    public function build($production = false)
     {
-        // Spin through each of the applied assets and remove any where we don't get a class
-        // that does not implement Assetic\Filter\FilterInterface.
-        $filters = $this->prepareFilters();
+        $filters = $this->prepareFilters($production);
 
         $asset = new StringAsset($this->getContent(), $filters->all(), dirname($this->absolutePath), basename($this->absolutePath));
 
@@ -415,16 +421,21 @@ class Asset extends Filterable {
     }
 
     /**
-     * Prepare filters by filtering out those that do not apply to this asset.
+     * Prepare the filters applied to the asset.
      * 
+     * @param  bool  $production
      * @return \Illuminate\Support\Collection
      */
-    public function prepareFilters()
+    public function prepareFilters($production = false)
     {
-        return $this->filters->map(function($filter) { return $filter->getInstance(); })->filter(function($filter)
+        $filters = $this->filters->map(function($filter) use ($production)
         {
-            return $filter instanceof FilterInterface;
+            $filter->setProduction($production);
+
+            return $filter->getInstance();
         });
+
+        return $filters->filter(function($filter) { return $filter instanceof FilterInterface; });
     }
 
     /**

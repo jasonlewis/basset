@@ -75,6 +75,26 @@ class FilterTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testSettingProductionBuildFilterRequirement()
+    {
+        $this->filter->whenProductionBuild();
+        $this->assertFalse($this->filter->processRequirements());
+
+        $this->filter->setProduction(true);
+        $this->assertTrue($this->filter->processRequirements());
+    }
+
+
+    public function testSettingDevelopmentBuildFilterRequirement()
+    {
+        $this->filter->whenDevelopmentBuild();
+        $this->assertTrue($this->filter->processRequirements());
+
+        $this->filter->setProduction(true);
+        $this->assertFalse($this->filter->processRequirements());
+    }
+
+
     public function testSettingCustomFilterRequirement()
     {
         $this->resource->shouldReceive('fooBar')->times(3)->andReturn(true, true, false);
