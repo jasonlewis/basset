@@ -53,6 +53,8 @@ Basset also ships with a facade which provides the static syntax for creating co
 - Allow an array of filters to be applied to an asset.
 - Added `whenProductionBuild` and `whenDevelopmentBuild` as filter requirements.
 - `CssMin` and `JsMin` are only applied on a production build and not on the production environment.
+- Added `raw` method as an alias to `exclude`.
+- Entire directory or collection can be set as raw so original path is used instead of assets being built.
 
 
 #### v4.0.0 Beta 1
