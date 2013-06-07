@@ -86,7 +86,7 @@ class Environment implements ArrayAccess {
         {
             $directory = $this->prepareDefaultDirectory();
 
-            $this->collections[$name] = new Collection($name, $directory, $this->filterFactory);
+            $this->collections[$name] = new Collection($name, $directory);
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with

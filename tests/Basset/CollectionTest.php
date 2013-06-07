@@ -16,7 +16,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->collection = new Collection('foo', $this->directory = m::mock('Basset\Directory'), m::mock('Basset\Factory\FilterFactory'));
+        $this->collection = new Collection('foo', $this->directory = m::mock('Basset\Directory'));
     }
 
 
