@@ -111,6 +111,40 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testArrayOfFiltersAreAppliedToAssets()
+    {
+        $this->filter->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = m::mock('Basset\Filter\Filter'));
+        $filter->shouldReceive('setResource')->once()->with($this->asset)->andReturn(m::self());
+        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
+
+        $this->filter->shouldReceive('make')->once()->with('BarFilter')->andReturn($filter = m::mock('Basset\Filter\Filter'));
+        $filter->shouldReceive('setResource')->once()->with($this->asset)->andReturn(m::self());
+        $filter->shouldReceive('getFilter')->once()->andReturn('BarFilter');
+
+        $this->asset->apply(array('FooFilter', 'BarFilter'));
+
+        $filters = $this->asset->getFilters();
+        
+        $this->assertArrayHasKey('FooFilter', $filters->all());
+        $this->assertArrayHasKey('BarFilter', $filters->all());
+    }
+
+
+    public function testArrayOfFiltersWithCallbacksAreAppliedToAssets()
+    {
+        $this->filter->shouldReceive('make')->once()->with('FooFilter')->andReturn($filter = m::mock('Basset\Filter\Filter'));
+        $filter->shouldReceive('setResource')->once()->with($this->asset)->andReturn(m::self());
+        $filter->shouldReceive('getFilter')->once()->andReturn('FooFilter');
+
+        $this->asset->apply(array('FooFilter' => function($filter)
+        {
+            $filter->applied = true;
+        }));
+
+        $this->assertTrue($filter->applied);
+    }
+
+
     public function testFiltersArePreparedCorrectly()
     {
         $fooFilter = m::mock('Basset\Filter\Filter', array(m::mock('Illuminate\Log\Writer'), 'FooFilter', array(), 'testing'))->shouldDeferMissing();
