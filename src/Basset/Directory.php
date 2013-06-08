@@ -104,7 +104,7 @@ class Directory extends Filterable {
             {
                 $asset = $this->assetFactory->make($path);
 
-                $asset->isRemote() and $asset->exclude();
+                $asset->isRemote() and $asset->raw();
 
                 $this->assets[$path] = $asset;
             }
@@ -307,9 +307,13 @@ class Directory extends Filterable {
     {
         $assets = array_flatten(func_get_args());
 
-        $this->assets = $this->assets->filter(function($asset) use ($assets)
+        $directory = $this;
+
+        $this->assets = $this->assets->filter(function($asset) use ($assets, $directory)
         {
-            return ! in_array($asset->getRelativePath(), $assets);
+            $path = $directory->getPathRelativeToDirectory($asset->getRelativePath());
+
+            return ! in_array($path, $assets);
         });
 
         return $this;
@@ -325,12 +329,31 @@ class Directory extends Filterable {
     {
         $assets = array_flatten(func_get_args());
 
-        $this->assets = $this->assets->filter(function($asset) use ($assets)
+        $directory = $this;
+
+        $this->assets = $this->assets->filter(function($asset) use ($assets, $directory)
         {
-            return in_array($asset->getRelativePath(), $assets);
+            $path = $directory->getPathRelativeToDirectory($asset->getRelativePath());
+
+            return in_array($path, $assets);
         });
 
         return $this;
+    }
+
+    /**
+     * Get a path relative from the current directory's path.
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    public function getPathRelativeToDirectory($path)
+    {
+        // Get the last segment of the directory as asset paths will be relative to this
+        // path. We can then replace this segment with nothing in the assets path.
+        $directoryLastSegment = substr($this->path, strrpos($this->path, '/') + 1);
+
+        return trim(preg_replace('/^'.$directoryLastSegment.'/', '', $path), '/');
     }
 
     /**
