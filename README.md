@@ -55,6 +55,7 @@ Basset also ships with a facade which provides the static syntax for creating co
 - `CssMin` and `JsMin` are only applied on a production build and not on the production environment.
 - Added `raw` method as an alias to `exclude`.
 - Entire directory or collection can be set as raw so original path is used instead of assets being built.
+- Development builds only happen for a collection that is used on the loaded request.
 
 
 #### v4.0.0 Beta 1
