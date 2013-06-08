@@ -545,7 +545,7 @@ class Filter {
      * 
      * @return array
      */
-    public function getNodePath()
+    public function getNodePaths()
     {
         return $this->nodePaths;
     }
