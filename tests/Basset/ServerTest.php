@@ -24,7 +24,9 @@ class ServerTest extends PHPUnit_Framework_TestCase {
             'url' => new UrlGenerator(new RouteCollection, Request::create('http://localhost', 'GET')),
             'config' => m::mock('Illuminate\Config\Repository'),
             'basset' => m::mock('Basset\Environment'),
-            'basset.manifest' => new Manifest(new Filesystem, 'meta')
+            'basset.manifest' => new Manifest(new Filesystem, 'meta'),
+            'basset.builder' => m::mock('Basset\Builder\Builder'),
+            'basset.builder.cleaner' => m::mock('Basset\Builder\FilesystemCleaner')
         );
 
         $this->server = new Server($this->app);
@@ -73,6 +75,9 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         
         $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
+
+        $this->app['basset.builder']->shouldReceive('buildAsDevelopment')->once()->with($collection, 'stylesheets');
+        $this->app['basset.builder.cleaner']->shouldReceive('cleanAll')->once();
 
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
         $collection->shouldReceive('getAssetsWithExcluded')->once()->with('stylesheets')->andReturn($assets = array(

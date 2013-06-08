@@ -3,6 +3,7 @@
 use Basset\Collection;
 use Basset\Manifest\Entry;
 use Basset\Manifest\Manifest;
+use Basset\Exceptions\BuildNotRequiredException;
 
 class Server {
 
@@ -11,7 +12,7 @@ class Server {
      * 
      * @var \Illuminate\Foundation\Application
      */
-    protected $collections;
+    protected $app;
 
     /**
      * Create a new output server instance.
@@ -35,7 +36,9 @@ class Server {
     {
         list($collection, $extension) = preg_split('/\.(css|js)/', $collection, 2, PREG_SPLIT_DELIM_CAPTURE);
 
-        return $this->serve($collection, $extension == 'css' ? 'stylesheets' : 'javascripts', $format);
+        $group = $extension == 'css' ? 'stylesheets' : 'javascripts';
+
+        return $this->serve($collection, $group, $format);
     }
 
     /**
@@ -82,57 +85,56 @@ class Server {
         // manfiest of fingerprints.
         $collection = $this->app['basset'][$collection];
 
-        if ($entry = $this->app['basset.manifest']->get($collection))
+        if ($this->runningInProduction() and $this->app['basset.manifest']->has($collection))
         {
-            if ($this->runningInProduction() and $entry->hasProductionFingerprint($group))
+            if ($this->app['basset.manifest']->get($collection)->hasProductionFingerprint($group))
             {
-                $response = $this->serveProductionCollection($collection, $entry, $group, $format);
+                return $this->serveProductionCollection($collection, $group, $format);
             }
-            else
-            {
-                $response = $this->serveDevelopmentCollection($collection, $entry, $group, $format);
-            }
+        }
 
-            return array_to_newlines($response);
-        }
-        else
-        {
-            return '<!-- Basset could not find manifest entry for collection: '.$collection->getIdentifer().' -->';
-        }
+        return $this->serveDevelopmentCollection($collection, $group, $format);
     }
 
     /**
      * Serve a production collection.
      *
      * @param  \Basset\Collection  $collection
-     * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
      * @param  string  $format
      * @return array
      */
-    protected function serveProductionCollection(Collection $collection, Entry $entry, $group, $format)
+    protected function serveProductionCollection(Collection $collection, $group, $format)
     {
+        $entry = $this->getCollectionEntry($collection);
+
         $fingerprint = $entry->getProductionFingerprint($group);
 
-        $response = $this->serveExcludedAssets($collection, $group, $format);
+        $production = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format);
 
-        return array_merge($response, array($this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format)));
+        return $this->formatResponse($this->serveExcludedAssets($collection, $group, $format), $production);
     }
 
     /**
      * Serve a development collection.
      * 
      * @param  \Basset\Collection  $collection
-     * @param  \Basset\Manifest\Entry  $entry
      * @param  string  $group
      * @param  string  $format
      * @return array
      */
-    protected function serveDevelopmentCollection(Collection $collection, Entry $entry, $group, $format)
+    protected function serveDevelopmentCollection(Collection $collection, $group, $format)
     {
-        $responses = array();
-
         $identifier = $collection->getIdentifier();
+
+        // Before we fetch the collections manifest entry we'll try to build the collection
+        // again if there is anything outstanding. This doesn't have a huge impact on
+        // page loads time like trying to dynamically serve each asset.
+        $this->tryDevelopmentBuild($collection, $group);
+
+        $entry = $this->getCollectionEntry($collection);
+
+        $responses = array();
 
         foreach ($collection->getAssetsWithExcluded($group) as $asset)
         {
@@ -148,7 +150,7 @@ class Server {
             $responses[] = $this->{'create'.studly_case($group).'Element'}($path, $format);
         }
 
-        return $responses;
+        return $this->formatResponse($responses);
     }
 
     /**
@@ -171,6 +173,53 @@ class Server {
         }
 
         return $responses;
+    }
+
+    /**
+     * Format an array of responses and return a string.
+     * 
+     * @param  mixed  $args
+     * @return string
+     */
+    protected function formatResponse()
+    {
+        $responses = array();
+
+        foreach (func_get_args() as $response)
+        {
+            $responses = array_merge($responses, (array) $response);
+        }
+
+        return array_to_newlines($responses);
+    }
+
+    /**
+     * Get a collection manifest entry.
+     * 
+     * @param  \Basset\Collection  $collection
+     * @return \Basset\Manifest\Entry
+     */
+    protected function getCollectionEntry(Collection $collection)
+    {
+        return $this->app['basset.manifest']->get($collection);
+    }
+
+    /**
+     * Try the development build of a collection.
+     * 
+     * @param  \Basset\Collection  $collection
+     * @param  string  $group
+     * @return void
+     */
+    protected function tryDevelopmentBuild(Collection $collection, $group)
+    {
+        try
+        {
+            $this->app['basset.builder']->buildAsDevelopment($collection, $group);
+        }
+        catch (BuildNotRequiredException $e) {}
+
+        $this->app['basset.builder.cleaner']->cleanAll();
     }
 
     /**

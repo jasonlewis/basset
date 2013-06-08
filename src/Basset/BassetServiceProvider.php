@@ -85,43 +85,7 @@ class BassetServiceProvider extends ServiceProvider {
         // and development builds.
         $this->app['basset.manifest']->load();
 
-        // Before running any of the routes we'll build any outstanding collections that
-        // may have changed assets or a changed collection definition.        
-        $this->buildOutstandingCollections();
-
         $this->registerBladeExtensions();
-    }
-
-    /**
-     * Register a global "before" filter to build any outstanding development collections.
-     * 
-     * @return void
-     */
-    protected function buildOutstandingCollections()
-    {
-        $app = $this->app;
-
-        $this->app->before(function() use ($app)
-        {
-            if (in_array($app['env'], (array) $app['config']->get('basset::production')) or $app->runningUnitTests()) return;
-            
-            foreach ($app['basset']->all() as $collection)
-            {
-                try
-                {
-                    $app['basset.builder']->buildAsDevelopment($collection, 'stylesheets');
-                }
-                catch (BuildNotRequiredException $e) {}
-
-                try
-                {
-                    $app['basset.builder']->buildAsDevelopment($collection, 'javascripts');
-                }
-                catch (BuildNotRequiredException $e) {}
-            }
-
-            $app['basset.builder.cleaner']->cleanAll();
-        });
     }
 
     /**
