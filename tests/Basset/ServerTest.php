@@ -77,7 +77,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('prod');
 
         $this->app['basset.builder']->shouldReceive('buildAsDevelopment')->once()->with($collection, 'stylesheets');
-        $this->app['basset.builder.cleaner']->shouldReceive('cleanAll')->once();
+        $this->app['basset.builder.cleaner']->shouldReceive('clean')->once()->with('foo');
 
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
         $collection->shouldReceive('getAssetsWithExcluded')->once()->with('stylesheets')->andReturn($assets = array(

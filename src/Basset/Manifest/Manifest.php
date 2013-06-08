@@ -20,11 +20,18 @@ class Manifest {
     protected $manifestPath;
 
     /**
-     * Manifest entries collection.
+     * Collection of manifest entries.
      * 
      * @var \Illuminate\Support\Collection
      */
     protected $entries;
+
+    /**
+     * Collection of original manifest entries after load.
+     * 
+     * @var \Illuminate\Support\Collection
+     */
+    protected $original;
 
     /**
      * Create a new manifest instance.
@@ -38,6 +45,7 @@ class Manifest {
         $this->files = $files;
         $this->manifestPath = $manifestPath;
         $this->entries = new \Illuminate\Support\Collection;
+        $this->original = new \Illuminate\Support\Collection;
     }
 
     /**
@@ -48,9 +56,7 @@ class Manifest {
      */
     public function has($collection)
     {
-        $collection = $this->getCollectionNameFromInstance($collection);
-
-        return isset($this->entries[$collection]);
+        return ! is_null($this->get($collection));
     }
 
     /**
@@ -76,7 +82,7 @@ class Manifest {
     {
         $collection = $this->getCollectionNameFromInstance($collection);
 
-        return $this->has($collection) ? $this->get($collection) : $this->entries[$collection] = new Entry;
+        return $this->get($collection) ?: $this->entries[$collection] = new Entry;
     }
 
     /**
@@ -89,7 +95,10 @@ class Manifest {
     {
         $collection = $this->getCollectionNameFromInstance($collection);
 
-        if ($this->has($collection)) unset($this->entries[$collection]);
+        if ($this->has($collection))
+        {
+            unset($this->entries[$collection]);
+        }
     }
 
     /**
@@ -99,7 +108,7 @@ class Manifest {
      */
     public function all()
     {
-        return $this->entries->all();
+        return $this->entries;
     }
 
     /**
@@ -131,18 +140,27 @@ class Manifest {
                 $this->entries->put($key, $entry);
             }
         }
+
+        $this->original = $this->original->merge($this->entries->all());
     }
 
     /**
      * Save the manifest.
      *
-     * @return void
+     * @return bool
      */
     public function save()
     {
-        $path = $this->manifestPath.'/collections.json';
+        if (array_diff_key($this->entries->toArray(), $this->original->toArray()))
+        {
+            $path = $this->manifestPath.'/collections.json';
 
-        $this->files->put($path, $this->entries->toJson());
+            $this->original = $this->original->merge($this->entries);
+
+            return (bool) $this->files->put($path, $this->entries->toJson());
+        }
+
+        return false;
     }
 
     /**

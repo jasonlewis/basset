@@ -74,7 +74,16 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 
         $this->files->shouldReceive('put')->once()->with(__DIR__.'/fixtures/collections.json', json_encode(array('foo' => $entry->toArray())))->andReturn(true);
 
-        $this->manifest->save();
+        $this->assertTrue($this->manifest->save());
+    }
+
+
+    public function testNonDirtyManifestDoesNotSave()
+    {
+        $this->files = m::mock('Illuminate\Filesystem\Filesystem');
+        $this->manifest = new Basset\Manifest\Manifest($this->files, __DIR__.'/fixtures');
+
+        $this->assertFalse($this->manifest->save());
     }
 
 
