@@ -30,53 +30,53 @@ class Collection {
     }
 
     /**
-     * Get all the assets filtered by a group and without the excluded assets.
+     * Get all the assets filtered by a group and without the raw assets.
      * 
      * @param  string  $group
      * @return \Illuminate\Support\Collection
      */
-    public function getAssetsWithoutExcluded($group = null)
+    public function getAssetsWithoutRaw($group = null)
     {
         return $this->getAssets($group, false);
     }
 
     /**
-     * Get all the assets filtered by a group and with the excluded assets.
+     * Get all the assets filtered by a group and with the raw assets.
      *
      * @param  string  $group
      * @return \Illuminate\Support\Collection
      */
-    public function getAssetsWithExcluded($group = null)
+    public function getAssetsWithRaw($group = null)
     {
         return $this->getAssets($group, true);
     }
 
     /**
-     * Get all the assets filtered by a group but only if the assets are excluded.
+     * Get all the assets filtered by a group but only if the assets are raw.
      *
      * @param  string  $group
      * @return \Illuminate\Support\Collection
      */
-    public function getAssetsOnlyExcluded($group = null)
+    public function getAssetsOnlyRaw($group = null)
     {
         // Get all the assets for the given group and filter out assets that aren't listed
-        // as being excluded.
+        // as being raw.
         $assets = $this->getAssets($group, true)->filter(function($asset)
         {
-            return $asset->isExcluded();
+            return $asset->serveRaw();
         });
 
         return $assets;
     }
 
     /**
-     * Get all the assets filtered by a group and if to include the excluded assets.
+     * Get all the assets filtered by a group and if to include the raw assets.
      *
      * @param  string  $group
-     * @param  bool  $excluded
+     * @param  bool  $raw
      * @return \Illuminate\Support\Collection
      */
-    public function getAssets($group = null, $excluded = true)
+    public function getAssets($group = null, $raw = true)
     {
         // Spin through all of the assets that belong to the given group and push them on
         // to the end of the array.
@@ -84,7 +84,7 @@ class Collection {
 
         foreach ($assets as $key => $asset)
         {
-            if ( ! $excluded and $asset->isExcluded() or ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
+            if ( ! $raw and $asset->serveRaw() or ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
             {
                 $assets->forget($key);
             }

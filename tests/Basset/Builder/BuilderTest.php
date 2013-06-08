@@ -36,7 +36,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
     public function testBuildingEmptyProductionCollectionThrowsBuildNotRequiredException()
     {
         $collection = m::mock('Basset\Collection');
-        $collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
+        $collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
         $collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
@@ -51,7 +51,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
      */
     public function testBuildingExistingProductionCollectionThrowsBuildNotRequiredException()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
@@ -70,7 +70,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingProductionCollectionWritesToFilesystemAndSetsProductionFingerprint()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
@@ -92,7 +92,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingProductionCollectionWithForce()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
@@ -115,7 +115,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingProductionCollectionWithGzip()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
         $asset->shouldReceive('build')->once()->andReturn('body { }');
@@ -141,7 +141,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
      */
     public function testBuildingDevelopmentCollectionWithNoAssetsThrowsBuildNotRequiredException()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection);
         $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');
 
         $this->manifest->shouldReceive('make')->once()->with('foo')->andReturn($entry = m::mock('Basset\Manifest\Entry'));
@@ -157,7 +157,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
      */
     public function testBuildingDevelopmentCollectionWithAssetsThatAreAlreadyBuiltThrowsBuildNotRequiredException()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
@@ -186,7 +186,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingDevelopmentCollectionWithNoCurrentManifestEntry()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
@@ -217,7 +217,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingDevelopmentCollectionWithNoChangesButWithForcing()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $assets[] = m::mock('Basset\Asset'),
             $assets[] = m::mock('Basset\Asset')
         )));
@@ -255,7 +255,7 @@ class BuilderTest extends PHPUnit_Framework_TestCase {
 
     public function testBuildingDevelopmentCollectionWithGzip()
     {
-        $this->collection->shouldReceive('getAssetsWithoutExcluded')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
+        $this->collection->shouldReceive('getAssetsWithoutRaw')->once()->with('stylesheets')->andReturn(new Illuminate\Support\Collection(array(
             $asset = m::mock('Basset\Asset')
         )));
         $this->collection->shouldReceive('getIdentifier')->once()->andReturn('foo');

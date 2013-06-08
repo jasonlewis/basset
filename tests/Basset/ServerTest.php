@@ -49,7 +49,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
         $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
-        $collection->shouldReceive('getAssetsOnlyExcluded')->with($group)->andReturn(array());
+        $collection->shouldReceive('getAssetsOnlyRaw')->with($group)->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn($name);
 
         $entry = $this->app['basset.manifest']->make($collection);
@@ -80,18 +80,18 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         $this->app['basset.builder.cleaner']->shouldReceive('clean')->once()->with('foo');
 
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
-        $collection->shouldReceive('getAssetsWithExcluded')->once()->with('stylesheets')->andReturn($assets = array(
+        $collection->shouldReceive('getAssetsWithRaw')->once()->with('stylesheets')->andReturn($assets = array(
             m::mock('Basset\Asset'),
             m::mock('Basset\Asset'),
             m::mock('Basset\Asset')
         ));
 
-        $assets[0]->shouldReceive('isIncluded')->once()->andReturn(true);
+        $assets[0]->shouldReceive('serveRaw')->once()->andReturn(false);
         $assets[0]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar.less');
-        $assets[1]->shouldReceive('isIncluded')->once()->andReturn(false);
+        $assets[1]->shouldReceive('serveRaw')->once()->andReturn(true);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('qux.css');
-        $assets[2]->shouldReceive('isIncluded')->once()->andReturn(true);
+        $assets[2]->shouldReceive('serveRaw')->once()->andReturn(false);
         $assets[2]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
         $assets[2]->shouldReceive('getRelativePath')->once()->andReturn('baz.sass');
 
@@ -108,13 +108,13 @@ class ServerTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testExcludedAssetsAreServedBeforeBuiltCollectionHtml()
+    public function testRawAssetsAreServedBeforeBuiltCollectionHtml()
     {
         $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
         
         $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
-        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
+        $collection->shouldReceive('getAssetsOnlyRaw')->with('stylesheets')->andReturn(array($asset = m::mock('Basset\Asset')));
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $asset->shouldReceive('getRelativePath')->andReturn('css/baz.css');
@@ -136,7 +136,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
         
         $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('testing');
 
-        $collection->shouldReceive('getAssetsOnlyExcluded')->with('stylesheets')->andReturn(array());
+        $collection->shouldReceive('getAssetsOnlyRaw')->with('stylesheets')->andReturn(array());
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
 
         $entry = $this->app['basset.manifest']->make($collection);

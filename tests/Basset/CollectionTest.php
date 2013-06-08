@@ -79,16 +79,16 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testGettingCollectionExcludedAssets()
+    public function testGettingCollectionRawAssets()
     {
         $this->directory->shouldReceive('getAssets')->andReturn(new IlluminateCollection(array(
             $assets[] = $this->newAsset('foo.css', 'path/to/foo.css', 'stylesheets', 1),
             $assets[] = $this->newAsset('bar.css', 'path/to/bar.css', 'stylesheets', 2)
         )));
 
-        $assets[1]->exclude();
+        $assets[1]->raw();
 
-        $this->assertEquals(array(1 => $assets[1]), $this->collection->getAssetsOnlyExcluded('stylesheets')->all());
+        $this->assertEquals(array(1 => $assets[1]), $this->collection->getAssetsOnlyRaw('stylesheets')->all());
     }
 
 

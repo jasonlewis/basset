@@ -112,7 +112,7 @@ class Server {
 
         $production = $this->{'create'.studly_case($group).'Element'}($this->prefixBuildPath($fingerprint), $format);
 
-        return $this->formatResponse($this->serveExcludedAssets($collection, $group, $format), $production);
+        return $this->formatResponse($this->serveRawAssets($collection, $group, $format), $production);
     }
 
     /**
@@ -136,15 +136,15 @@ class Server {
 
         $responses = array();
 
-        foreach ($collection->getAssetsWithExcluded($group) as $asset)
+        foreach ($collection->getAssetsWithRaw($group) as $asset)
         {
-            if ($asset->isIncluded() and $path = $entry->getDevelopmentAsset($asset))
+            if ($asset->serveRaw() or ! $path = $entry->getDevelopmentAsset($asset))
             {
-                $path = $this->prefixBuildPath($identifier.'/'.$path);
+                $path = $asset->getRelativePath();
             }
             else
             {
-                $path = $asset->getRelativePath();
+                $path = $this->prefixBuildPath($identifier.'/'.$path);
             }
 
             $responses[] = $this->{'create'.studly_case($group).'Element'}($path, $format);
@@ -154,18 +154,18 @@ class Server {
     }
 
     /**
-     * Serve a collections excluded assets.
+     * Serve a collections raw assets.
      *
      * @param  \Basset\Collection  $collection
      * @param  string  $group
      * @param  string  $format
      * @return array
      */
-    protected function serveExcludedAssets(Collection $collection, $group, $format)
+    protected function serveRawAssets(Collection $collection, $group, $format)
     {
         $responses = array();
 
-        foreach ($collection->getAssetsOnlyExcluded($group) as $asset)
+        foreach ($collection->getAssetsOnlyRaw($group) as $asset)
         {
             $path = $asset->getRelativePath();
 

@@ -40,12 +40,10 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    public function testAssetsCanBeExcludedAndIncluded()
+    public function testAssetsCanBeServedRaw()
     {
-        $this->asset->exclude();
-        $this->assertTrue($this->asset->isExcluded());
-        $this->asset->include();
-        $this->assertTrue($this->asset->isIncluded());
+        $this->asset->raw();
+        $this->assertTrue($this->asset->serveRaw());
     }
 
 

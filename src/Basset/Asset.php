@@ -46,11 +46,11 @@ class Asset extends Filterable {
     protected $relativePath;
 
     /**
-     * Indicates if the asset is to be excluded.
+     * Indicates if the asset is to be served raw.
      *
      * @var bool
      */
-    protected $excluded = false;
+    protected $raw = false;
 
     /**
      * Order of the asset.
@@ -257,62 +257,6 @@ class Asset extends Filterable {
     }
 
     /**
-     * Alias for \Basset\Asset::setExcluded(true)
-     *
-     * @return \Basset\Asset
-     */
-    public function exclude()
-    {
-        return $this->setExcluded(true);
-    }
-
-    /**
-     * Sets the asset to be excluded.
-     *
-     * @param  bool  $excluded
-     * @return \Basset\Asset
-     */
-    public function setExcluded($excluded)
-    {
-        $this->excluded = $excluded;
-
-        return $this;
-    }
-
-    /**
-     * Determine if the asset is excluded.
-     *
-     * @return bool
-     */
-    public function isExcluded()
-    {
-        return $this->excluded;
-    }
-
-    /**
-     * Sets the asset to be included.
-     *
-     * @param  bool  $included
-     * @return \Basset\Asset
-     */
-    public function setIncluded($included)
-    {
-        $this->excluded = ! $included;
-
-        return $this;
-    }
-
-    /**
-     * Determine if the asset is included.
-     *
-     * @return bool
-     */
-    public function isIncluded()
-    {
-        return ! $this->excluded;
-    }
-
-    /**
      * Set the assets group.
      * 
      * @param  string  $group
@@ -395,7 +339,19 @@ class Asset extends Filterable {
      */
     public function raw()
     {
-        return $this->exclude();
+        $this->raw = true;
+
+        return $this;
+    }
+
+    /**
+     * Determines if the asset is to be served raw.
+     * 
+     * @return bool
+     */
+    public function serveRaw()
+    {
+        return $this->raw;
     }
 
     /**
@@ -439,26 +395,6 @@ class Asset extends Filterable {
         });
 
         return $filters->filter(function($filter) { return $filter instanceof FilterInterface; });
-    }
-
-    /**
-     * Dynamically handle the "include" method as we can't set the method on the class.
-     *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        // Because PHP doesn't allow us to name a method as "include" we'll revert to magically
-        // capturing it when the method can't be resolved. If the method is "include" then we'll
-        // simply set the asset to be included.
-        if ($method == 'include')
-        {
-            return $this->setIncluded(true);
-        }
-
-        throw new InvalidArgumentException("Call to undefined method [{$method}] on Basset\Asset.");
     }
 
 }
