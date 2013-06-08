@@ -226,7 +226,7 @@ return array(
 
             'CssMin' => array('CssMinFilter', function($filter)
             {
-                $filter->whenProductionBuild()->whenClassExists('CssMin');
+                $filter->whenAssetIsStylesheet()->whenProductionBuild()->whenClassExists('CssMin');
             }),
 
             /*
@@ -241,7 +241,7 @@ return array(
 
             'JsMin' => array('JSMinFilter', function($filter)
             {
-                $filter->whenProductionBuild()->whenClassExists('JSMin');
+                $filter->whenAssetIsJavascript()->whenProductionBuild()->whenClassExists('JSMin');
             }),
 
             /*
