@@ -219,7 +219,7 @@ class Server {
         }
         catch (BuildNotRequiredException $e) {}
 
-        $this->app['basset.builder.cleaner']->cleanAll();
+        $this->app['basset.builder.cleaner']->clean($collection->getIdentifier());
     }
 
     /**
