@@ -56,6 +56,7 @@ Basset also ships with a facade which provides the static syntax for creating co
 - Added `raw` method as an alias to `exclude`.
 - Entire directory or collection can be set as raw so original path is used instead of assets being built.
 - Development builds only happen for a collection that is used on the loaded request.
+- Added `rawOnEnvironment` to serve the asset raw on a given environment or environments.
 
 
 #### v4.0.0 Beta 1
