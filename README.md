@@ -45,6 +45,10 @@ Basset also ships with a facade which provides the static syntax for creating co
 
 ### Changes
 
+#### v4.0.0 Beta 3
+
+- Split the collections and aliases into their own configuration files.
+
 #### v4.0.0 Beta 2
 
 - Added logging when assets, directories, and filters are not found or fail to load.
