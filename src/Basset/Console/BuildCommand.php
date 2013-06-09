@@ -77,11 +77,11 @@ class BuildCommand extends Command {
 
         if ($development = $this->input->getOption('dev'))
         {
-            $this->comment('Starting development build....');
+            $this->comment('Starting development build...');
         }
         else
         {
-            $this->comment('Starting production build....');
+            $this->comment('Starting production build...');
         }
 
         $collections = $this->gatherCollections();
