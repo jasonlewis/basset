@@ -48,7 +48,7 @@ class EntryTest extends PHPUnit_Framework_TestCase {
 
     public function testAddingDevelopmentAssetToEntryFromAssetInstance()
     {
-        $asset = new Basset\Asset($files = m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), 'foo/bar.sass', 'foo/bar.sass');
+        $asset = new Basset\Asset($files = m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), 'testing', 'foo/bar.sass', 'foo/bar.sass');
         $files->shouldReceive('lastModified')->once()->with('foo/bar.sass')->andReturn(time());
         $this->entry->addDevelopmentAsset($asset);
         $this->data['development']['stylesheets']['foo/bar.sass'] = 'foo/bar-'.md5('[]'.time()).'.css';

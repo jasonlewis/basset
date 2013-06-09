@@ -369,6 +369,18 @@ class Directory extends Filterable {
     }
 
     /**
+     * All assets within directory will be served raw on a given environment.
+     * 
+     * @return \Basset\Directory
+     */
+    public function rawOnEnvironment($environment)
+    {
+        $this->assets->each(function($asset) use ($environment) { $asset->rawOnEnvironment($environment); });
+
+        return $this;
+    }
+
+    /**
      * Get the path to the directory.
      *
      * @return string

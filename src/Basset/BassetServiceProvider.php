@@ -180,7 +180,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset.factory.asset'] = $this->app->share(function($app)
         {
-            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['basset.log'], $app['path.public']);
+            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['basset.log'], $app['env'], $app['path.public']);
         });
 
         $this->app['basset.factory.filter'] = $this->app->share(function($app)

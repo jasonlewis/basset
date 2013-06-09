@@ -32,6 +32,13 @@ class Asset extends Filterable {
     protected $log;
 
     /**
+     * Application environment.
+     * 
+     * @var string
+     */
+    protected $appEnvironment;
+
+    /**
      * Absolute path to the asset.
      *
      * @var string
@@ -89,15 +96,17 @@ class Asset extends Filterable {
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Factory\FilterFactory  $filterFactory
      * @param  \Illuminate\Log\Writer  $log
+     * @param  string  $appEnvironment
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, Writer $log, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FilterFactory $filterFactory, Writer $log, $appEnvironment, $absolutePath, $relativePath)
     {
         $this->files = $files;
         $this->filterFactory = $filterFactory;
         $this->log = $log;
+        $this->appEnvironment = $appEnvironment;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
         $this->filters = new \Illuminate\Support\Collection;
@@ -345,11 +354,29 @@ class Asset extends Filterable {
     }
 
     /**
+     * Sets the asset to be served raw when the application is running in a given environment.
+     * 
+     * @param  string|array  $environment
+     * @return \Basset\Asset
+     */
+    public function rawOnEnvironment()
+    {
+        $environments = array_flatten(func_get_args());
+
+        if (in_array($this->appEnvironment, $environments))
+        {
+            return $this->raw();
+        }
+
+        return $this;
+    }
+
+    /**
      * Determines if the asset is to be served raw.
      * 
      * @return bool
      */
-    public function serveRaw()
+    public function isRaw()
     {
         return $this->raw;
     }

@@ -86,12 +86,12 @@ class ServerTest extends PHPUnit_Framework_TestCase {
             m::mock('Basset\Asset')
         ));
 
-        $assets[0]->shouldReceive('serveRaw')->once()->andReturn(false);
+        $assets[0]->shouldReceive('isRaw')->once()->andReturn(false);
         $assets[0]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
         $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar.less');
-        $assets[1]->shouldReceive('serveRaw')->once()->andReturn(true);
+        $assets[1]->shouldReceive('isRaw')->once()->andReturn(true);
         $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('qux.css');
-        $assets[2]->shouldReceive('serveRaw')->once()->andReturn(false);
+        $assets[2]->shouldReceive('isRaw')->once()->andReturn(false);
         $assets[2]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
         $assets[2]->shouldReceive('getRelativePath')->once()->andReturn('baz.sass');
 
@@ -146,6 +146,37 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
         $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo-123.css" media="print" />';
         $this->assertEquals($expected, $this->server->stylesheets('foo', '<link rel="stylesheet" type="text/css" href="%s" media="print" />'));
+    }
+
+
+    public function testServingRawAssetsOnGivenEnvironment()
+    {
+        $this->app['basset']->shouldReceive(array('offsetExists' => true, 'offsetGet' => $collection = m::mock('Basset\Collection')))->with('foo');
+        $this->app['config']->shouldReceive('get')->once()->with('basset::production')->andReturn('production');
+
+        $this->app['basset.builder']->shouldReceive('buildAsDevelopment')->once()->with($collection, 'stylesheets');
+        $this->app['basset.builder.cleaner']->shouldReceive('clean')->once()->with('foo');
+
+        $collection->shouldReceive('getIdentifier')->andReturn('foo');
+        $collection->shouldReceive('getAssetsWithRaw')->once()->with('stylesheets')->andReturn($assets = array(
+            m::mock('Basset\Asset', array(new Filesystem, m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), 'testing', null, null))->shouldDeferMissing(),
+            m::mock('Basset\Asset')->shouldDeferMissing()
+        ));
+
+        $assets[0]->rawOnEnvironment('testing');
+        $assets[0]->shouldReceive('getRelativePath')->once()->andReturn('bar.css');
+        $assets[1]->shouldReceive('isRaw')->once()->andReturn(false);
+        $assets[1]->shouldReceive('getGroup')->once()->andReturn('stylesheets');
+        $assets[1]->shouldReceive('getRelativePath')->once()->andReturn('baz.sass');
+
+        $entry = $this->app['basset.manifest']->make($collection);
+        $entry->addDevelopmentAsset('baz.sass', 'baz.css', 'stylesheets');
+
+        $this->app['config']->shouldReceive('get')->with('basset::build_path')->andReturn('assets');
+
+        $expected = '<link rel="stylesheet" type="text/css" href="http://localhost/bar.css" />'.PHP_EOL.
+                    '<link rel="stylesheet" type="text/css" href="http://localhost/assets/foo/baz.css" />';
+        $this->assertEquals($expected, $this->server->serve('foo', 'stylesheets'));
     }
 
 
