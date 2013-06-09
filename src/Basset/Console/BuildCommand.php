@@ -75,13 +75,13 @@ class BuildCommand extends Command {
 
         $this->input->getOption('gzip') and $this->builder->setGzip(true);
 
-        if ($development = $this->input->getOption('dev'))
+        if ($production = $this->input->getOption('production'))
         {
-            $this->comment('Starting development build...');
+            $this->comment('Starting production build...');
         }
         else
         {
-            $this->comment('Starting production build...');
+            $this->comment('Starting development build...');
         }
 
         $collections = $this->gatherCollections();
@@ -94,13 +94,13 @@ class BuildCommand extends Command {
 
         foreach ($collections as $name => $collection)
         {
-            if ($development)
+            if ($production)
             {
-                $this->buildAsDevelopment($name, $collection);
+                $this->buildAsProduction($name, $collection);
             }
             else
             {
-                $this->buildAsProduction($name, $collection);
+                $this->buildAsDevelopment($name, $collection);
             }
 
             $this->cleaner->clean($name);
@@ -202,7 +202,7 @@ class BuildCommand extends Command {
     protected function getOptions()
     {
         return array(
-            array('dev', null, InputOption::VALUE_NONE, 'Build assets for a development environment'),
+            array('production', 'p', InputOption::VALUE_NONE, 'Build assets for a production environment'),
             array('gzip', null, InputOption::VALUE_NONE, 'Gzip built assets'),
             array('force', 'f', InputOption::VALUE_NONE, 'Forces a re-build of the collection')
         );
