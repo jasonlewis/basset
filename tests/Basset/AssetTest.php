@@ -22,7 +22,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
         $this->log = m::mock('Illuminate\Log\Writer');
 
-        $this->asset = new Asset($this->files, $this->filter, $this->log, 'path/to/public/foo/bar.sass', 'foo/bar.sass');
+        $this->asset = new Asset($this->files, $this->filter, $this->log, 'testing', 'path/to/public/foo/bar.sass', 'foo/bar.sass');
         $this->asset->setOrder(1);
         $this->asset->setGroup('stylesheets');
     }
@@ -43,7 +43,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     public function testAssetsCanBeServedRaw()
     {
         $this->asset->raw();
-        $this->assertTrue($this->asset->serveRaw());
+        $this->assertTrue($this->asset->isRaw());
     }
 
 
@@ -63,7 +63,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHosted()
     {
-        $asset = new Asset($this->files, $this->filter, $this->log, 'http://foo.com/bar.css', 'http://foo.com/bar.css');
+        $asset = new Asset($this->files, $this->filter, $this->log, 'testing', 'http://foo.com/bar.css', 'http://foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }
@@ -71,7 +71,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHostedWithRelativeProtocol()
     {
-        $asset = new Asset($this->files, $this->filter, $this->log, '//foo.com/bar.css', '//foo.com/bar.css');
+        $asset = new Asset($this->files, $this->filter, $this->log, 'testing', '//foo.com/bar.css', '//foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }

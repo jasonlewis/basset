@@ -94,7 +94,7 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
 
     public function newAsset($relative, $absolute, $group, $order)
     {
-        $asset = new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), $absolute, $relative);
+        $asset = new Asset(m::mock('Illuminate\Filesystem\Filesystem'), m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), 'testing', $absolute, $relative);
 
         return $asset->setOrder($order)->setGroup($group);
     }

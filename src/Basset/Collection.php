@@ -63,7 +63,7 @@ class Collection {
         // as being raw.
         $assets = $this->getAssets($group, true)->filter(function($asset)
         {
-            return $asset->serveRaw();
+            return $asset->isRaw();
         });
 
         return $assets;
@@ -84,7 +84,7 @@ class Collection {
 
         foreach ($assets as $key => $asset)
         {
-            if ( ! $raw and $asset->serveRaw() or ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
+            if ( ! $raw and $asset->isRaw() or ! is_null($group) and ! $asset->{'is'.ucfirst(str_singular($group))}())
             {
                 $assets->forget($key);
             }

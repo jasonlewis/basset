@@ -16,7 +16,7 @@ class AssetFactoryTest extends PHPUnit_Framework_TestCase {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
         $this->filter = m::mock('Basset\Factory\FilterFactory');
         $this->log = m::mock('Illuminate\Log\Writer');
-        $this->factory = new Basset\Factory\AssetFactory($this->files, $this->filter, $this->log, __DIR__, 'testing');
+        $this->factory = new Basset\Factory\AssetFactory($this->files, $this->filter, $this->log, 'testing', __DIR__);
     }
 
 

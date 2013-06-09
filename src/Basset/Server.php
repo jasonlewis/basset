@@ -138,13 +138,13 @@ class Server {
 
         foreach ($collection->getAssetsWithRaw($group) as $asset)
         {
-            if ($asset->serveRaw() or ! $path = $entry->getDevelopmentAsset($asset))
+            if ( ! $asset->isRaw() and $path = $entry->getDevelopmentAsset($asset))
             {
-                $path = $asset->getRelativePath();
+                $path = $this->prefixBuildPath($identifier.'/'.$path);
             }
             else
             {
-                $path = $this->prefixBuildPath($identifier.'/'.$path);
+                $path = $asset->getRelativePath();
             }
 
             $responses[] = $this->{'create'.studly_case($group).'Element'}($path, $format);
