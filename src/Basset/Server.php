@@ -97,7 +97,7 @@ class Server {
         }
         else
         {
-            return '<!-- Basset could not find manifest entry for collection: '.$collection->getIdentifer().' -->';
+            return '<!-- Basset could not find manifest entry for collection: '.$collection->getIdentifier().' -->';
         }
     }
 
