@@ -27,11 +27,11 @@ class Manifest {
     protected $entries;
 
     /**
-     * Collection of original manifest entries after load.
+     * Indicates if the manifest is dirty and needs saving.
      * 
-     * @var \Illuminate\Support\Collection
+     * @var bool
      */
-    protected $original;
+    protected $dirty = false;
 
     /**
      * Create a new manifest instance.
@@ -45,7 +45,6 @@ class Manifest {
         $this->files = $files;
         $this->manifestPath = $manifestPath;
         $this->entries = new \Illuminate\Support\Collection;
-        $this->original = new \Illuminate\Support\Collection;
     }
 
     /**
@@ -82,6 +81,8 @@ class Manifest {
     {
         $collection = $this->getCollectionNameFromInstance($collection);
 
+        $this->dirty = true;
+        
         return $this->get($collection) ?: $this->entries[$collection] = new Entry;
     }
 
@@ -97,6 +98,8 @@ class Manifest {
 
         if ($this->has($collection))
         {
+            $this->dirty = true;
+
             unset($this->entries[$collection]);
         }
     }
@@ -140,8 +143,6 @@ class Manifest {
                 $this->entries->put($key, $entry);
             }
         }
-
-        $this->original = $this->original->merge($this->entries->all());
     }
 
     /**
@@ -151,11 +152,11 @@ class Manifest {
      */
     public function save()
     {
-        if (array_diff_key($this->entries->toArray(), $this->original->toArray()))
+        if ($this->dirty)
         {
             $path = $this->manifestPath.'/collections.json';
 
-            $this->original = $this->original->merge($this->entries);
+            $this->dirty = false;
 
             return (bool) $this->files->put($path, $this->entries->toJson());
         }
