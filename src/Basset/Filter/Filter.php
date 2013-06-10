@@ -355,7 +355,7 @@ class Filter {
      */
     public function setArguments()
     {
-        $this->arguments = array_merge($this->arguments, func_get_args());
+        $this->arguments = func_get_args();
 
         return $this;
     }
