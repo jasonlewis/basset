@@ -48,6 +48,7 @@ Basset also ships with a facade which provides the static syntax for creating co
 #### v4.0.0 Beta 3
 
 - Split the collections and aliases into their own configuration files.
+- Filter method chaining with syntactical sugar by prefixing with `and`, e.g., `andWhenProductionBuild()`.
 
 #### v4.0.0 Beta 2
 

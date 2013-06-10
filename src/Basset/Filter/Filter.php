@@ -559,6 +559,16 @@ class Filter {
      */
     public function __call($method, $parameters)
     {
+        // If the method starts with "andWhen" then we'll call the method without
+        // the "and" as this provides some syntactical sugar when chaining
+        // filter requirements.
+        if (starts_with($method, 'andWhen'))
+        {
+            $method = lcfirst(substr($method, 3));
+            
+            return call_user_func_array(array($this, $method), $parameters);
+        }
+
         return call_user_func_array(array($this->resource, $method), $parameters);
     }
 

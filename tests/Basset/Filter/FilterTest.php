@@ -28,6 +28,7 @@ class FilterTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(array('bar', 'baz'), $arguments);
     }
 
+
     public function testSettingOfFilterInstantiationArgumentsOverwritesExistingArguments()
     {
         $this->filter->setArguments('foo', 'bar');
