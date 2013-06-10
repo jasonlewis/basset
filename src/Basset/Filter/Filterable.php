@@ -12,11 +12,23 @@ abstract class Filterable {
     protected $filters;
 
     /**
+     * Syntatical sugar for chaining filters.
+     * 
+     * @param  string|array  $filter
+     * @param  \Closure  $callback
+     * @return \Basset\Filter\Filter|\Basset\Filter\Filterable
+     */
+    public function andApply($filter, Closure $callback = null)
+    {
+        return $this->apply($filter, $callback);
+    }
+
+    /**
      * Apply a filter.
      *
      * @param  string|array  $filter
      * @param  \Closure  $callback
-     * @return \Basset\Filter\Filter
+     * @return \Basset\Filter\Filter|\Basset\Filter\Filterable
      */
     public function apply($filter, Closure $callback = null)
     {
