@@ -1,20 +1,16 @@
 <?php namespace Basset;
 
 use Illuminate\Log\Writer;
-use Basset\Factory\Manager;
 use Basset\Builder\Builder;
 use Basset\Manifest\Manifest;
 use Monolog\Handler\NullHandler;
 use Basset\Console\BuildCommand;
-use Basset\Console\CleanCommand;
 use Basset\Factory\AssetFactory;
 use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
 use Monolog\Logger as MonologLogger;
-use Basset\Factory\DirectoryFactory;
 use Basset\Builder\FilesystemCleaner;
 use Illuminate\Support\ServiceProvider;
-use Basset\Exceptions\BuildNotRequiredException;
 
 class BassetServiceProvider extends ServiceProvider {
 
