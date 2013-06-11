@@ -103,13 +103,14 @@ class Asset extends Filterable {
      */
     public function __construct(Filesystem $files, FilterFactory $filterFactory, Writer $log, $appEnvironment, $absolutePath, $relativePath)
     {
+        parent::__construct();
+        
         $this->files = $files;
         $this->filterFactory = $filterFactory;
         $this->log = $log;
         $this->appEnvironment = $appEnvironment;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
-        $this->filters = new \Illuminate\Support\Collection;
     }
 
     /**

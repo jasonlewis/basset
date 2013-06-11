@@ -12,6 +12,16 @@ abstract class Filterable {
     protected $filters;
 
     /**
+     * Create a new filterable instance.
+     * 
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->filters = new \Illuminate\Support\Collection;
+    }
+
+    /**
      * Syntatical sugar for chaining filters.
      * 
      * @param  string|array  $filter

@@ -77,6 +77,8 @@ class Directory extends Filterable {
      */
     public function __construct(Writer $log, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $path)
     {
+        parent::__construct();
+        
         $this->log = $log;
         $this->assetFactory = $assetFactory;
         $this->filterFactory = $filterFactory;
@@ -84,7 +86,6 @@ class Directory extends Filterable {
         $this->path = $path;
         $this->assets = new \Illuminate\Support\Collection;
         $this->directories = new \Illuminate\Support\Collection;
-        $this->filters = new \Illuminate\Support\Collection;
     }
 
     /**
