@@ -255,7 +255,7 @@ return array(
 
             'UriRewriteFilter' => array('UriRewriteFilter', function($filter)
             {
-                $filter->setArguments(public_path());
+                $filter->setArguments(public_path())->whenAssetIsStylesheet();
             })
 
         )
