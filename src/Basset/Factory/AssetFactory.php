@@ -58,11 +58,27 @@ class AssetFactory extends Factory {
     {
         $absolutePath = $this->buildAbsolutePath($path);
 
+        if ($this->outsidePublic($absolutePath))
+        {
+            
+        }
+
         $relativePath = $this->buildRelativePath($absolutePath);
 
         $asset = new Asset($this->files, $this->factory, $this->appEnvironment, $absolutePath, $relativePath);
 
         return $asset->setOrder($this->nextAssetOrder());
+    }
+
+    /**
+     * Determines if the path is outside of the public path.
+     * 
+     * @param  string  $path
+     * @return bool
+     */
+    protected function outsidePublic($path)
+    {
+        return ! starts_with($path, $this->publicPath);
     }
 
     /**
