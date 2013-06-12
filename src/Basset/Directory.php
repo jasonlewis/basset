@@ -4,12 +4,10 @@ use Closure;
 use Iterator;
 use Exception;
 use FilesystemIterator;
-use Illuminate\Log\Writer;
 use Basset\Filter\Filterable;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Basset\Factory\AssetFactory;
-use Basset\Factory\FilterFactory;
+use Basset\Factory\FactoryManager;
 use Basset\Exceptions\AssetNotFoundException;
 use Basset\Exceptions\DirectoryNotFoundException;
 
@@ -23,25 +21,11 @@ class Directory extends Filterable {
     protected $path;
 
     /**
-     * Illuminate log writer instance.
-     * 
-     * @var \Illuminate\Log\Writer
-     */
-    protected $log;
-
-    /**
-     * Basset filter factory instance.
+     * Basset factory manager instance.
      *
-     * @var \Basset\Factory\FilterFactory
+     * @var \Basset\Factory\FactoryManager
      */
-    protected $filterFactory;
-
-    /**
-     * Basset asset factory instance.
-     *
-     * @var \Basset\Factory\FilterFactory
-     */
-    protected $assetFactory;
+    protected $factory;
 
     /**
      * Basset asset finder instance.
@@ -67,20 +51,16 @@ class Directory extends Filterable {
     /**
      * Create a new directory instance.
      *
-     * @param  \Illuminate\Log\Writer  $log
-     * @param  \Basset\Factory\AssetFactory  $assetFactory
-     * @param  \Basset\Factory\FilterFactory  $filterFactory
+     * @param  \Basset\Factory\FactoryManager  $factory
      * @param  \Basset\AssetFinder  $finder
      * @param  string  $path
      * @return void
      */
-    public function __construct(Writer $log, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder, $path)
+    public function __construct(FactoryManager $factory, AssetFinder $finder, $path)
     {
         parent::__construct();
         
-        $this->log = $log;
-        $this->assetFactory = $assetFactory;
-        $this->filterFactory = $filterFactory;
+        $this->factory = $factory;
         $this->finder = $finder;
         $this->path = $path;
         $this->assets = new \Illuminate\Support\Collection;
@@ -106,7 +86,7 @@ class Directory extends Filterable {
             }
             else
             {
-                $asset = $this->assetFactory->make($path);
+                $asset = $this->factory->get('asset')->make($path);
 
                 $asset->isRemote() and $asset->raw();
             }
@@ -117,9 +97,9 @@ class Directory extends Filterable {
         }
         catch (AssetNotFoundException $e)
         {
-            $this->log->error(sprintf('Asset "%s" could not be found in "%s"', $name, $this->path));
+            $this->getLogger()->error(sprintf('Asset "%s" could not be found in "%s"', $name, $this->path));
 
-            return $this->assetFactory->make(null);
+            return $this->factory->get('asset')->make(null);
         }
     }
 
@@ -170,7 +150,7 @@ class Directory extends Filterable {
         {
             $path = $this->finder->setWorkingDirectory($path);
 
-            $this->directories[$path] = new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, $path);
+            $this->directories[$path] = new Directory($this->factory, $this->finder, $path);
 
             // Once we've set the working directory we'll fire the callback so that any added assets
             // are relative to the working directory. After the callback we can revert the working
@@ -183,9 +163,9 @@ class Directory extends Filterable {
         }
         catch (DirectoryNotFoundException $e)
         {
-            $this->log->error(sprintf('Directory "%s" could not be found in "%s"', $path, $this->path));
+            $this->getLogger()->error(sprintf('Directory "%s" could not be found in "%s"', $path, $this->path));
 
-            return new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, null);
+            return new Directory($this->factory, $this->finder, null);
         }
     }
 

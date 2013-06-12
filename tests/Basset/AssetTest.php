@@ -16,13 +16,15 @@ class AssetTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->files = m::mock('Illuminate\Filesystem\Filesystem');
-        $this->filter = m::mock('Basset\Factory\FilterFactory', array(m::mock('Illuminate\Log\Writer'), array(), array(), 'testing'))->shouldDeferMissing();
+        $this->factory = m::mock('Basset\Factory\FactoryManager');
+        $this->log = m::mock('Illuminate\Log\Writer');
+        $this->filter = m::mock('Basset\Factory\FilterFactory', array(array(), array(), 'testing'))->shouldDeferMissing();
+
+        $this->factory->shouldReceive('get')->with('filter')->andReturn($this->filter);
 
         $this->files->shouldReceive('lastModified')->with('path/to/public/foo/bar.sass')->andReturn('1368422603');
 
-        $this->log = m::mock('Illuminate\Log\Writer');
-
-        $this->asset = new Asset($this->files, $this->filter, $this->log, 'testing', 'path/to/public/foo/bar.sass', 'foo/bar.sass');
+        $this->asset = new Asset($this->files, $this->factory, 'testing', 'path/to/public/foo/bar.sass', 'foo/bar.sass');
         $this->asset->setOrder(1);
         $this->asset->setGroup('stylesheets');
     }
@@ -63,7 +65,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHosted()
     {
-        $asset = new Asset($this->files, $this->filter, $this->log, 'testing', 'http://foo.com/bar.css', 'http://foo.com/bar.css');
+        $asset = new Asset($this->files, $this->factory, 'testing', 'http://foo.com/bar.css', 'http://foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }
@@ -71,7 +73,7 @@ class AssetTest extends PHPUnit_Framework_TestCase {
 
     public function testAssetCanBeRemotelyHostedWithRelativeProtocol()
     {
-        $asset = new Asset($this->files, $this->filter, $this->log, 'testing', '//foo.com/bar.css', '//foo.com/bar.css');
+        $asset = new Asset($this->files, $this->factory, 'testing', '//foo.com/bar.css', '//foo.com/bar.css');
 
         $this->assertTrue($asset->isRemote());
     }

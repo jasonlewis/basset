@@ -1,18 +1,9 @@
 <?php namespace Basset\Factory;
 
 use Basset\Filter\Filter;
-use Illuminate\Log\Writer;
-use Illuminate\Config\Repository;
 use Basset\Filter\FilterableInterface;
 
-class FilterFactory implements FactoryInterface {
-
-    /**
-     * Illuminate log writer instance.
-     * 
-     * @var \Illuminate\Log\Writer
-     */
-    protected $log;
+class FilterFactory extends Factory {
 
     /**
      * Array of filter aliases.
@@ -33,23 +24,21 @@ class FilterFactory implements FactoryInterface {
      * 
      * @var string
      */
-    protected $applicationEnvironment;
+    protected $appEnvironment;
 
     /**
      * Create a new filter factory instance.
      * 
-     * @param  \Illuminate\Log\Writer  $log
      * @param  array  $aliases
      * @param  array  $nodePaths
-     * @param  string  $applicationEnvironment
+     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Writer $log, array $aliases, array $nodePaths, $applicationEnvironment)
+    public function __construct(array $aliases, array $nodePaths, $appEnvironment)
     {
-        $this->log = $log;
         $this->aliases = $aliases;
         $this->nodePaths = $nodePaths;
-        $this->applicationEnvironment = $applicationEnvironment;
+        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -75,7 +64,7 @@ class FilterFactory implements FactoryInterface {
         // If the filter was aliased and the value of the array was a callable closure then
         // we'll return and fire the callback on the filter instance so that any arguments
         // can be set for the filters constructor.
-        $filter = new Filter($this->log, $filter, $this->nodePaths, $this->applicationEnvironment);
+        $filter = new Filter($this->log, $filter, $this->nodePaths, $this->appEnvironment);
 
         if (isset($callback) and is_callable($callback))
         {

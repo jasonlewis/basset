@@ -1,10 +1,9 @@
 <?php namespace Basset\Factory;
 
 use Basset\Asset;
-use Illuminate\Log\Writer;
 use Illuminate\Filesystem\Filesystem;
 
-class AssetFactory implements FactoryInterface {
+class AssetFactory extends Factory {
 
     /**
      * Illuminate filesystem instance.
@@ -12,20 +11,6 @@ class AssetFactory implements FactoryInterface {
      * @var \Illuminate\Filesystem\Filesystem
      */
     protected $files;
-
-    /**
-     * Basset filter factory instance.
-     *
-     * @var \Basset\Factory\FilterFactory
-     */
-    protected $filter;
-
-    /**
-     * Illuminate log writer instance.
-     * 
-     * @var \Illuminate\Log\Writer
-     */
-    protected $log;
 
     /**
      * Application environment.
@@ -52,17 +37,13 @@ class AssetFactory implements FactoryInterface {
      * Create a new asset factory instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
-     * @param  \Basset\Factory\FilterFactory  $filter
-     * @param  \Illuminate\Log\Writer  $log
      * @param  string  $appEnvironment
      * @param  string  $publicPath
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filter, Writer $log, $appEnvironment, $publicPath)
+    public function __construct(Filesystem $files, $appEnvironment, $publicPath)
     {
         $this->files = $files;
-        $this->filter = $filter;
-        $this->log = $log;
         $this->appEnvironment = $appEnvironment;
         $this->publicPath = $publicPath;
     }
@@ -79,7 +60,7 @@ class AssetFactory implements FactoryInterface {
 
         $relativePath = $this->buildRelativePath($absolutePath);
 
-        $asset = new Asset($this->files, $this->filter, $this->log, $this->appEnvironment, $absolutePath, $relativePath);
+        $asset = new Asset($this->files, $this->factory, $this->appEnvironment, $absolutePath, $relativePath);
 
         return $asset->setOrder($this->nextAssetOrder());
     }

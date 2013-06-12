@@ -159,7 +159,7 @@ class ServerTest extends PHPUnit_Framework_TestCase {
 
         $collection->shouldReceive('getIdentifier')->andReturn('foo');
         $collection->shouldReceive('getAssetsWithRaw')->once()->with('stylesheets')->andReturn($assets = array(
-            m::mock('Basset\Asset', array(new Filesystem, m::mock('Basset\Factory\FilterFactory'), m::mock('Illuminate\Log\Writer'), 'testing', null, null))->shouldDeferMissing(),
+            m::mock('Basset\Asset', array(new Filesystem, m::mock('Basset\Factory\FactoryManager'), 'testing', null, null))->shouldDeferMissing(),
             m::mock('Basset\Asset')->shouldDeferMissing()
         ));
 

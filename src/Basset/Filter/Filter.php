@@ -71,7 +71,7 @@ class Filter {
      * 
      * @var string
      */
-    protected $applicationEnvironment;
+    protected $appEnvironment;
 
     /**
      * Illuminate log writer instance.
@@ -93,15 +93,15 @@ class Filter {
      * @param  \Illuminate\Log\Writer  $log
      * @param  string  $filter
      * @param  array  $nodePaths
-     * @param  string  $applicationEnvironment
+     * @param  string  $appEnvironment
      * @return void
      */
-    public function __construct(Writer $log, $filter, array $nodePaths, $applicationEnvironment)
+    public function __construct(Writer $log, $filter, array $nodePaths, $appEnvironment)
     {
         $this->log = $log;
         $this->filter = $filter;
         $this->nodePaths = $nodePaths;
-        $this->applicationEnvironment = $applicationEnvironment;
+        $this->appEnvironment = $appEnvironment;
     }
 
     /**
@@ -250,11 +250,11 @@ class Filter {
     {
         $environments = func_get_args();
 
-        $applicationEnvironment = $this->applicationEnvironment;
+        $appEnvironment = $this->appEnvironment;
 
-        return $this->when(function($asset) use ($environments, $applicationEnvironment)
+        return $this->when(function($asset) use ($environments, $appEnvironment)
         {
-            return in_array($applicationEnvironment, $environments);
+            return in_array($appEnvironment, $environments);
         });
     }
 

@@ -1,10 +1,9 @@
 <?php namespace Basset;
 
-use Illuminate\Log\Writer;
 use Basset\Filter\Filterable;
 use InvalidArgumentException;
 use Assetic\Asset\StringAsset;
-use Basset\Factory\FilterFactory;
+use Basset\Factory\FactoryManager;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
 
@@ -18,18 +17,11 @@ class Asset extends Filterable {
     protected $files;
 
     /**
-     * Basset filter factory instance.
+     * Basset factory manager instance.
      *
-     * @var Basset\Factory\FilterFactory
+     * @var Basset\Factory\FactoryManager
      */
-    protected $filterFactory;
-
-    /**
-     * Illuminate log writer instance.
-     * 
-     * @var \Illuminate\Log\Writer
-     */
-    protected $log;
+    protected $factory;
 
     /**
      * Application environment.
@@ -94,20 +86,18 @@ class Asset extends Filterable {
      * Create a new asset instance.
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
-     * @param  \Basset\Factory\FilterFactory  $filterFactory
-     * @param  \Illuminate\Log\Writer  $log
+     * @param  \Basset\Factory\FactoryManager  $factory
      * @param  string  $appEnvironment
      * @param  string  $absolutePath
      * @param  string  $relativePath
      * @return void
      */
-    public function __construct(Filesystem $files, FilterFactory $filterFactory, Writer $log, $appEnvironment, $absolutePath, $relativePath)
+    public function __construct(Filesystem $files, FactoryManager $factory, $appEnvironment, $absolutePath, $relativePath)
     {
         parent::__construct();
         
         $this->files = $files;
-        $this->filterFactory = $filterFactory;
-        $this->log = $log;
+        $this->factory = $factory;
         $this->appEnvironment = $appEnvironment;
         $this->absolutePath = $absolutePath;
         $this->relativePath = $relativePath;
@@ -303,7 +293,7 @@ class Asset extends Filterable {
     {
         if (extension_loaded('curl'))
         {
-            $this->log->warning('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
+            $this->getLogger()->warning('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
 
             $handler = curl_init($this->absolutePath);
 

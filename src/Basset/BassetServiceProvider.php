@@ -5,9 +5,8 @@ use Basset\Builder\Builder;
 use Basset\Manifest\Manifest;
 use Monolog\Handler\NullHandler;
 use Basset\Console\BuildCommand;
-use Basset\Factory\AssetFactory;
-use Basset\Factory\FilterFactory;
 use Basset\Console\BassetCommand;
+use Basset\Factory\FactoryManager;
 use Monolog\Logger as MonologLogger;
 use Basset\Builder\FilesystemCleaner;
 use Illuminate\Support\ServiceProvider;
@@ -36,7 +35,7 @@ class BassetServiceProvider extends ServiceProvider {
     protected $components = array(
         'AssetFinder',
         'Logger',
-        'Factories',
+        'FactoryManager',
         'Server',
         'Manifest',
         'Builder',
@@ -166,24 +165,15 @@ class BassetServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the asset and filter factories.
+     * Register the factory manager.
      *
      * @return void
      */
-    protected function registerFactories()
+    protected function registerFactoryManager()
     {
-        $this->app['basset.factory.asset'] = $this->app->share(function($app)
+        $this->app['basset.factory'] = $this->app->share(function($app)
         {
-            return new AssetFactory($app['files'], $app['basset.factory.filter'], $app['basset.log'], $app['env'], $app['path.public']);
-        });
-
-        $this->app['basset.factory.filter'] = $this->app->share(function($app)
-        {
-            $aliases = $app['config']->get('basset::aliases.filters', array());
-
-            $nodePaths = $app['config']->get('basset::node_paths', array());
-
-            return new FilterFactory($app['basset.log'], $aliases, $nodePaths, $app['env']);
+            return new FactoryManager($app);
         });
     }
 
@@ -229,7 +219,7 @@ class BassetServiceProvider extends ServiceProvider {
     {
         $this->app['basset'] = $this->app->share(function($app)
         {
-            return new Environment($app['basset.log'], $app['basset.factory.asset'], $app['basset.factory.filter'], $app['basset.finder']);
+            return new Environment($app['basset.factory'], $app['basset.finder']);
         });
     }
 

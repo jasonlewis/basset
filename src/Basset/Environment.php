@@ -2,10 +2,8 @@
 
 use Closure;
 use ArrayAccess;
-use Illuminate\Log\Writer;
 use InvalidArgumentException;
-use Basset\Factory\AssetFactory;
-use Basset\Factory\FilterFactory;
+use Basset\Factory\FactoryManager;
 
 class Environment implements ArrayAccess {
 
@@ -17,25 +15,11 @@ class Environment implements ArrayAccess {
     protected $collections = array();
 
     /**
-     * Illuminate log writer instance.
-     * 
-     * @var \Illuminate\Log\Writer
-     */
-    protected $log;
-
-    /**
-     * Basset asset factory instance.
+     * Basset factory manager instance.
      *
-     * @var \Basset\Factory\AssetFactory
+     * @var \Basset\Factory\FactoryManager
      */
-    protected $assetFactory;
-
-    /**
-     * Basset filter factory instance.
-     *
-     * @var \Basset\Factory\FilterFactory
-     */
-    protected $filterFactory;
+    protected $factory;
 
     /**
      * Asset finder instance.
@@ -47,17 +31,13 @@ class Environment implements ArrayAccess {
     /**
      * Create a new environment instance.
      *
-     * @param  \Illuminate\Log\Writer  $log
-     * @param  \Basset\Factory\AssetFactory  $assetFactory
-     * @param  \Basset\Factory\FilterFactory  $filterFactory
+     * @param  \Basset\Factory\FactoryManager  $factory
      * @param  \Basset\AssetFinder  $finder
      * @return void
      */
-    public function __construct(Writer $log, AssetFactory $assetFactory, FilterFactory $filterFactory, AssetFinder $finder)
+    public function __construct(FactoryManager $factory, AssetFinder $finder)
     {
-        $this->log = $log;
-        $this->assetFactory = $assetFactory;
-        $this->filterFactory = $filterFactory;
+        $this->factory = $factory;
         $this->finder = $finder;
     }
 
@@ -109,7 +89,7 @@ class Environment implements ArrayAccess {
     {
         $path = $this->finder->setWorkingDirectory('/');
 
-        return new Directory($this->log, $this->assetFactory, $this->filterFactory, $this->finder, $path);
+        return new Directory($this->factory, $this->finder, $path);
     }
 
     /**

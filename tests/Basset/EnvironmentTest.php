@@ -14,14 +14,10 @@ class EnvironmentTest extends PHPUnit_Framework_TestCase {
 
     public function setUp()
     {
-        $this->log = m::mock('Illuminate\Log\Writer');
-        $this->asset = m::mock('Basset\Factory\AssetFactory');
-        $this->filter = m::mock('Basset\Factory\FilterFactory');
         $this->finder = m::mock('Basset\AssetFinder');
-
         $this->finder->shouldReceive('setWorkingDirectory')->with('/')->andReturn('/');
 
-        $this->environment = new Environment($this->log, $this->asset, $this->filter, $this->finder);
+        $this->environment = new Environment(m::mock('Basset\Factory\FactoryManager'), $this->finder);
     }
 
 
