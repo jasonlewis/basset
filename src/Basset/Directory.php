@@ -3,7 +3,6 @@
 use Closure;
 use Iterator;
 use Exception;
-use SplFileInfo;
 use FilesystemIterator;
 use Illuminate\Log\Writer;
 use Basset\Filter\Filterable;
@@ -101,14 +100,20 @@ class Directory extends Filterable {
         {
             $path = $this->finder->find($name);
 
-            if ( ! isset($this->assets[$path]))
+            if (isset($this->assets[$path]))
+            {
+                $asset = $this->assets[$path];
+            }
+            else
             {
                 $asset = $this->assetFactory->make($path);
 
                 $asset->isRemote() and $asset->raw();
-
-                $this->assets[$path] = $asset;
             }
+
+            is_callable($callback) and call_user_func($callback, $asset);
+
+            return $this->assets[$path] = $asset;
         }
         catch (AssetNotFoundException $e)
         {
@@ -116,13 +121,6 @@ class Directory extends Filterable {
 
             return $this->assetFactory->make(null);
         }
-
-        if (is_callable($callback))
-        {
-            call_user_func($callback, $this->assets[$path]);
-        }
-
-        return $this->assets[$path];
     }
 
     /**
@@ -181,8 +179,6 @@ class Directory extends Filterable {
 
             $this->finder->resetWorkingDirectory();
 
-            // Once the working directory has been made and reset on the finder we can return and
-            // add this directory to the array of directories.
             return $this->directories[$path];
         }
         catch (DirectoryNotFoundException $e)
@@ -277,25 +273,12 @@ class Directory extends Filterable {
         // are added to the array of assets for this directory.
         foreach ($iterator as $file)
         {
-            if ( ! $this->validAssetFile($file)) continue;
+            if ( ! $file->isFile()) continue;
 
-            $path = $file->getPathname();
-
-            $this->add($path);
+            $this->add($file->getPathname());
         }
 
         return $this;
-    }
-
-    /**
-     * Determines if the file is a valid asset file.
-     * 
-     * @param  \SplFileInfo  $file
-     * @return bool
-     */
-    protected function validAssetFile(SplFileInfo $file)
-    {
-        return $file->isFile();
     }
 
     /**
@@ -308,6 +291,8 @@ class Directory extends Filterable {
     {
         $assets = array_flatten(func_get_args());
 
+        // Store the directory instance on a variable that we can inject into the scope of
+        // the closure below. This allows us to call the path conversion method.
         $directory = $this;
 
         $this->assets = $this->assets->filter(function($asset) use ($assets, $directory)
@@ -330,6 +315,8 @@ class Directory extends Filterable {
     {
         $assets = array_flatten(func_get_args());
 
+        // Store the directory instance on a variable that we can inject into the scope of
+        // the closure below. This allows us to call the path conversion method.
         $directory = $this;
 
         $this->assets = $this->assets->filter(function($asset) use ($assets, $directory)

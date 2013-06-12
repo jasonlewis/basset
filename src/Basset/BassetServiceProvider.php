@@ -69,9 +69,9 @@ class BassetServiceProvider extends ServiceProvider {
             $this->app['basset.log']->getMonolog()->pushHandler($handler);
         }
 
-        // Register the build path with the application so that bindings that make use of the
-        // build path can easily pull it from the container.
         $this->app->instance('basset.path.build', $this->app['path.public'].'/'.$this->app['config']->get('basset::build_path'));
+
+        $this->registerBladeExtensions();
 
         // Collections can be defined as an array in the configuration file. We'll register
         // this array of collections with the environment.
@@ -80,8 +80,6 @@ class BassetServiceProvider extends ServiceProvider {
         // Load the local manifest that contains the fingerprinted paths to both production
         // and development builds.
         $this->app['basset.manifest']->load();
-
-        $this->registerBladeExtensions();
     }
 
     /**

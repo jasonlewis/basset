@@ -175,7 +175,7 @@ class Environment implements ArrayAccess {
     {
         if (is_null($offset))
         {
-            throw new InvalidArgumentException("No collection name given.");
+            throw new InvalidArgumentException('Collection identifier not given.');
         }
 
         $this->collection($offset, $value);
