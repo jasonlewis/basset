@@ -3,18 +3,18 @@
 class Collection {
 
     /**
-     * The collection identifier.
-     *
-     * @var string
-     */
-    protected $identifier;
-
-    /**
      * The default directory of the collection.
      * 
      * @var \Basset\Directory
      */
     protected $directory;
+    
+    /**
+     * The collection identifier.
+     *
+     * @var string
+     */
+    protected $identifier;
 
     /**
      * Create a new collection instance.
@@ -23,10 +23,10 @@ class Collection {
      * @param  \Basset\Directory  $directory
      * @return void
      */
-    public function __construct($identifier, Directory $directory)
+    public function __construct(Directory $directory, $identifier)
     {
-        $this->identifier = $identifier;
         $this->directory = $directory;
+        $this->identifier = $identifier;
     }
 
     /**

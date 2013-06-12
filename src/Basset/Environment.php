@@ -76,17 +76,17 @@ class Environment implements ArrayAccess {
     /**
      * Create or return an existing collection.
      *
-     * @param  string  $name
+     * @param  string  $identifier
      * @param  \Closure  $callback
      * @return \Basset\Collection
      */
-    public function collection($name, Closure $callback = null)
+    public function collection($identifier, Closure $callback = null)
     {
-        if ( ! isset($this->collections[$name]))
+        if ( ! isset($this->collections[$identifier]))
         {
             $directory = $this->prepareDefaultDirectory();
 
-            $this->collections[$name] = new Collection($name, $directory);
+            $this->collections[$identifier] = new Collection($directory, $identifier);
         }
 
         // If the collection has been given a callable closure then we'll execute the closure with
@@ -94,10 +94,10 @@ class Environment implements ArrayAccess {
         // using the collection instance to add assets.
         if (is_callable($callback))
         {
-            call_user_func($callback, $this->collections[$name]);
+            call_user_func($callback, $this->collections[$identifier]);
         }
 
-        return $this->collections[$name];
+        return $this->collections[$identifier];
     }
 
     /**
