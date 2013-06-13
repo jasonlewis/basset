@@ -58,9 +58,12 @@ class AssetFactory extends Factory {
     {
         $absolutePath = $this->buildAbsolutePath($path);
 
+        // If the path is determined to be outside of the public path we'll run an extra
+        // check to see if we can find a published path. This will replace the original
+        // absolute path.
         if ($this->outsidePublic($absolutePath))
         {
-            
+            $absolutePath = $this->findPublishedPath($path);
         }
 
         $relativePath = $this->buildRelativePath($absolutePath);
@@ -68,6 +71,47 @@ class AssetFactory extends Factory {
         $asset = new Asset($this->files, $this->factory, $this->appEnvironment, $absolutePath, $relativePath);
 
         return $asset->setOrder($this->nextAssetOrder());
+    }
+
+    /**
+     * Find a possible published path.
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    protected function findPublishedPath($path)
+    {
+        $relativePath = $this->stripPublicPath($path);
+
+        // Split the relative path into the different segments and filter out any empty
+        // segments. These segments will then be checked until a viable possibility
+        // is found and returned.
+        $segments = array_filter(explode('/', $relativePath));
+
+        for ($i = 0; $i < count($segments); ++$i)
+        {
+            $possiblePath = $this->publicPath.'/'.implode('/', array_slice($segments, $i));
+
+            if ($this->files->exists($possiblePath))
+            {
+                return $possiblePath;
+            }
+        }
+
+        return $path;
+    }
+
+    /**
+     * Strip the public path from a given path.
+     * 
+     * @param  string  $path
+     * @return string
+     */
+    protected function stripPublicPath($path)
+    {
+        $path = preg_replace('/^'.preg_quote($this->publicPath).'/', '', $path);
+
+        return str_replace(array('\\', '..'), array('/', ''), $path);
     }
 
     /**

@@ -49,6 +49,13 @@ class Directory extends Filterable {
     protected $directories;
 
     /**
+     * Array of paths to be published during build.
+     * 
+     * @var array
+     */
+    protected $publishQueue = array();
+
+    /**
      * Create a new directory instance.
      *
      * @param  \Basset\Factory\FactoryManager  $factory
@@ -349,6 +356,32 @@ class Directory extends Filterable {
     }
 
     /**
+     * Publish a number of assets to the public directory.
+     * 
+     * @param  mixed  $paths
+     * @return \Basset\Directory
+     */
+    public function publish()
+    {
+        foreach (array_flatten(func_get_args()) as $path)
+        {
+            $this->publishQueue[] = $this->path.'/'.$path;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the publish queue for the directory.
+     * 
+     * @return array
+     */
+    public function getPublishQueue()
+    {
+        return $this->publishQueue;
+    }
+
+    /**
      * Get the path to the directory.
      *
      * @return string
@@ -394,6 +427,16 @@ class Directory extends Filterable {
     public function getDirectoryAssets()
     {
         return $this->assets;
+    }
+
+    /**
+     * Get the nested directories on the directory.
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    public function getDirectories()
+    {
+        return $this->directories;
     }
     
 }

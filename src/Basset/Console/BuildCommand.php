@@ -94,6 +94,8 @@ class BuildCommand extends Command {
 
         foreach ($collections as $name => $collection)
         {
+            $this->call('basset:publish', array('collection' => $name));
+
             if ($production)
             {
                 $this->buildAsProduction($name, $collection);

@@ -230,7 +230,7 @@ class Server {
      */
     protected function prefixBuildPath($path)
     {
-        if ($buildPath = $this->app['config']->get('basset::build_path'))
+        if ($buildPath = $this->app['config']->get('basset::paths.build'))
         {
             $path = "{$buildPath}/{$path}";
         }

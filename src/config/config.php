@@ -79,17 +79,34 @@ return array(
 
     /*
     |--------------------------------------------------------------------------
-    | Build Path
+    | Build, Publish, and Node Paths
     |--------------------------------------------------------------------------
     |
-    | When assets are built with Artisan they will be stored within a directory
-    | relative to the public directory.
+    | When building assets with Artisan the build path will be where the
+    | collections are stored.
     |
-    | If the directory does not exist Basset will attempt to create it.
+    | If your collections publish assets outside of the public directory they
+    | will be published to the publish path.
+    |
+    | Many filters use Node to build assets. We recommend you install your
+    | Node modules locally at the root of your application, however you can
+    | specify additional paths to your modules.
     |
     */
 
-    'build_path' => 'builds',
+    'paths' => array(
+
+        'build' => 'builds',
+
+        'publish' => '/',
+
+        'node' => array(
+
+            base_path().'/node_modules'
+
+        )
+
+    ),
 
     /*
     |--------------------------------------------------------------------------
@@ -102,23 +119,6 @@ return array(
     */
 
     'debug' => false,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Node Paths
-    |--------------------------------------------------------------------------
-    |
-    | Many filters use Node to build assets. We recommend you install your
-    | Node modules locally at the root of your application, however you can
-    | specify additional paths to your modules.
-    |
-    */
-
-    'node_paths' => array(
-
-        base_path().'/node_modules'
-
-    ),
 
     /*
     |--------------------------------------------------------------------------

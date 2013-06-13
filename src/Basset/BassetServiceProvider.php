@@ -6,6 +6,7 @@ use Basset\Manifest\Manifest;
 use Monolog\Handler\NullHandler;
 use Basset\Console\BuildCommand;
 use Basset\Console\BassetCommand;
+use Basset\Console\PublishCommand;
 use Basset\Factory\FactoryManager;
 use Monolog\Logger as MonologLogger;
 use Basset\Builder\FilesystemCleaner;
@@ -34,6 +35,7 @@ class BassetServiceProvider extends ServiceProvider {
      */
     protected $components = array(
         'AssetFinder',
+        'AssetPublisher',
         'Logger',
         'FactoryManager',
         'Server',
@@ -68,7 +70,9 @@ class BassetServiceProvider extends ServiceProvider {
             $this->app['basset.log']->getMonolog()->pushHandler($handler);
         }
 
-        $this->app->instance('basset.path.build', $this->app['path.public'].'/'.$this->app['config']->get('basset::build_path'));
+        $this->app->instance('basset.path.build', $this->app['path.public'].'/'.$this->app['config']->get('basset::paths.build'));
+
+        $this->app->instance('basset.path.publish', $this->app['path.public'].'/'.$this->app['config']->get('basset::paths.publish'));
 
         $this->registerBladeExtensions();
 
@@ -135,6 +139,19 @@ class BassetServiceProvider extends ServiceProvider {
         $this->app['basset.finder'] = $this->app->share(function($app)
         {
             return new AssetFinder($app['files'], $app['config'], $app['path.public']);
+        });
+    }
+
+    /**
+     * Register the asset publisher.
+     * 
+     * @return void
+     */
+    protected function registerAssetPublisher()
+    {
+        $this->app['basset.publisher'] = $this->app->share(function($app)
+        {
+            return new AssetPublisher($app['files'], $app['config'], $app['path.public'], $app['path.base'], $app['basset.path.publish']);
         });
     }
 
@@ -234,7 +251,9 @@ class BassetServiceProvider extends ServiceProvider {
         
         $this->registerBuildCommand();
 
-        $this->commands('command.basset', 'command.basset.build');
+        $this->registerPublishCommand();
+
+        $this->commands('command.basset', 'command.basset.build', 'command.basset.publish');
     }
 
     /**
@@ -260,6 +279,19 @@ class BassetServiceProvider extends ServiceProvider {
         $this->app['command.basset.build'] = $this->app->share(function($app)
         {
             return new BuildCommand($app['basset'], $app['basset.builder'], $app['basset.builder.cleaner']);
+        });
+    }
+
+    /**
+     * Register the publish command.
+     * 
+     * @return void
+     */
+    protected function registerPublishCommand()
+    {
+        $this->app['command.basset.publish'] = $this->app->share(function($app)
+        {
+            return new PublishCommand($app['basset'], $app['basset.publisher']);
         });
     }
 

@@ -73,3 +73,29 @@ if ( ! function_exists('array_to_newlines'))
         return implode(PHP_EOL, $array);
     }
 }
+
+if ( ! function_exists('resolve_path'))
+{
+    function resolve_path($path)
+    {
+        $path = str_replace('\\', '/', $path);
+
+        $resolved = array();
+
+        foreach (explode('/', $path) as $segment)
+        {
+            if ($segment == '.') continue;
+
+            if ($segment == '..')
+            {
+                array_pop($resolved);
+
+                continue;
+            }
+
+            $resolved[] = $segment;
+        }
+
+        return implode('/', $resolved);
+    }
+}

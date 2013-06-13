@@ -47,7 +47,6 @@ class Builder {
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Basset\Manifest\Manifest  $manifest
-     * @param  \Basset\Builder\FilesystemCleaner  $cleaner
      * @param  string  $buildPath
      * @return void
      */

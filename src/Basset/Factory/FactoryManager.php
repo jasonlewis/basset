@@ -36,7 +36,7 @@ class FactoryManager extends Manager {
 	{
 		$aliases = $this->app['config']->get('basset::aliases.filters', array());
 
-		$node = $this->app['config']->get('basset::node_paths', array());
+		$node = $this->app['config']->get('basset::paths.node', array());
 
 		$filter = new FilterFactory($aliases, $node, $this->app['env']);
 

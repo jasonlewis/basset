@@ -160,6 +160,23 @@ class Collection {
     }
 
     /**
+     * Get the publish queue for the collection.
+     * 
+     * @return array
+     */
+    public function getPublishQueue()
+    {
+        $publishQueue = $this->directory->getPublishQueue();
+
+        $this->directory->getDirectories()->each(function($directory) use (&$publishQueue)
+        {
+            $publishQueue = array_merge($publishQueue, $directory->getPublishQueue());
+        });
+
+        return $publishQueue;
+    }
+
+    /**
      * Dynamically call methods on the default directory.
      * 
      * @param  string  $method
