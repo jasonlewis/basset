@@ -1,11 +1,11 @@
 {
   "providers": [
-		"Basset\BassetServiceProvider"
+		"Basset\\BassetServiceProvider"
 	],
 	"aliases": [
     {
       "alias": "Basset",
-      "facade": "Basset\Facade"
+      "facade": "Basset\\Facade"
     }
 	]
 }
