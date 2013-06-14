@@ -79,7 +79,7 @@ class Asset extends Filterable {
      */
     protected $allowedExtensions = array(
         'stylesheets' => array('css', 'sass', 'scss', 'less', 'styl', 'roo', 'gss'),
-        'javascripts' => array('js', 'coffee', 'dart', 'ts')
+        'javascripts' => array('js', 'coffee', 'dart', 'ts', 'hbs')
     );
 
     /**
