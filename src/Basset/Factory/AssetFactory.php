@@ -109,7 +109,7 @@ class AssetFactory extends Factory {
      */
     protected function stripPublicPath($path)
     {
-        $path = preg_replace('/^'.preg_quote($this->publicPath).'/', '', $path);
+        $path = preg_replace('/^'.preg_quote($this->publicPath, '/').'/', '', $path);
 
         return str_replace(array('\\', '..'), array('/', ''), $path);
     }
