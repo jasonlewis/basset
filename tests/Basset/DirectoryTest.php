@@ -52,6 +52,18 @@ class DirectoryTest extends PHPUnit_Framework_TestCase {
     }
 
 
+    public function testAddingAssetFormatsProperlyPath()
+    {
+        $asset = new Asset($this->files, $this->filter, null, null);
+
+        $this->finder->shouldReceive('find')->once()->with('foo.css')->andReturn('path\to\foo.css');
+        $this->asset->shouldReceive('make')->once()->with('path/to/foo.css')->andReturn($asset);
+
+        $this->assertInstanceOf('Basset\Asset', $this->directory->stylesheet('foo.css'));
+        $this->assertCount(1, $this->directory->getDirectoryAssets());
+    }
+
+
     public function testAddingAssetFiresCallback()
     {
         $asset = new Asset($this->files, $this->filter, null, null);
