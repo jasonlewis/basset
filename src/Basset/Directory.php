@@ -98,7 +98,7 @@ class Directory extends Filterable {
     {
         try
         {
-            $path = $this->formatPath($this->finder->find($name));
+            $path = $this->normalizePath($this->finder->find($name));
             $asset = $this->assetFactory->make($path);
 
             $asset->isRemote() and $asset->exclude();
@@ -126,7 +126,7 @@ class Directory extends Filterable {
      * @param  string $path
      * @return string
      */
-    private function formatPath($path)
+    private function normalizePath($path)
     {
         return str_replace('\\', '/', $path);
     }
