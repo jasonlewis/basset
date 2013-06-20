@@ -99,11 +99,15 @@ class Directory extends Filterable {
         try
         {
             $path = $this->normalizePath($this->finder->find($name));
-            $asset = $this->assetFactory->make($path);
 
-            $asset->isRemote() and $asset->exclude();
+            if ( ! isset($this->assets[$path]))
+            {
+                $asset = $this->assetFactory->make($path);
 
-            $this->assets[$path] = $asset;
+                $asset->isRemote() and $asset->exclude();
+
+                $this->assets[$path] = $asset;
+            }
         }
         catch (AssetNotFoundException $e)
         {
