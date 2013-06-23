@@ -438,6 +438,10 @@ class Filter {
         {
             return "Basset\\Filter\\{$this->filter}";
         }
+        else
+        {
+            return $this->filter;
+        }
     }
 
     /**
