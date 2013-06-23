@@ -55,20 +55,20 @@ class FilesystemCleanerTest extends PHPUnit_Framework_TestCase {
             'bar-acbd18db4cc2f85cedef654fccc4a4d8.js'
         ));
 
-        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo-*.css')->andReturn(array(
+        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo-????????????????????????????????.css')->andReturn(array(
             'path/to/builds/foo-37b51d194a7513e45b56f6524f2d51f2.css',
             'path/to/builds/foo-asfjkb8912h498hacn8casc8h8942102.css'
         ));
         $this->files->shouldReceive('delete')->once()->with('path/to/builds/foo-asfjkb8912h498hacn8casc8h8942102.css')->andReturn(true);
-        $this->files->shouldReceive('glob')->once()->with('path/to/builds/bar-*.js')->andReturn(array());
+        $this->files->shouldReceive('glob')->once()->with('path/to/builds/bar-????????????????????????????????.js')->andReturn(array());
 
         $entry->shouldReceive('getDevelopmentAssets')->once()->andReturn(array(
             'stylesheets' => array('bar/baz-37b51d194a7513e45b56f6524f2d51f2.css', 'bar/qux-acbd18db4cc2f85cedef654fccc4a4d8.css'),
             'javascripts' => array()
         ));
 
-        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo/bar/baz-*.css')->andReturn(array('path/to/builds/foo/bar/baz-37b51d194a7513e45b56f6524f2d51f2.css'));
-        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo/bar/qux-*.css')->andReturn(array());
+        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo/bar/baz-????????????????????????????????.css')->andReturn(array('path/to/builds/foo/bar/baz-37b51d194a7513e45b56f6524f2d51f2.css'));
+        $this->files->shouldReceive('glob')->once()->with('path/to/builds/foo/bar/qux-????????????????????????????????.css')->andReturn(array());
 
         $entry->shouldReceive('hasProductionFingerprints')->once()->andReturn(true);
         $entry->shouldReceive('hasDevelopmentAssets')->once()->andReturn(true);
