@@ -438,7 +438,7 @@ class Filter {
         {
             return "Basset\\Filter\\{$this->filter}";
         }
-        else
+        elseif (class_exists($this->filter))
         {
             return $this->filter;
         }
