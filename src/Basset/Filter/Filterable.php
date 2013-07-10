@@ -49,7 +49,7 @@ abstract class Filterable {
             return $this->applyFromArray($filter);
         }
 
-        $filter = $this->factory->get('filter')->make($filter)->setResource($this);
+        $filter = clone $this->factory->get('filter')->make($filter)->setResource($this);
 
         is_callable($callback) and call_user_func($callback, $filter);
 
@@ -66,7 +66,7 @@ abstract class Filterable {
     {
         foreach ($filters as $key => $value)
         {
-            $filter = $this->factory->get('filter')->make(is_callable($value) ? $key : $value)->setResource($this);
+            $filter = clone $this->factory->get('filter')->make(is_callable($value) ? $key : $value)->setResource($this);
 
             is_callable($value) and call_user_func($value, $filter);
 
