@@ -351,7 +351,7 @@ class Filter {
     /**
      * Set the filters instantiation arguments
      *
-     * @return Basset\Filter\Filter
+     * @return \Basset\Filter\Filter
      */
     public function setArguments()
     {
