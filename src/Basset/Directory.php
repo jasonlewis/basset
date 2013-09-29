@@ -278,8 +278,12 @@ class Directory extends Filterable {
         $this->assets = $this->assets->filter(function($asset) use ($assets, $directory)
         {
             $path = $directory->getPathRelativeToDirectory($asset->getRelativePath());
-
-            return ! in_array($path, $assets);
+            foreach ($assets as $_asset) {
+                if (strpos ($path, $_asset) !== false) {
+                    return false;
+                }
+            }
+            return true;
         });
 
         return $this;
