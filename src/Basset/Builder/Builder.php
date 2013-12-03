@@ -81,7 +81,7 @@ class Builder {
         // collection needs to be rebuilt.
         $build_raw_array = $assets->map(function($asset) { return $asset->build(true); })->all();
         $build = array_to_newlines($build_raw_array);
-        $build_content = serialize($build_raw_array);
+        $build_raw_content = serialize($build_raw_array);
 
         // If the build is empty then we'll reset the fingerprint on the manifest entry and throw the
         // exception as there's no point going any further.
@@ -92,7 +92,7 @@ class Builder {
             throw new BuildNotRequiredException;
         }
 
-        $fingerprint = $identifier.'-'.md5($build_content).'.'.$collection->getExtension($group);
+        $fingerprint = $identifier.'-'.md5($build_raw_content).'.'.$collection->getExtension($group);
 
         $path = $this->buildPath.'/'.$fingerprint;
 
