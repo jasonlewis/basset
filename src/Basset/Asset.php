@@ -6,6 +6,7 @@ use Assetic\Asset\StringAsset;
 use Basset\Factory\FactoryManager;
 use Assetic\Filter\FilterInterface;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Config;
 
 class Asset extends Filterable {
 
@@ -296,9 +297,11 @@ class Asset extends Filterable {
             $this->getLogger()->warning('Attempting to determine asset group using cURL. This may have a considerable effect on application speed.');
 
             $handler = curl_init($this->absolutePath);
-
+            
+            $follow_location = Config::get('basset::follow_location', true);
+            
             curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($handler, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($handler, CURLOPT_FOLLOWLOCATION, $follow_location);
             curl_setopt($handler, CURLOPT_HEADER, true);
             curl_setopt($handler, CURLOPT_NOBODY, true);
             curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, false);
@@ -379,7 +382,7 @@ class Asset extends Filterable {
      */
     public function getContent()
     {
-        return $this->files->getRemote($this->absolutePath);
+        return file_get_contents($this->absolutePath);
     }
 
     /**

@@ -93,6 +93,24 @@ return array(
 
     /*
     |--------------------------------------------------------------------------
+    | Open Base Dir Restrictions
+    |--------------------------------------------------------------------------
+    |
+    | Some hosts run with open base directory restrictions which prevents certain
+    | PHP functions from working. Basset relies on Curl's CURLOPT_FOLLOWLOCATION
+    | to follow location headers when assets don't have recognizable extensions.
+    | This configuration option lets the developer disable the code that implements
+    | this known restriction.
+    |
+    | Note: that disabling this option could cause redirects on remote assets to
+    |       not be loaded correctly.
+    |
+    */
+
+    'follow_location' => true,
+    
+    /*
+    |--------------------------------------------------------------------------
     | Debug
     |--------------------------------------------------------------------------
     |
