@@ -37,16 +37,24 @@ class UriRewriteFilter implements FilterInterface {
     protected $symlinks;
 
     /**
+     * Prefix URL of the asset.
+     *
+     * @var string
+     */
+    protected $assetUrl;
+
+    /**
      * Create a new UriRewriteFilter instance.
      *
      * @param  string  $documentRoot
      * @param  array  $symlinks
      * @return void
      */
-    public function __construct($documentRoot = null, $symlinks = array())
+    public function __construct($documentRoot = null, $symlinks = array(), $assetUrl = null)
     {
         $this->documentRoot = $this->realPath($documentRoot ?: $_SERVER['DOCUMENT_ROOT']);
         $this->symlinks = $symlinks;
+        $this->assetUrl = rtrim($assetUrl, '/');
     }
 
     /**
@@ -201,6 +209,7 @@ class UriRewriteFilter implements FilterInterface {
 
         $uri = strtr($path, '/\\', '//');
         $uri = $this->removeDots($uri);
+        $uri = $this->assetUrl.$uri;
 
         return $uri;
     }
