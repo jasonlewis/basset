@@ -117,7 +117,7 @@ class BassetCommand extends Command {
      */
     protected function tidyUpFilesystem()
     {
-        $collections = array_keys($this->environment->all()) + array_keys($this->manifest->all());
+        $collections = array_keys($this->environment->all()) + array_keys($this->manifest->all()->all());
 
         foreach ($collections as $collection)
         {
