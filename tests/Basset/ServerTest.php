@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Basset\Manifest\Manifest;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Filesystem\Filesystem;
-use Symfony\Component\Routing\RouteCollection;
+use Illuminate\Routing\RouteCollection;
 
 class ServerTest extends PHPUnit_Framework_TestCase {
 
