@@ -37,6 +37,13 @@ class UriRewriteFilter implements FilterInterface {
     protected $symlinks;
 
     /**
+     * Prepend site directory to URI
+     *
+     * @var string
+     */
+    protected $uriPrefix;
+
+    /**
      * Create a new UriRewriteFilter instance.
      *
      * @param  string  $documentRoot
@@ -47,6 +54,13 @@ class UriRewriteFilter implements FilterInterface {
     {
         $this->documentRoot = $this->realPath($documentRoot ?: $_SERVER['DOCUMENT_ROOT']);
         $this->symlinks = $symlinks;
+        if ($this->uriPrefix === null) {
+            $baseUrl = \Config::get('app.url');
+            $this->uriPrefix = '';
+            if ($pos = strpos($baseUrl, '/', strpos($baseUrl, '://') + 3)) {
+                $this->uriPrefix = substr($baseUrl, $pos);
+            }
+        }
     }
 
     /**
@@ -201,6 +215,8 @@ class UriRewriteFilter implements FilterInterface {
 
         $uri = strtr($path, '/\\', '//');
         $uri = $this->removeDots($uri);
+
+        $uri = $this->uriPrefix . $uri;
 
         return $uri;
     }
