@@ -158,7 +158,9 @@ class Manifest {
 
             $this->dirty = false;
 
-            return (bool) $this->files->put($path, $this->entries->toJson());
+            $this->files->put($path, $this->entries->toJson());
+            
+            return (bool) chmod($path, 0777);
         }
 
         return false;
